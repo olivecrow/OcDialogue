@@ -9,15 +9,22 @@ namespace OcUtility
     public class EditorComment : MonoBehaviour, IHierarchyIconDrawable
     {
 #if UNITY_EDITOR || DEBUG_BUILD
-        public string IconPath => "Assets/Oc Utility/Editor/Resources/EditorComment Icon.png";
+        public string IconPath => "EditorComment Icon";
         public int DistanceToText => -55;
-
+        [HideInInspector] GameObject gizmoTarget;
         public Context[] Contexts;
 
         void Reset()
         {
             Contexts = new Context[1];
+            gameObject.hideFlags = HideFlags.DontSaveInBuild;
         }
+
+        void OnDrawGizmos()
+        {
+            Gizmos.DrawIcon(transform.position, "Comment");
+        }
+
 
         [Serializable]
         public class Context

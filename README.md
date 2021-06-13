@@ -16,6 +16,6 @@
 ## 설치방법
 
 
-"com.olivecrow.ocutility": "https://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@github.com/olivecrow/OcUtility.git#upm"
+"com.olivecrow.ocutility": "https://<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>@github.com/olivecrow/OcUtility.git#upm"
 
-을 패키지매니저에서 URL로 적용하기
+을 Packages/manifest.json에 붙여넣은 후, 계정에 액세스 하기.
