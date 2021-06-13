@@ -1,0 +1,16 @@
+{
+    "name": "Unity.OcUtility.Editor",
+    "rootNamespace": "OcUtility.Editor",
+    "references": [
+        "GUID:43e224429687d6e4680fdb553321205f"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,10 @@
+{
+  "name": "com.olivecrow.ocutility",
+  "version": "1.0.0",
+  "dependencies": {
+    "com.unity.editorcoroutines": "1.0.0"
+  },
+  "displayName": "Oc Utility",
+  "description": "\ucee4\uc2a4\ud140 \ud328\ud0a4\uc9c0. \uc790\uc138\ud55c \ub0b4\uc6a9\uc740 README.md \ub97c \uc77d\uc5b4\ubcfc \uac83.",
+  "type": "tool"
+}
