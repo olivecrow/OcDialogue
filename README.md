@@ -12,3 +12,10 @@
 
 [Custom Package]
 - 오딘 인스펙터 / Odin Inspector
+
+## 설치방법
+
+
+"com.olivecrow.ocutility": "https://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@github.com/olivecrow/OcUtility.git#upm"
+
+을 패키지매니저에서 URL로 적용하기
