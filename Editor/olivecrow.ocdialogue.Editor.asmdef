@@ -1,0 +1,14 @@
+{
+    "name": "olivecrow.ocdialogue.Editor",
+    "rootNamespace": "OcDialogue.Editor",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
