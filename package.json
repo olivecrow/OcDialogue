@@ -1,0 +1,7 @@
+{
+  "name": "com.olivecrow.ocdialogue",
+  "version": "0.0.1",
+  "displayName": "Oc Dialogue",
+  "description": "데이터베이스를 포함한 커스텀 다이얼로그 시스템.",
+  "unity": "2020.3"
+}
