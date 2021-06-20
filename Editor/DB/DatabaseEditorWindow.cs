@@ -9,18 +9,8 @@ using UnityEngine;
 
 namespace OcDialogue.Editor
 {
-    public enum DBType
-    {
-        GameProcess,
-        Item,
-        Quest,
-        NPC,
-        Enemy
-    }
     public class DatabaseEditorWindow : OdinMenuEditorWindow
     {
-        
-
         public DBType DBType
         {
             get => _dbType;
@@ -62,17 +52,28 @@ namespace OcDialogue.Editor
                 }
             }
             SirenixEditorGUI.EndHorizontalToolbar();
+            
+            if(DBType == DBType.Item) 
+                new ItemDatabaseEditor(ForceMenuTreeRebuild).Draw(
+                        ref ItemDatabase.Instance.itemType, 
+                        ref ItemDatabase.Instance.itemSubType, 
+                        MenuTree.Selection.SelectedValue as ItemBase);
         }
 
         protected override OdinMenuTree BuildMenuTree()
         {
-            Debug.Log("Build menu Tree");
             var tree = new OdinMenuTree();
             switch (DBType)
             {
                 case DBType.GameProcess:
+                    tree.Add("GameProcess DB", GameProcessDatabase.Instance);
                     break;
                 case DBType.Item:
+                    foreach (var itemBase in ItemDatabase.Instance.Items)
+                    {
+                        if(itemBase.SubTypeString != ItemDatabase.Instance.itemSubType) continue;
+                        tree.Add(itemBase.itemName, itemBase, itemBase.editorIcon);
+                    }
                     break;
                 case DBType.Quest:
                     break;

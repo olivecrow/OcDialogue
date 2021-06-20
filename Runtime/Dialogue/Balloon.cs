@@ -24,7 +24,7 @@ namespace OcDialogue
         public string text;
 
         [Sirenix.OdinInspector.ReadOnly] public Vector2 position;
-        [HideIf("type", Type.Entry)] public bool useChecker;
+        // [HideIf("type", Type.Entry)] public bool useChecker;
 
         // [ShowIf("useChecker"), HideLabel, BoxGroup("Checker")]
         // public DataChecker checker;

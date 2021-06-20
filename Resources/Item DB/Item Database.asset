@@ -1,0 +1,97 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-9058935572288914533
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5902465eff2346628220cb33a24d1a8, type: 3}
+  m_Name: Long Sword
+  m_EditorClassIdentifier: 
+  type: 2
+  itemName: Long Sword
+  isStackable: 0
+  editorIcon: {fileID: 0}
+  maxStackCount: 0
+  description: 
+  subtype: 0
+--- !u!114 &-963670290890879154
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1dd09c7b29f04cb798182197de7fc81, type: 3}
+  m_Name: Sample Helm
+  m_EditorClassIdentifier: 
+  type: 1
+  itemName: Sample Helm
+  isStackable: 0
+  editorIcon: {fileID: 0}
+  maxStackCount: 0
+  description: 
+  subtype: 0
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3622ff54b855a41a4a86919b42a81fe6, type: 3}
+  m_Name: Item Database
+  m_EditorClassIdentifier: 
+  itemType: 2
+  itemSubType: OneHandSword
+  Items:
+  - {fileID: 4902567781789787078}
+  - {fileID: 470044353683555661}
+  - {fileID: -963670290890879154}
+  - {fileID: -9058935572288914533}
+--- !u!114 &470044353683555661
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06635504fa7134366929ffb39fc23547, type: 3}
+  m_Name: Sample Consumable Item
+  m_EditorClassIdentifier: 
+  type: 0
+  itemName: Sample Consumable Item
+  isStackable: 1
+  editorIcon: {fileID: 0}
+  maxStackCount: 100
+  description: 
+  subtype: 1
+--- !u!114 &4902567781789787078
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06635504fa7134366929ffb39fc23547, type: 3}
+  m_Name: Sameple Material Item
+  m_EditorClassIdentifier: 
+  type: 0
+  itemName: Sameple Material Item
+  isStackable: 1
+  editorIcon: {fileID: 0}
+  maxStackCount: 999
+  description: 
+  subtype: 0

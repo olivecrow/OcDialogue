@@ -3,7 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Sirenix.OdinInspector;
+
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace OcDialogue
@@ -11,20 +14,23 @@ namespace OcDialogue
     [CreateAssetMenu(fileName = "NPC Database", menuName = "Oc Dialogue/NPC Database")]
     public class NPCDatabase : ScriptableObject
     {
+#if UNITY_EDITOR
+        /// <summary> Editor Only. </summary>
         public const string AssetPath = "NPC DB/NPC Database";
+        /// <summary> Editor Only. </summary>
         public static NPCDatabase Instance => _instance;
         static NPCDatabase _instance;
         [ColorPalette]public Color palette;
-        /// <summary> 시스템 NPC </summary>
+        /// <summary> Editor Only. 시스템 NPC </summary>
         public NPC DefaultNPC;
-        [TableList(IsReadOnly = true)]public List<NPC> NPCs = new List<NPC>();
         
         [InitializeOnLoadMethod]
         static void Init()
         {
             _instance = Resources.Load<NPCDatabase>(AssetPath);
-        }
-
+        }  
+#endif
+        [TableList(IsReadOnly = true)]public List<NPC> NPCs = new List<NPC>();
         void OnValidate()
         {
             foreach (var npc in NPCs)
