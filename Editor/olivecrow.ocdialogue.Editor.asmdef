@@ -1,7 +1,9 @@
 {
     "name": "olivecrow.ocdialogue.Editor",
     "rootNamespace": "OcDialogue.Editor",
-    "references": [],
+    "references": [
+        "GUID:b2827b5227fde439da75d0495d5d531d"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

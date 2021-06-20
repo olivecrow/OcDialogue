@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,26 +17,46 @@ namespace OcDialogue
         [ColorPalette]public Color palette;
         /// <summary> 시스템 NPC </summary>
         public NPC DefaultNPC;
-        [TableList]public List<NPC> NPCs = new List<NPC>();
+        [TableList(IsReadOnly = true)]public List<NPC> NPCs = new List<NPC>();
         
         [InitializeOnLoadMethod]
         static void Init()
         {
             _instance = Resources.Load<NPCDatabase>(AssetPath);
         }
+
+        void OnValidate()
+        {
+            foreach (var npc in NPCs)
+            {
+                if(npc.name == npc.NPCName) continue;
+                isNameDirty = true;
+                break;
+            }
+        }
 #if UNITY_EDITOR
-        [Button]
+        /// <summary> Editor Only. 이름 수정 후 매칭할때 사용함. </summary>
+        [HideInInspector]public bool isNameDirty;
+        
+        [HorizontalGroup("Buttons"), Button(ButtonSizes.Medium), GUIColor(1, 1, 0), EnableIf("isNameDirty")]
+        public void MatchAllNames()
+        {
+            foreach (var npc in NPCs)
+            {
+                if(npc.name == npc.NPCName) continue;
+                npc.name = npc.NPCName;
+            }
+
+            isNameDirty = false;
+            AssetDatabase.SaveAssets();
+        }
+        
+        [HorizontalGroup("Buttons"), Button(ButtonSizes.Medium)]
         public void AddNPC()
         {
             var npc = CreateInstance<NPC>();
-            var sameNameCount = -1;
-            if (NPCs == null || NPCs.Count == 0) sameNameCount = 0;
-            else
-            {
-                sameNameCount = NPCs.Count(x => x.NPCName.Contains("New NPC"));
-            }
 
-            npc.name = $"New NPC {sameNameCount}";
+            npc.name = OcDataUtility.CalculateDataName("New NPC", NPCs.Select(x => x.NPCName));
             npc.NPCName = npc.name;
             NPCs.Add(npc);
             OcDataUtility.Repaint();
@@ -44,10 +65,12 @@ namespace OcDialogue
             EditorUtility.SetDirty(this);
             AssetDatabase.SaveAssets();
         }
-
+        
         [Button]
         public void DeleteNPC(string npcName)
         {
+            if(!EditorUtility.DisplayDialog("삭제?", "정말 해당 NPC를 삭제하겠습니까?", "OK", "Cancel"))
+                return;
             var npc = NPCs.FirstOrDefault(x => x.NPCName == npcName);
             if (npc == null)
             {

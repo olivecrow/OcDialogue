@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-
+using System.Linq;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -18,6 +18,18 @@ namespace OcDialogue
             var currentSelected = Selection.activeObject;
             EditorApplication.delayCall += () => Selection.activeObject = currentSelected;
             Selection.activeObject = null;
+        }
+
+        public static string CalculateDataName(string defaultName, IEnumerable<string> existNames)
+        {
+            var sameNameCount = -1;
+            if (existNames == null || !existNames.Any()) sameNameCount = 0;
+            else
+            {
+                sameNameCount = existNames.Count(x => x.Contains(defaultName));
+            }
+
+            return $"{defaultName} {sameNameCount}";
         }
 #endif
     }
