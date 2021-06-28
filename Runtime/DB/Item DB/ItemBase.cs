@@ -3,11 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace OcDialogue
 {
     public abstract class ItemBase : ScriptableObject
     {
+        [ReadOnly]public int GUID;
         [ReadOnly]public ItemType type;
         public string itemName;
         
@@ -21,19 +23,28 @@ namespace OcDialogue
         public abstract void SetSubTypeFromString(string subtypeName);
 #endif
         [ShowIf("isStackable")]public int maxStackCount;
-        public int CurrentStack
-        {
-            get => _currentStack;
-            set
-            {
-                if(!isStackable) return;
-                if(_currentStack + value > maxStackCount) OnStackOverflow?.Invoke();
-                _currentStack = Mathf.Clamp(_currentStack + value, 1, maxStackCount);
-            }
-        }
-        int _currentStack;
-        /// <summary> CurrentStack에 설정한 값이 maxStackCount를 초과하면 호출됨. </summary>
-        public event Action OnStackOverflow;
+        public int CurrentStack { get; protected set; }
+        /// <summary> 원본이 인벤토리에 들어가는 것을 막기위한 값. 새 카피를 생성해서 인벤토리에 넣을 때, 이 부분을 true로 바꿔야함. </summary>
+        public bool IsCopy { get; set; }
         [PropertyOrder(100), TextArea]public string description;
+
+        /// <summary> 아이템 개수를 늘림. 1~maxCount의 개수로 제한되며, 오버될 경우, onStackOverflow가 호출됨. stackable아이템이 아니거나 count가 1보다 작은 경우 작동하지 않음. </summary>
+        public void AddStack(int count, Action onStackOverflow)
+        {
+            if(!isStackable) return;
+            if(count < 1) return;
+            CurrentStack += count;
+            if(CurrentStack > maxStackCount) onStackOverflow?.Invoke();
+            CurrentStack = Mathf.Clamp(CurrentStack, 1, maxStackCount);
+        }
+
+        /// <summary> 아이템 개수를 제거함. 개수가 0 이하가 되는 경우, onEmpty가 호출됨. stackable아이템이 아니거나 count가 1보다 작은 경우 작동하지 않음. </summary>
+        public void RemoveStack(int count, Action onEmpty)
+        {
+            if(!isStackable) return;
+            if(count < 1) return;
+            CurrentStack -= count;
+            if(CurrentStack < 0) onEmpty?.Invoke();
+        }
     }
 }

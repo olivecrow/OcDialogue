@@ -31,6 +31,18 @@ namespace OcDialogue
 
             return $"{defaultName} {sameNameCount}";
         }
+
+        /// <summary> ItemDatabase에서 사용할 아이템의 GUID를 중복되지 않게 계산해서 반환함. </summary>
+        public static int CalcItemGUID()
+        {
+            int id;
+            do
+            {
+                id = Random.Range(int.MinValue, int.MaxValue);    
+            } while (ItemDatabase.Instance.Items.Any(x => x.GUID == id));
+
+            return id;
+        }
 #endif
     }
 }

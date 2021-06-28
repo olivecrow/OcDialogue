@@ -8,6 +8,7 @@ using System.Linq;
 using UnityEditor;
 #endif
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace OcDialogue
 {
@@ -40,7 +41,8 @@ namespace OcDialogue
                 ItemType.Important => CreateInstance<ImportantItem>(),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
-            
+
+            asset.GUID = OcDataUtility.CalcItemGUID();
             asset.type = type;
             asset.SetSubTypeFromString(subType);
 
