@@ -3,6 +3,11 @@
 
 ## [Unreleased]
 
+## [0.1.6] - 2021.06.29
+### Added
+- ArmorItem에서 무게를 기준으로 방어력을 산출할 수 있는 기능 추가.
+- 아이템의 설명을 참조할 수 있는 기능 추가.
+
 ## [0.1.5] - 2021.06.28
 ### Fixed
 - Database Editor Window의 TreeMenu가 항상 펼쳐져있도록 변경.
