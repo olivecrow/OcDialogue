@@ -10,11 +10,18 @@ namespace OcDialogue
     {
         [ReadOnly]public GenericType subtype;
         public override string SubTypeString => subtype.ToString();
+        
+        protected override void ApplyTypeProperty(ItemBase baseCopy)
+        {
+            
+        }
+        
 #if UNITY_EDITOR
         public override void SetSubTypeFromString(string subtypeName)
         {
             subtype = (GenericType) Enum.Parse(typeof(GenericType), subtypeName);
-        }  
+        }
+        
 #endif
     }
 }

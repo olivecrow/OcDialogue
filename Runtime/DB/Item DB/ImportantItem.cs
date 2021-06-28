@@ -10,11 +10,16 @@ namespace OcDialogue
     {
         [ReadOnly] public ImportantItemType subtype;
         public override string SubTypeString => subtype.ToString();
+        
+        protected override void ApplyTypeProperty(ItemBase baseCopy)
+        {
+            
+        }
 #if UNITY_EDITOR
         public override void SetSubTypeFromString(string subtypeName)
         {
             subtype = (ImportantItemType) Enum.Parse(typeof(ImportantItemType), subtypeName);
-        }  
+        }
 #endif
     }
 }

@@ -46,5 +46,23 @@ namespace OcDialogue
             CurrentStack -= count;
             if(CurrentStack < 0) onEmpty?.Invoke();
         }
+        /// <summary> 아이템의 복사본을 반환함. 실제 런타임에서 쓰이는 데이터. </summary>
+        public ItemBase GetCopy()
+        {
+            var copy = CreateInstance<ItemBase>();
+            copy.GUID = GUID;
+            copy.type = type;
+            copy.itemName = itemName;
+            copy.isStackable = isStackable;
+            copy.maxStackCount = maxStackCount;
+            copy.CurrentStack = 1;
+            copy.IsCopy = true;
+            copy.description = description;
+            ApplyTypeProperty(copy);
+            return copy;
+        }
+
+        /// <summary> GetCopy에서 생성된 복사본을 전달받아서 각 타입에서 구현해야 할 속성 및 필드를 반영하여 반환함. </summary>
+        protected abstract void ApplyTypeProperty(ItemBase baseCopy);
     }
 }
