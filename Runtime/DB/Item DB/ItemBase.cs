@@ -9,8 +9,8 @@ namespace OcDialogue
 {
     public abstract class ItemBase : ScriptableObject
     {
-        [ReadOnly]public int GUID;
-        [ReadOnly]public ItemType type;
+        [BoxGroup("ReadOnly")][ReadOnly]public int GUID;
+        [BoxGroup("ReadOnly")][ReadOnly]public ItemType type;
         public string itemName;
         
         public bool isStackable;
@@ -26,7 +26,7 @@ namespace OcDialogue
         public int CurrentStack { get; protected set; }
         /// <summary> 원본이 인벤토리에 들어가는 것을 막기위한 값. 새 카피를 생성해서 인벤토리에 넣을 때, 이 부분을 true로 바꿔야함. </summary>
         public bool IsCopy { get; set; }
-        [PropertyOrder(100), TextArea]public string description;
+        [PropertyOrder(100), TextArea(10, 20)]public string description;
 
         /// <summary> 아이템 개수를 늘림. 1~maxCount의 개수로 제한되며, 오버될 경우, onStackOverflow가 호출됨. stackable아이템이 아니거나 count가 1보다 작은 경우 작동하지 않음. </summary>
         public void AddStack(int count, Action onStackOverflow)

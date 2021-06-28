@@ -3,6 +3,13 @@
 
 ## [Unreleased]
 
+## [0.1.5] - 2021.06.28
+### Fixed
+- Database Editor Window의 TreeMenu가 항상 펼쳐져있도록 변경.
+- Addressables 의존성 추가.
+- ArmorItem 및 WeaponItem에 Assetference의 avatar추가.
+- ArmorItem 및 WeaponItem에 기본적인 스텟(공격/방어/속성) 추가.
+
 ## [0.1.4] - 2021.06.28
 ### Fixed
 - DB Manager를 패키지 외부에서 직접 생성하도록 변경.

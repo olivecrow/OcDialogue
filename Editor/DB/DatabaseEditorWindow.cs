@@ -47,7 +47,7 @@ namespace OcDialogue.Editor
                         MenuWidth = 256;
                         break;
                     default:
-                        MenuWidth = 1;
+                        MenuWidth = 256;
                         break;
                 }
             }

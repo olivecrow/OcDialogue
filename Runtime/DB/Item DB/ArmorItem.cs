@@ -3,12 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace OcDialogue
 {
     public class ArmorItem : ItemBase, IEquipment
     {
-        [ReadOnly]public ArmorType subtype;
+        [BoxGroup("ReadOnly")][ReadOnly]public ArmorType subtype;
         public override string SubTypeString => subtype.ToString();
 
         public int MaxUpgrade => 3;
@@ -21,18 +22,24 @@ namespace OcDialogue
         public int maxDurability = 100;
         public float weight;
 
-        public int defense;
-        
-        [Range(0f, 2f)]public float fireResistance = 1f;
-        [Range(0f, 2f)]public float iceResistance = 1f;
-        [Range(0f, 2f)]public float lighteningResistance = 1f;
-        [Range(0f, 2f)]public float darkResistance = 1f;
-
-        [Range(0f, 2f)]public float strikeResistance = 1f;
-        [Range(0f, 2f)]public float sliceResistance = 1f;
-        [Range(0f, 2f)]public float thrustResistance = 1f;
         public int stability;
         
+        [BoxGroup("Physical Defense"), ShowInInspector, ReadOnly, LabelText("평균 물리 방어")]
+        public float AveragePhysicsResistance => (strikeDefense + sliceDefense + thrustDefense) / 3f;
+        [Range(1, 100f), BoxGroup("Physical Defense"), LabelText("Strike"), LabelWidth(100)] public int strikeDefense = 20;
+        [Range(1, 100f), BoxGroup("Physical Defense"), LabelText("Slice"),  LabelWidth(100)] public int sliceDefense = 20;
+        [Range(1, 100f), BoxGroup("Physical Defense"), LabelText("Thrust"), LabelWidth(100)] public int thrustDefense = 20;
+        
+        [BoxGroup("Elemental Defense"), ShowInInspector, ReadOnly, LabelText("평균 속성 방어")]
+        public float AverageElementalResistance => (fireResistance + iceResistance + lighteningResistance + darkResistance) / 4f;
+        
+        [Range(1, 50), BoxGroup("Elemental Defense"), LabelText("Fire"),  LabelWidth(100)] public int fireResistance       = 10;
+        [Range(1, 50), BoxGroup("Elemental Defense"), LabelText("Ice"),   LabelWidth(100)] public int iceResistance        = 10;
+        [Range(1, 50), BoxGroup("Elemental Defense"), LabelText("Light"), LabelWidth(100)] public int lighteningResistance = 10;
+        [Range(1, 50), BoxGroup("Elemental Defense"), LabelText("Dark"),  LabelWidth(100)] public int darkResistance       = 10;
+        
+        public AssetReference avatar;
+
         public override ItemBase GetCopy()
         {
             var copy = CreateInstance<ArmorItem>();
@@ -44,7 +51,6 @@ namespace OcDialogue
         protected override void ApplyTypeProperty(ItemBase baseCopy)
         {
             var copy = baseCopy as ArmorItem;
-            copy.defense = defense;
             copy.maxDurability = maxDurability;
             
             copy.fireResistance = fireResistance;
@@ -52,18 +58,23 @@ namespace OcDialogue
             copy.lighteningResistance = lighteningResistance;
             copy.darkResistance = darkResistance;
 
-            copy.strikeResistance = strikeResistance;
-            copy.sliceResistance = sliceResistance;
-            copy.thrustResistance = thrustResistance;
+            copy.strikeDefense = strikeDefense;
+            copy.sliceDefense = sliceDefense;
+            copy.thrustDefense = thrustDefense;
 
             copy.stability = stability;
+            copy.avatar = avatar;
         }
 #if UNITY_EDITOR
         public override void SetSubTypeFromString(string subtypeName)
         {
             subtype = (ArmorType) Enum.Parse(typeof(ArmorType), subtypeName);
         }
-        
+
+        void NormalizePhysicalResistance()
+        {
+            
+        }
 #endif
     }
 }
