@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5902465eff2346628220cb33a24d1a8, type: 3}
   m_Name: Long Sword
   m_EditorClassIdentifier: 
+  GUID: 0
   type: 2
   itemName: Long Sword
   isStackable: 0
@@ -19,6 +20,16 @@ MonoBehaviour:
   maxStackCount: 0
   description: 
   subtype: 0
+  maxDurability: 100
+  weight: 0
+  physicalPower: 10
+  firePower: 0
+  icePower: 0
+  lighteningPower: 0
+  darkPower: 0
+  strikeMultiplier: 1
+  sliceMultiplier: 1
+  thrustMultiplier: 1
 --- !u!114 &-963670290890879154
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -31,6 +42,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1dd09c7b29f04cb798182197de7fc81, type: 3}
   m_Name: Sample Helm
   m_EditorClassIdentifier: 
+  GUID: 0
   type: 1
   itemName: Sample Helm
   isStackable: 0
@@ -38,6 +50,17 @@ MonoBehaviour:
   maxStackCount: 0
   description: 
   subtype: 0
+  maxDurability: 100
+  weight: 0
+  defense: 0
+  fireResistance: 1
+  iceResistance: 1
+  lighteningResistance: 1
+  darkResistance: 1
+  strikeResistance: 1
+  sliceResistance: 1
+  thrustResistance: 1
+  stability: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -69,6 +92,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06635504fa7134366929ffb39fc23547, type: 3}
   m_Name: Sample Consumable Item
   m_EditorClassIdentifier: 
+  GUID: 0
   type: 0
   itemName: Sample Consumable Item
   isStackable: 1
@@ -88,6 +112,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06635504fa7134366929ffb39fc23547, type: 3}
   m_Name: Sameple Material Item
   m_EditorClassIdentifier: 
+  GUID: 0
   type: 0
   itemName: Sameple Material Item
   isStackable: 1

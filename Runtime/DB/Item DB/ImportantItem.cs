@@ -11,6 +11,14 @@ namespace OcDialogue
         [ReadOnly] public ImportantItemType subtype;
         public override string SubTypeString => subtype.ToString();
         
+        public override ItemBase GetCopy()
+        {
+            var copy = CreateInstance<ImportantItem>();
+            ApplyBase(copy);
+            ApplyTypeProperty(copy);
+            return copy;
+        }
+        
         protected override void ApplyTypeProperty(ItemBase baseCopy)
         {
             

@@ -33,6 +33,14 @@ namespace OcDialogue
         [Range(0f, 2f)]public float thrustResistance = 1f;
         public int stability;
         
+        public override ItemBase GetCopy()
+        {
+            var copy = CreateInstance<ArmorItem>();
+            ApplyBase(copy);
+            ApplyTypeProperty(copy);
+            return copy;
+        }
+        
         protected override void ApplyTypeProperty(ItemBase baseCopy)
         {
             var copy = baseCopy as ArmorItem;

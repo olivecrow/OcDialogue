@@ -28,6 +28,14 @@ namespace OcDialogue
         [Range(0f, 2f)]public float strikeMultiplier = 1f;
         [Range(0f, 2f)]public float sliceMultiplier = 1f;
         [Range(0f, 2f)]public float thrustMultiplier = 1f;
+        public override ItemBase GetCopy()
+        {
+            var copy = CreateInstance<WeaponItem>();
+            ApplyBase(copy);
+            ApplyTypeProperty(copy);
+            return copy;
+        }
+
         protected override void ApplyTypeProperty(ItemBase baseCopy)
         {
             var copy = baseCopy as WeaponItem;

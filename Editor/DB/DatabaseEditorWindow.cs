@@ -53,11 +53,13 @@ namespace OcDialogue.Editor
             }
             SirenixEditorGUI.EndHorizontalToolbar();
             
-            if(DBType == DBType.Item) 
+            if(DBType == DBType.Item)
+            {
                 new ItemDatabaseEditor(ForceMenuTreeRebuild).Draw(
-                        ref ItemDatabase.Instance.itemType, 
-                        ref ItemDatabase.Instance.itemSubType, 
-                        MenuTree.Selection.SelectedValue as ItemBase);
+                    ref ItemDatabase.Instance.itemType,
+                    ref ItemDatabase.Instance.itemSubType,
+                    MenuTree.Selection.SelectedValue as ItemBase);
+            }
         }
 
         protected override OdinMenuTree BuildMenuTree()
@@ -73,6 +75,7 @@ namespace OcDialogue.Editor
                     {
                         if(itemBase.SubTypeString != ItemDatabase.Instance.itemSubType) continue;
                         tree.Add(itemBase.itemName, itemBase, itemBase.editorIcon);
+                        tree.Selection.SelectionConfirmed += selection => Selection.activeObject = selection.SelectedValue as UnityEngine.Object; 
                     }
                     break;
                 case DBType.Quest:

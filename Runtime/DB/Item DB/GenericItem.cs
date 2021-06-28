@@ -11,6 +11,14 @@ namespace OcDialogue
         [ReadOnly]public GenericType subtype;
         public override string SubTypeString => subtype.ToString();
         
+        public override ItemBase GetCopy()
+        {
+            var copy = CreateInstance<GenericItem>();
+            ApplyBase(copy);
+            ApplyTypeProperty(copy);
+            return copy;
+        }
+        
         protected override void ApplyTypeProperty(ItemBase baseCopy)
         {
             
