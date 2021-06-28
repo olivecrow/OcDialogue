@@ -15,21 +15,10 @@ namespace OcDialogue
     [CreateAssetMenu(fileName = "Item Database", menuName = "Oc Dialogue/Item Database")]
     public class ItemDatabase : ScriptableObject
     {
+        public static ItemDatabase Instance => DBManager.Instance.ItemDatabase;
 #if UNITY_EDITOR
-        /// <summary> Editor Only. </summary>
-        public const string AssetPath = "Item DB/Item Database";
-        /// <summary> Editor Only. </summary>
-        public static ItemDatabase Instance => _instance;
-        static ItemDatabase _instance;
-
         [EnumToggleButtons] public ItemType itemType;
         [ValueDropdown("GetSubTypeDropdownList")]public string itemSubType;
-
-        [InitializeOnLoadMethod]
-        static void Init()
-        {
-            _instance = Resources.Load<ItemDatabase>(AssetPath);
-        }
 
         public ItemBase AddItem(ItemType type, string subType)
         {

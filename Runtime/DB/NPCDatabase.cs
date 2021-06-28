@@ -14,22 +14,13 @@ namespace OcDialogue
     [CreateAssetMenu(fileName = "NPC Database", menuName = "Oc Dialogue/NPC Database")]
     public class NPCDatabase : ScriptableObject
     {
+        public static NPCDatabase Instance => DBManager.Instance.NpcDatabase;
 #if UNITY_EDITOR
-        /// <summary> Editor Only. </summary>
-        public const string AssetPath = "NPC DB/NPC Database";
-        /// <summary> Editor Only. </summary>
-        public static NPCDatabase Instance => _instance;
-        static NPCDatabase _instance;
         [ColorPalette]public Color palette;
         /// <summary> Editor Only. 시스템 NPC </summary>
         public NPC DefaultNPC;
-        
-        [InitializeOnLoadMethod]
-        static void Init()
-        {
-            _instance = Resources.Load<NPCDatabase>(AssetPath);
-        }  
 #endif
+        
         [TableList(IsReadOnly = true)]public List<NPC> NPCs = new List<NPC>();
         void OnValidate()
         {

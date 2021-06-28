@@ -12,21 +12,9 @@ namespace OcDialogue
     [CreateAssetMenu(fileName = "GameProcess Database", menuName = "Oc Dialogue/GameProcess Database")]
     public class GameProcessDatabase : ScriptableObject
     {
-#if UNITY_EDITOR
-        public const string AssetPath = "GameProcess DB/GameProcess Database";
-        public static GameProcessDatabase Instance => _instance;
-        static GameProcessDatabase _instance;
-        
-        [InitializeOnLoadMethod]
-        static void Init()
-        {
-            _instance = Resources.Load<GameProcessDatabase>(AssetPath);
-        }  
-#endif
-        
+        public static GameProcessDatabase Instance => DBManager.Instance.GameProcessDatabase;
         [TableList(IsReadOnly = true)]public List<DataRow> DataRows;
-
-
+        
 #if UNITY_EDITOR
 
         [HorizontalGroup("Buttons"), PropertyOrder(-100), Button("+", ButtonSizes.Medium), GUIColor(0, 1, 1)]
