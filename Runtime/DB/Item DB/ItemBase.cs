@@ -36,7 +36,7 @@ namespace OcDialogue
         [PropertyOrder(100), TextArea(10, 20), HideIf("referOtherDescription")] public string description;
 
         /// <summary> 아이템 개수를 늘림. 1~maxCount의 개수로 제한되며, 오버될 경우, onStackOverflow가 호출됨. stackable아이템이 아니거나 count가 1보다 작은 경우 작동하지 않음. </summary>
-        public void AddStack(int count, Action onStackOverflow)
+        public void AddStack(int count, Action onStackOverflow = null)
         {
             if(!isStackable) return;
             if(count < 1) return;
@@ -46,7 +46,7 @@ namespace OcDialogue
         }
 
         /// <summary> 아이템 개수를 제거함. 개수가 0 이하가 되는 경우, onEmpty가 호출됨. stackable아이템이 아니거나 count가 1보다 작은 경우 작동하지 않음. </summary>
-        public void RemoveStack(int count, Action onEmpty)
+        public void RemoveStack(int count, Action onEmpty = null)
         {
             if(!isStackable) return;
             if(count < 1) return;

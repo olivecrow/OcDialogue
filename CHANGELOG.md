@@ -3,6 +3,13 @@
 
 ## [Unreleased]
 
+## [0.1.8] - 2021.06.29
+### Fixed
+- Inventory Editor Preset에서 곧바로 GetCopy를 통해 아이템 얻을 수 있게 함.
+- Inventory Editor Preset 런타임에서 실행 되게 고침.
+- Item Editor Preset에서 DropDesk를 통해 아이템 쉽게 설정할 수 있게 함.
+- ItemBase의 AddStack의 OnStackOverflow에 null을 기본값으로 둠.
+
 ## [0.1.7] - 2021.06.29
 
 ### Fixed
