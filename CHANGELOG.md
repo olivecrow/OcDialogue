@@ -3,6 +3,11 @@
 
 ## [Unreleased]
 
+## [0.1.9] - 2021.06.29
+### Fixed
+- Inventory Editor Preset이 제대로 로드되지 않던 문제 해결.
+
+
 ## [0.1.8] - 2021.06.29
 ### Fixed
 - Inventory Editor Preset에서 곧바로 GetCopy를 통해 아이템 얻을 수 있게 함.

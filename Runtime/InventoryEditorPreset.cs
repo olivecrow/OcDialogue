@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Sirenix.OdinInspector;
 using UnityEditor;
+using UnityEditor.Experimental;
 using UnityEngine;
 
 namespace OcDialogue
@@ -13,7 +14,7 @@ namespace OcDialogue
     {
 #if UNITY_EDITOR
         /// <summary> Editor Only. </summary>
-        public const string AssetPath = "Inventory Editor Preset";
+        public const string AssetPath = "Inventory Editor Preset.asset";
         /// <summary> Editor Only. </summary>
         public static InventoryEditorPreset Instance => _instance;
         static InventoryEditorPreset _instance;
@@ -21,13 +22,7 @@ namespace OcDialogue
         [InitializeOnLoadMethod]
         static void EditorInit()
         {
-            _instance = Resources.Load<InventoryEditorPreset>(AssetPath);
-        }
-
-        [RuntimeInitializeOnLoadMethod]
-        static void RuntimeInit()
-        {
-            _instance = Resources.Load<InventoryEditorPreset>(AssetPath);
+            _instance = EditorGUIUtility.Load(AssetPath) as InventoryEditorPreset;
         }
 
         public bool usePreset;
