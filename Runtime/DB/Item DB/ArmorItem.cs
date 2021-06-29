@@ -106,12 +106,42 @@ namespace OcDialogue
             {
                 case MaterialForEditor.Cloth:
                     stability = float.Parse($"{(Random.Range(weight * 0.85f, weight * 1.15f) + (weight * weight * 0.0245f)) * 0.1f * GetPartDefenseMultiplier() : 0.0}");
+                    maxDurability = (int) (Random.Range(70, 110) * GetPartDefenseMultiplier() * 1.2f);
+
+                    strikeDefense     *= 1f;
+                    sliceDefense      *= 0.8f;
+                    thrustDefense     *= 0.7f;
+                    fireDefense       *= 0.5f;
+                    iceDefense        *= 0.8f;
+                    lighteningDefense *= 0.9f;
+                    darkDefense       *= 1f;
+
                     break;
                 case MaterialForEditor.Leather:
                     stability = float.Parse($"{(Random.Range(weight * 0.875f, weight * 1.05f) + (weight * weight * 0.0175f)) * GetPartDefenseMultiplier() : 0.0}");
+                    maxDurability = (int) (Random.Range(90, 130) * GetPartDefenseMultiplier() * 1.3f);
+                    
+                    strikeDefense     *= 0.9f;
+                    sliceDefense      *= 0.8f;
+                    thrustDefense     *= 0.8f;
+                    fireDefense       *= 0.8f;
+                    iceDefense        *= 0.7f;
+                    lighteningDefense *= 1f;
+                    darkDefense       *= 0.7f;
+                    
                     break;
                 case MaterialForEditor.Metal:
                     stability = float.Parse($"{(Random.Range(weight * 0.9f, weight * 1.1f) + (weight * weight * 0.065f)) * GetPartDefenseMultiplier(): 0.0}");
+                    maxDurability = (int) (Random.Range(80, 120) * GetPartDefenseMultiplier() * 1.2f);
+                    
+                    strikeDefense     *= 0.7f;
+                    sliceDefense      *= 1f;
+                    thrustDefense     *= 0.8f;
+                    fireDefense       *= 0.9f;
+                    iceDefense        *= 1f;
+                    lighteningDefense *= 0.6f;
+                    darkDefense       *= 0.6f;
+                    
                     break;
             }
         }
@@ -131,8 +161,6 @@ namespace OcDialogue
                     break;
                 case ArmorType.Leg:
                     partMult = 0.4f;
-                    break;
-                case ArmorType.Accessory:
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

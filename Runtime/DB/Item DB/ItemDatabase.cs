@@ -28,6 +28,7 @@ namespace OcDialogue
                 ItemType.Weapon => CreateInstance<WeaponItem>(),
                 ItemType.Armor => CreateInstance<ArmorItem>(),
                 ItemType.Important => CreateInstance<ImportantItem>(),
+                ItemType.Accessory => CreateInstance<AccessoryItem>(),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
 
@@ -74,6 +75,9 @@ namespace OcDialogue
                 case ItemType.Important:
                     Enum.GetNames(typeof(ImportantItemType)).ForEach(x => list.Add(x));
                     break;
+                case ItemType.Accessory:
+                    Enum.GetNames(typeof(AccessoryType)).ForEach(x => list.Add(x));
+                    break;
             }
 
             return list;
@@ -89,6 +93,7 @@ namespace OcDialogue
                 ItemType.Armor => typeof(ArmorType),
                 ItemType.Weapon => typeof(WeaponType),
                 ItemType.Important => typeof(ImportantItemType),
+                ItemType.Accessory => typeof(AccessoryType),
                 _ => throw new ArgumentOutOfRangeException()
             };
             return t;

@@ -24,6 +24,7 @@ namespace OcDialogue
             _instance = Resources.Load<InventoryEditorPreset>(AssetPath);
         }
 
+        public bool usePreset;
         [TableList]public List<ItemPreset> ItemPresets;
         [Serializable]
         public class ItemPreset

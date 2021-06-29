@@ -9,6 +9,7 @@ namespace OcDialogue
         Generic,
         Armor,
         Weapon,
+        Accessory,
         Important
     }
 
@@ -23,14 +24,18 @@ namespace OcDialogue
         Head,
         Torso,
         Arm,
-        Leg,
-        Accessory
+        Leg
     }
 
     public enum WeaponType
     {
         OneHandSword,
         TwoHandSword
+    }
+
+    public enum AccessoryType
+    {
+        Amulet
     }
 
     public enum ImportantItemType
