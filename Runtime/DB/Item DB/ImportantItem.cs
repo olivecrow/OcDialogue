@@ -21,7 +21,8 @@ namespace OcDialogue
         
         protected override void ApplyTypeProperty(ItemBase baseCopy)
         {
-            
+            var copy = baseCopy as ImportantItem;
+            copy.subtype = subtype;
         }
 #if UNITY_EDITOR
         public override void SetSubTypeFromString(string subtypeName)

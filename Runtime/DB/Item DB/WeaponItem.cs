@@ -44,6 +44,7 @@ namespace OcDialogue
         protected override void ApplyTypeProperty(ItemBase baseCopy)
         {
             var copy = baseCopy as WeaponItem;
+            copy.subtype = subtype;
             copy.maxDurability = maxDurability;
             copy.weight = weight;
             

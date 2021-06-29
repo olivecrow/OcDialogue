@@ -71,8 +71,10 @@ namespace OcDialogue
         protected override void ApplyTypeProperty(ItemBase baseCopy)
         {
             var copy = baseCopy as ArmorItem;
+            copy.subtype = subtype;
             copy.maxDurability = maxDurability;
-            
+            copy.weight = weight;
+
             copy.fireDefense = fireDefense;
             copy.iceDefense = iceDefense;
             copy.lighteningDefense = lighteningDefense;
@@ -84,6 +86,7 @@ namespace OcDialogue
 
             copy.stability = stability;
             copy.avatar = avatar;
+            
         }
 #if UNITY_EDITOR
         public override void SetSubTypeFromString(string subtypeName)

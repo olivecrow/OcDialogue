@@ -21,7 +21,9 @@ namespace OcDialogue
         
         protected override void ApplyTypeProperty(ItemBase baseCopy)
         {
-            
+            var copy = baseCopy as GenericItem;
+
+            copy.subtype = subtype;
         }
         
 #if UNITY_EDITOR
