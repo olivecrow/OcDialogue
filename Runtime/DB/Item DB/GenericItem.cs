@@ -26,6 +26,18 @@ namespace OcDialogue
             copy.subtype = subtype;
         }
         
+        public override bool IsNowUsable()
+        {
+            //TODO
+            return true;
+        }
+        public override void Use()
+        {
+            if(!IsNowUsable()) return;
+            //TODO : 아마 소비에 관한 것.
+        }
+
+        
 #if UNITY_EDITOR
         public override void SetSubTypeFromString(string subtypeName)
         {

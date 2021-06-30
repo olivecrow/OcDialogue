@@ -11,6 +11,6 @@ namespace OcDialogue
         int MaxDurability { get; }
         float CurrentDurability { get; set; }
         float Weight { get; }
-        float Equipped { get; set; }
+        bool Equipped { get; set; }
     }
 }

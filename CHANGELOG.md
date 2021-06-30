@@ -3,6 +3,16 @@
 
 ## [Unreleased]
 
+## [0.1.11] - 2021.06.30
+### Added
+- ItemBase에 IsUsable 및 추상 메서드인 Use(), IsNowUsable() 추가.
+
+### Fixed
+- IEquipment의 Equipped가 float이던 문제 해결.
+- Database Edit Window에서 TreeRebuild를 시도할때 오류가 나던 코드를 수정함.
+이게 해결될진 두고봐야함.
+
+
 ## [0.1.10] - 2021.06.30
 ### Fixed
 - 아이템의 카피를 획득할 때, 일부 필드가 반영되지 않던 문제 해결.

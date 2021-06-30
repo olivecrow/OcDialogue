@@ -16,7 +16,7 @@ namespace OcDialogue
         public int MaxDurability => maxDurability;
         public float CurrentDurability { get; set; }
         public float Weight => weight;
-        public float Equipped { get; set; }
+        public bool Equipped { get; set; }
 
         public int maxDurability = 100;
         public int weight;
@@ -59,6 +59,19 @@ namespace OcDialogue
 
             copy.avatar = avatar;
         }
+        
+        public override bool IsNowUsable()
+        {
+            //TODO:장비 못 하는 경우가 있을지 모르겠다.
+            return true;
+        }
+        public override void Use()
+        {
+            if(!IsNowUsable()) return;
+            //TODO : 장착에 관한 것.
+        }
+
+        
 #if UNITY_EDITOR
         public override void SetSubTypeFromString(string subtypeName)
         {

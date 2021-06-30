@@ -57,8 +57,7 @@ namespace OcDialogue.Editor
             {
                 new ItemDatabaseEditor(ForceMenuTreeRebuild).Draw(
                     ref ItemDatabase.Instance.itemType,
-                    ref ItemDatabase.Instance.itemSubType,
-                    MenuTree.Selection.SelectedValue as ItemBase);
+                    ref ItemDatabase.Instance.itemSubType, MenuTree.Selection?.SelectedValue as ItemBase);
             }
         }
 

@@ -24,6 +24,20 @@ namespace OcDialogue
             var copy = baseCopy as ImportantItem;
             copy.subtype = subtype;
         }
+        
+        
+        public override bool IsNowUsable()
+        {
+            //TODO:아마 이걸 구현할 아이템이 있으면 따로 클래스를 만들듯?
+            return true;
+        }
+        public override void Use()
+        {
+            if(!IsNowUsable()) return;
+            //TODO : 위와 동일.
+        }
+
+        
 #if UNITY_EDITOR
         public override void SetSubTypeFromString(string subtypeName)
         {

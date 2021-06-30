@@ -12,7 +12,8 @@ namespace OcDialogue
         [BoxGroup("ReadOnly")][ReadOnly]public int GUID;
         [BoxGroup("ReadOnly")][ReadOnly]public ItemType type;
         public string itemName;
-        
+        /// <summary> 사용 가능한 아이템인지 여부. 현재 사용 가능한지 여부가 아니라 아이템의 특성을 나타내는 것. </summary>
+        public bool isUsable;
         public bool isStackable;
         // TODO : 인게임 아이콘은 Addressable을 사용해서 구현할것.
 #if UNITY_EDITOR
@@ -56,13 +57,15 @@ namespace OcDialogue
 
         /// <summary> 아이템의 복사본을 반환함. 실제 런타임에서 쓰이는 데이터. </summary>
         public abstract ItemBase GetCopy();
-
+        public abstract bool IsNowUsable();
+        public abstract void Use();
         /// <summary> 전달된 아이템에 ItemBase 속성 및 필드를 적용함. </summary>
         protected void ApplyBase(ItemBase baseCopy)
         {
             baseCopy.GUID = GUID;
             baseCopy.type = type;
             baseCopy.itemName = itemName;
+            baseCopy.isUsable = isUsable;
             baseCopy.isStackable = isStackable;
             baseCopy.maxStackCount = maxStackCount;
             baseCopy.CurrentStack = 1;
@@ -72,7 +75,7 @@ namespace OcDialogue
 
         /// <summary> GetCopy에서 생성된 복사본을 전달받아서 각 타입에서 구현해야 할 속성 및 필드를 반영하여 반환함. </summary>
         protected abstract void ApplyTypeProperty(ItemBase baseCopy);
-
+        
 #if UNITY_EDITOR
         void OnOtherReferenceChanged()
         {

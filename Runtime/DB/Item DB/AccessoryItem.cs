@@ -27,7 +27,7 @@ namespace OcDialogue
         }
 
         public float Weight => weight;
-        public float Equipped { get; set; }
+        public bool Equipped { get; set; }
         public float weight = 0.5f;
 #if UNITY_EDITOR
         public override void SetSubTypeFromString(string subtypeName)
@@ -42,6 +42,17 @@ namespace OcDialogue
             ApplyBase(copy);
             ApplyTypeProperty(copy);
             return copy;
+        }
+
+        public override bool IsNowUsable()
+        {
+            //TODO:악세사리는 안 필요할지도?
+            return true;
+        }
+        public override void Use()
+        {
+            if(!IsNowUsable()) return;
+            //TODO : 장착에 관한 것.
         }
 
         protected override void ApplyTypeProperty(ItemBase baseCopy)
