@@ -9,7 +9,7 @@ namespace OcDialogue
 {
     public class WeaponItem : ItemBase, IEquipment
     {
-        [ReadOnly] public WeaponType subtype;
+        [ReadOnly, BoxGroup("ReadOnly")] public WeaponType subtype;
         public override string SubTypeString => subtype.ToString();
         public int MaxUpgrade => 10;
         public int CurrentUpgrade { get; set; }
@@ -31,7 +31,8 @@ namespace OcDialogue
         [BoxGroup("Elemental Attack")] public int iceAttack;
         [BoxGroup("Elemental Attack")] public int lighteningAttack;
         [BoxGroup("Elemental Attack")] public int darkAttack;
-        
+
+        public AssetReference Avatar => avatar;
         public AssetReference avatar;
         public override ItemBase GetCopy()
         {
@@ -60,17 +61,6 @@ namespace OcDialogue
             copy.avatar = avatar;
         }
         
-        public override bool IsNowUsable()
-        {
-            //TODO:장비 못 하는 경우가 있을지 모르겠다.
-            return true;
-        }
-        public override void Use()
-        {
-            if(!IsNowUsable()) return;
-            //TODO : 장착에 관한 것.
-        }
-
         
 #if UNITY_EDITOR
         public override void SetSubTypeFromString(string subtypeName)

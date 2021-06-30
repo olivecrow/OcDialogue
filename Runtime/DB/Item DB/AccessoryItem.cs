@@ -1,14 +1,17 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace OcDialogue
 {
     public class AccessoryItem : ItemBase, IEquipment
     {
+        [ReadOnly, BoxGroup("ReadOnly")] public AccessoryType subtype;
         public override string SubTypeString => subtype.ToString();
-        public AccessoryType subtype;
+        public AssetReference Avatar => null;
 
         public int MaxUpgrade => 0;
 
@@ -42,17 +45,6 @@ namespace OcDialogue
             ApplyBase(copy);
             ApplyTypeProperty(copy);
             return copy;
-        }
-
-        public override bool IsNowUsable()
-        {
-            //TODO:악세사리는 안 필요할지도?
-            return true;
-        }
-        public override void Use()
-        {
-            if(!IsNowUsable()) return;
-            //TODO : 장착에 관한 것.
         }
 
         protected override void ApplyTypeProperty(ItemBase baseCopy)

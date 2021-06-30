@@ -10,7 +10,7 @@ namespace OcDialogue
 {
     public class ArmorItem : ItemBase, IEquipment
     {
-        [BoxGroup("ReadOnly")][ReadOnly]public ArmorType subtype;
+        [BoxGroup("ReadOnly"), ReadOnly] public ArmorType subtype;
         public override string SubTypeString => subtype.ToString();
 
 #if UNITY_EDITOR
@@ -43,7 +43,7 @@ namespace OcDialogue
         [Range(0, 100f), BoxGroup("Elemental Defense"), LabelText("Ice"),   LabelWidth(100)] public float iceDefense        = 10;
         [Range(0, 100f), BoxGroup("Elemental Defense"), LabelText("Light"), LabelWidth(100)] public float lighteningDefense = 10;
         [Range(0, 100f), BoxGroup("Elemental Defense"), LabelText("Dark"),  LabelWidth(100)] public float darkDefense       = 10;
-        
+        public AssetReference Avatar => avatar;
         public AssetReference avatar;
 
         void OnValidate()
@@ -87,22 +87,7 @@ namespace OcDialogue
             copy.stability = stability;
             copy.avatar = avatar;
         }
-        
-        
-        public override bool IsNowUsable()
-        {
-            //TODO:장비 못 하는 경우가 있을지 모르겠다.
-            return true;
-        }
-        public override void Use()
-        {
-            if(!IsNowUsable()) return;
-            //TODO : 장착에 관한 것.
-        }
-        
-        
-        
-        
+
 #if UNITY_EDITOR
         public override void SetSubTypeFromString(string subtypeName)
         {

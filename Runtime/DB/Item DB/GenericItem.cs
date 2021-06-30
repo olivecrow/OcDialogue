@@ -8,9 +8,10 @@ namespace OcDialogue
 {
     public class GenericItem : ItemBase
     {
-        [ReadOnly]public GenericType subtype;
+        [ReadOnly, BoxGroup("ReadOnly")] public GenericType subtype;
         public override string SubTypeString => subtype.ToString();
-        
+        /// <summary> 사용할 수 있는 아이템인지 여부. 현재 상태가 아니라 아이템의 특성을 말하는 것. </summary>
+        public bool isUsable;
         public override ItemBase GetCopy()
         {
             var copy = CreateInstance<GenericItem>();
@@ -24,16 +25,22 @@ namespace OcDialogue
             var copy = baseCopy as GenericItem;
 
             copy.subtype = subtype;
+            copy.isUsable = isUsable;
         }
         
-        public override bool IsNowUsable()
+        public bool IsNowUsable()
         {
+            if (!isUsable) return false;
             //TODO
+            if (isStackable && CurrentStack <= 0) return false;
             return true;
         }
-        public override void Use()
+        public bool Use(Action onEmpty = null)
         {
-            if(!IsNowUsable()) return;
+            if(!IsNowUsable()) return false;
+            if (isStackable) CurrentStack--;
+            if(CurrentStack <= 0) onEmpty?.Invoke();
+            return true;
             //TODO : 아마 소비에 관한 것.
         }
 

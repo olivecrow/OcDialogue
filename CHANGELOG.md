@@ -3,6 +3,15 @@
 
 ## [Unreleased]
 
+## [0.1.12] - 2021.06.30
+### Added
+- 아이템 확장 샘플 추가.
+  - git에서 소프트 링크로 Sample 폴더를 연결함.
+  - upm의 샘플 형식이 제대로 작동하는지는 모르겠음.
+
+### Fixed
+- 기존 아이템을 확장할 수 있도록 일부 속성을 virtual로 변경.
+
 ## [0.1.11] - 2021.06.30
 ### Added
 - ItemBase에 IsUsable 및 추상 메서드인 Use(), IsNowUsable() 추가.
