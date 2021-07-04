@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
@@ -11,7 +12,8 @@ namespace OcDialogue
         {
             Entry,
             Dialogue,
-            Choice
+            Choice,
+            Event
         }
 
         [ReadOnly] public string GUID;
@@ -34,7 +36,7 @@ namespace OcDialogue
         //
         // [ShowIf("useSetter"), HideLabel, BoxGroup("Setter")]
         // public DataSetter setter;
-        
+
         /// <summary> actor필드에서 NPC이름을 드롭다운으로 보여주기위한 리스트를 반환함. (Odin Inspector용) </summary>
         ValueDropdownList<NPC> GetNPCList()
         {
@@ -46,5 +48,6 @@ namespace OcDialogue
         
             return list;
         }
+        
     }
 }

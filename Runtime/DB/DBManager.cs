@@ -25,6 +25,7 @@ namespace OcDialogue
         public static DBManager Instance => _instance;
         static DBManager _instance;
 
+        public DialogueAsset DialogueAsset;
         public GameProcessDatabase GameProcessDatabase;
         public ItemDatabase ItemDatabase;
         // TODO : Quest Database.

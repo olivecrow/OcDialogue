@@ -2,7 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
+
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace OcDialogue
@@ -11,7 +14,7 @@ namespace OcDialogue
     {
 [ReadOnly]public string GUID;
         [ValueDropdown("GetCategoryList")]public string Category;
-        public string key;
+        [InlineButton("ApplyName", ShowIf = "@name != key")]public string key;
         /// <summary> 에디터에서 참고용으로 사용되는 설명. 인게임에서는 등장하지 않음. </summary>
         [TextArea]public string description;
         public List<Balloon> Balloons;
@@ -24,6 +27,14 @@ namespace OcDialogue
         [HideInInspector]public Vector3 lastViewScale = new Vector3(1f, 1f, 1f);
 
 #if UNITY_EDITOR
+        void ApplyName()
+        {
+            name = key;
+            AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(this), key);
+            EditorUtility.SetDirty(this);
+            AssetDatabase.SaveAssets();
+        }
+
         public Balloon AddBalloon(Balloon.Type type)
         {
             Balloon balloon;
@@ -83,8 +94,6 @@ namespace OcDialogue
         ValueDropdownList<string> GetCategoryList()
         {
             var list = new ValueDropdownList<string>();
-            Debug.Log($"DialogueAsset.Instance is null | {DialogueAsset.Instance == null}");
-            Debug.Log($"Categories is null | {DialogueAsset.Instance.Categories == null}");
             foreach (var category in DialogueAsset.Instance.Categories)
             {
                 list.Add(category, category);
