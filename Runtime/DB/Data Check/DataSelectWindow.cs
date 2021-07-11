@@ -11,7 +11,7 @@ namespace OcDialogue.Editor
 {
     public class DataSelectWindow : OdinEditorWindow
     {
-        // public DataChecker.Comparer Target { get; set; }
+        public CheckFactor Target { get; set; }
 
         public static DataSelectWindow Open()
         {
@@ -21,23 +21,48 @@ namespace OcDialogue.Editor
         }
         
         public DBType DBType;
-        [ValueDropdown("GetFirstList"), HideLabel, ShowIf("UseFirstDropdown"), HorizontalGroup("Selector")]
+        [ValueDropdown("GetFirstList"), HideLabel, ShowIf("UseFirstDropdown")]
         public string firstDropdown;
-        [ValueDropdown("GetSecondList"), HideLabel, ShowIf("UseSecondDropdown"), HorizontalGroup("Selector")]
+        [ValueDropdown("GetSecondList"), HideLabel, ShowIf("UseSecondDropdown")]
         public string secondDropDown;
-        [ValueDropdown("GetDataList"), HideLabel] public ScriptableObject Data;
+        [ValueDropdown("GetThirdList"), HideLabel, ShowIf("UseThirdDropdown")]
+        public string thirdDropDown;
+        [ValueDropdown("GetDataList"), HideLabel, GUIColor(0,1,1)] public ComparableData Data;
         bool UseFirstDropdown() => DBType != DBType.GameProcess && DBType != DBType.NPC;
         bool UseSecondDropdown() => UseFirstDropdown() && (DBType == DBType.Item || DBType == DBType.Quest);
+        bool UseThirdDropdown() => UseSecondDropdown() && ((DBType == DBType.Quest && secondDropDown != "QuestState")
+                                                           || (DBType == DBType.Item));
+
+        void OnValidate()
+        {
+            if (DBType == DBType.Quest)
+            {
+                if (secondDropDown == "QuestState") thirdDropDown = null;
+                else if (secondDropDown == "DataRows")
+                {
+                    if(Data is Quest)
+                    {
+                        thirdDropDown = Data.Key;
+                        Data = null;
+                    }
+                }
+            }
+        }
+
         ValueDropdownList<string> GetFirstList()
         {
             var list = new ValueDropdownList<string>();
             switch (DBType)
             {
+                case DBType.GameProcess:
+                    break;
                 case DBType.Item:
                     var itemTypes = Enum.GetNames(typeof(ItemType));
                     foreach (var type in itemTypes) list.Add(type);
                     break;
                 case DBType.Quest:
+                    var category = QuestDatabase.Instance.Category;
+                    foreach (var c in category) list.Add(c);
                     break;
                 case DBType.Enemy:
                     break;
@@ -53,6 +78,8 @@ namespace OcDialogue.Editor
             var list = new ValueDropdownList<string>();
             switch (DBType)
             {
+                case DBType.GameProcess:
+                    break;
                 case DBType.Item:
                     var itemType = (ItemType) Enum.Parse(typeof(ItemType), firstDropdown);
                     switch (itemType)
@@ -93,8 +120,10 @@ namespace OcDialogue.Editor
                     }
                     break;
                 case DBType.Quest:
-                    // 아직 없음.
+                    list.Add("QuestState");
+                    list.Add("DataRows");
                     break;
+                    
                 case DBType.Enemy:
                     // 아직 없음.
                     break;
@@ -105,9 +134,37 @@ namespace OcDialogue.Editor
 
             return list;
         }
-        ValueDropdownList<ScriptableObject> GetDataList()
+
+        ValueDropdownList<string> GetThirdList()
         {
-            var list = new ValueDropdownList<ScriptableObject>();
+            var list = new ValueDropdownList<string>();
+            switch (DBType)
+            {
+                case DBType.GameProcess:
+                    break;
+                case DBType.Item:
+                    break;
+                case DBType.Quest:
+                    if (secondDropDown == "DataRows")
+                    {
+                        foreach (var quest in QuestDatabase.Instance.Quests) list.Add(quest.key);
+                    }
+                    break;
+                case DBType.NPC:
+                    break;
+                case DBType.Enemy:
+                    break;
+                default:
+                    Debug.LogWarning("해당 타입의 ValueDropDown이 미구현됨.");
+                    break;
+            }
+
+            return list;
+        }
+
+        ValueDropdownList<ComparableData> GetDataList()
+        {
+            var list = new ValueDropdownList<ComparableData>();
             switch (DBType)
             {
                 case DBType.GameProcess:
@@ -119,7 +176,13 @@ namespace OcDialogue.Editor
                     foreach (var item in targetItems) list.Add(item);
                     break;
                 case DBType.Quest:
-                    // 아직 없음.
+                    if(secondDropDown == "QuestState")
+                        foreach (var quest in QuestDatabase.Instance.Quests) list.Add(quest);
+                    else if (secondDropDown == "DataRows")
+                    {
+                        var currentQuest = QuestDatabase.Instance.Quests.Find(x => x.key == thirdDropDown);
+                        foreach (var dataRow in currentQuest.DataRows) list.Add(dataRow);
+                    }
                     break;
                 case DBType.NPC:
                     foreach (var npc in NPCDatabase.Instance.NPCs) list.Add(npc);
@@ -135,35 +198,13 @@ namespace OcDialogue.Editor
             return list;
         }
 
-        // [Button]
-        // void Apply()
-        // {
-        //     Target.Data = Data;
-        //     switch (Data)
-        //     {
-        //         case DataRow dataRow:
-        //             switch (dataRow.type)
-        //             {
-        //                 case DataRow.Type.Boolean: Target.CompareFactor = CompareFactor.Boolean; break;
-        //                 case DataRow.Type.Int: Target.CompareFactor = CompareFactor.Int; break;
-        //                 case DataRow.Type.Float: Target.CompareFactor = CompareFactor.Float; break;
-        //                 case DataRow.Type.String: Target.CompareFactor = CompareFactor.String; break;
-        //                 default: throw new ArgumentOutOfRangeException();
-        //             }
-        //             break;
-        //         
-        //         case ItemBase item:
-        //             Target.CompareFactor = CompareFactor.ItemCount;
-        //             break;
-        //         case Quest quest:
-        //             Target.CompareFactor = CompareFactor.QuestState;
-        //             break;
-        //         case NPC npc:
-        //             Target.CompareFactor = CompareFactor.NpcEncounter;
-        //             break;
-        //     }
-        //     Close();
-        // }
+        [Button]
+        void Apply()
+        {
+            Target.targetRow = Data as DataRow;
+            
+            Close();
+        }
     }
 }
 #endif

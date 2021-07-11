@@ -4,18 +4,25 @@ using UnityEngine;
 
 namespace OcDialogue
 {
-    public class GameProcessDataUser : MonoBehaviour
+    public class GameProcessDataUser : DataUser
     {
-        // Start is called before the first frame update
-        void Start()
+        public List<DataRow> DataRows;
+        public override void Load()
         {
-        
+#if UNITY_EDITOR
+            if (GameProcessDataPreset.Instance.usePreset)
+            {
+                DataRows = GameProcessDataPreset.Instance.GetAllCopies();
+                return;
+            }
+#endif
+            
+            DataRows = GameProcessDatabase.Instance.GetAllCopies();
+            // TODO : 데이터 로드.
         }
 
-        // Update is called once per frame
-        void Update()
+        public override void Save()
         {
-        
         }
     }
 }

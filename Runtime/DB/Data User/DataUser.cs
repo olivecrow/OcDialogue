@@ -4,18 +4,9 @@ using UnityEngine;
 
 namespace OcDialogue
 {
-    public class DataUser : MonoBehaviour
+    public abstract class DataUser
     {
-        // Start is called before the first frame update
-        void Start()
-        {
-        
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-        
-        }
+        public abstract void Load();
+        public abstract void Save();
     }
 }

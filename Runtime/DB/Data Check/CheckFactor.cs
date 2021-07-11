@@ -16,7 +16,7 @@ namespace OcDialogue
     }
     
     [Serializable]
-    public class CheckFacter : ICheckable
+    public class CheckFactor : ICheckable
     {
         public int Index { get; set; }
         [HideLabel, HorizontalGroup("Value"), InlineButton("OpenSelectWindow", "선택"), LabelWidth(200)]
@@ -76,14 +76,16 @@ namespace OcDialogue
         bool UseIntValue => targetRow != null && targetRow.type == DataRow.Type.Int;
         bool UseFloatValue => targetRow != null && targetRow.type == DataRow.Type.Float;
 
+        [HorizontalGroup("Expression"), HideLabel, ReadOnly]public string expression;
+        
         void OpenSelectWindow()
         {
             var window = DataSelectWindow.Open();
             window.Target = this;
         }
-
+        
         /// <summary> 에디터에선 프리셋을 기준으로 출력하고, 플레이 모드에선 로드된 값을 기준으로 출력함. </summary>
-        [Button("결과 출력")]
+        [HorizontalGroup("Expression"), Button("결과 출력")]
         void Check()
         {
             if (Application.isPlaying)
@@ -93,8 +95,8 @@ namespace OcDialogue
             else
             {
                 var presetRow = GameProcessDataPreset.Instance.GetCopy(targetRow.key);
-                Debug.Log($"{targetRow.key} {op.ToOperationString()} {TargetValue} ? " +
-                          $"=> {presetRow.IsTrue(presetRow.type.ToCompareFactor(), op, TargetValue)}");
+                expression = $"{targetRow.key} {op.ToOperationString()} {TargetValue} ? " +
+                             $"=> {presetRow.IsTrue(presetRow.type.ToCompareFactor(), op, TargetValue)}";
             }
         }
 #endif

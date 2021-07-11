@@ -4,9 +4,9 @@ using UnityEngine;
 
 namespace OcDialogue
 {
-    public interface IComparableData
+    public abstract class ComparableData : ScriptableObject
     {
-        public string Key { get; }
-        public bool IsTrue(CompareFactor factor, Operator op, object value);
+        public abstract string Key { get; }
+        public abstract bool IsTrue(CompareFactor factor, Operator op, object value);
     }
 }

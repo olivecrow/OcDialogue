@@ -12,7 +12,7 @@ using Random = UnityEngine.Random;
 
 namespace OcDialogue
 {
-    [CreateAssetMenu(fileName = "Item Database", menuName = "Oc Dialogue/Item Database")]
+    [CreateAssetMenu(fileName = "Item Database", menuName = "Oc Dialogue/DB/Item Database")]
     public class ItemDatabase : ScriptableObject
     {
         public static ItemDatabase Instance => DBManager.Instance.ItemDatabase;
