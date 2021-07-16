@@ -124,7 +124,7 @@ namespace OcDialogue
                     return Checkables.Any(x => x.IsTrue());
                 }
             }
-
+#if UNITY_EDITOR
             public override string ToString()
             {
                 var sb = new StringBuilder();
@@ -140,6 +140,7 @@ namespace OcDialogue
                 sb.Append(" )");
                 return sb.ToString();
             }
+#endif
         }
 
         

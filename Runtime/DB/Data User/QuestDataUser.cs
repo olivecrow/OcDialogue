@@ -17,8 +17,6 @@ namespace OcDialogue
                 return;
             }
 #endif
-            
-            Quests = QuestDataPreset.Instance.GetAllCopies();
             // TODO : 데이터 로드.
         }
 

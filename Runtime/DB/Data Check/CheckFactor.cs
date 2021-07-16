@@ -64,13 +64,12 @@ namespace OcDialogue
             // TODO : 런타임용 데이터에서 값을 읽기.
             return false;
         }
-
+        
+#if UNITY_EDITOR
         public override string ToString()
         {
             return $"{targetRow.key} {op.ToOperationString()} {TargetValue}";
         }
-
-#if UNITY_EDITOR
         bool UseBoolValue => targetRow != null && targetRow.type == DataRow.Type.Boolean;
         bool UseStringValue => targetRow != null && targetRow.type == DataRow.Type.String;
         bool UseIntValue => targetRow != null && targetRow.type == DataRow.Type.Int;
