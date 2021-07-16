@@ -7,8 +7,10 @@ using Random = UnityEngine.Random;
 
 namespace OcDialogue
 {
-    public abstract class ItemBase : ScriptableObject
+    public abstract class ItemBase : ComparableData
     {
+        public override string Key => itemName;
+
         [BoxGroup("ReadOnly")][ReadOnly]public int GUID;
         [BoxGroup("ReadOnly")][ReadOnly]public ItemType type;
         public string itemName;
@@ -70,6 +72,27 @@ namespace OcDialogue
 
         /// <summary> GetCopy에서 생성된 복사본을 전달받아서 각 타입에서 구현해야 할 속성 및 필드를 반영하여 반환함. </summary>
         protected abstract void ApplyTypeProperty(ItemBase baseCopy);
+        
+        public override bool IsTrue(CompareFactor factor, Operator op, object value)
+        {
+            if (factor != CompareFactor.ItemCount) return false;
+            if (Inventory.PlayerInventory == null)
+            {
+                Debug.LogWarning("Inventory.PlayerInventory가 비어있어서 개수 판단을 할 수 없음.");
+                return false;
+            }
+
+            return op switch
+            {
+                Operator.Equal        => Inventory.PlayerInventory.Count(this) == (int) value,
+                Operator.NotEqual     => Inventory.PlayerInventory.Count(this) != (int) value,
+                Operator.Greater      => Inventory.PlayerInventory.Count(this) > (int) value,
+                Operator.GreaterEqual => Inventory.PlayerInventory.Count(this) >= (int) value,
+                Operator.Less         => Inventory.PlayerInventory.Count(this) < (int) value,
+                Operator.LessEqual    => Inventory.PlayerInventory.Count(this) <= (int) value,
+                _ => false
+            };
+        }
         
 #if UNITY_EDITOR
         void OnOtherReferenceChanged()

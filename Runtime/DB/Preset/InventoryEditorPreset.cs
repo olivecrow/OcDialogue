@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace OcDialogue
 {
-    [CreateAssetMenu(fileName = "Inventory Editor Preset", menuName = "Oc Dialogue/Inventory Editor Preset")]
+    [CreateAssetMenu(fileName = "Inventory Editor Preset", menuName = "Oc Dialogue/Editor Preset/Inventory Editor Preset")]
     public class InventoryEditorPreset : ScriptableObject
     {
 #if UNITY_EDITOR

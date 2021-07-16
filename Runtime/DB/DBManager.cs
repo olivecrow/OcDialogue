@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace OcDialogue
 {
-    [CreateAssetMenu(fileName = "DB Manager", menuName = "Oc Dialogue/DB Manager")]
+    [CreateAssetMenu(fileName = "DB Manager", menuName = "Oc Dialogue/DB/DB Manager")]
     public class DBManager : ScriptableObject
     {
         /*
@@ -28,7 +28,7 @@ namespace OcDialogue
         public DialogueAsset DialogueAsset;
         public GameProcessDatabase GameProcessDatabase;
         public ItemDatabase ItemDatabase;
-        // TODO : Quest Database.
+        public QuestDatabase QuestDatabase;
         public NPCDatabase NpcDatabase;
         // TODO : Enemy Database.
 

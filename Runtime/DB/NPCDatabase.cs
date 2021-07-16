@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace OcDialogue
 {
-    [CreateAssetMenu(fileName = "NPC Database", menuName = "Oc Dialogue/NPC Database")]
+    [CreateAssetMenu(fileName = "NPC Database", menuName = "Oc Dialogue/DB/NPC Database")]
     public class NPCDatabase : ScriptableObject
     {
         public static NPCDatabase Instance => DBManager.Instance.NpcDatabase;
@@ -50,7 +50,7 @@ namespace OcDialogue
             AssetDatabase.SaveAssets();
         }
         
-        [HorizontalGroup("Buttons"), Button(ButtonSizes.Medium)]
+        [HorizontalGroup("Buttons"), Button(ButtonSizes.Medium), GUIColor(0, 1, 1)]
         public void AddNPC()
         {
             var npc = CreateInstance<NPC>();

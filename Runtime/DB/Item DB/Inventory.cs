@@ -1,12 +1,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace OcDialogue
 {
     public class Inventory
     {
+        public static Inventory PlayerInventory { get; set; }
         public IEnumerable<ItemBase> Items => _items;
         List<ItemBase> _items = new List<ItemBase>();
 
@@ -63,6 +65,16 @@ namespace OcDialogue
             }
             OnItemRemoved?.Invoke(exist);
         }
+
+        /// <summary> 현재 인벤토리에 존재하는 아이템의 개수를 반환함. isStackable인 경우, StackAmount를 반환하고, 아닌 경우에 총 개수를 반환함. </summary>
+        public int Count(ItemBase item)
+        {
+            var exist = _items.Find(x => x.GUID == item.GUID);
+            if (exist == null) return 0;
+
+            return item.isStackable ? exist.CurrentStack : _items.Count(x => x.GUID == item.GUID);
+        }
+        
         /// <summary> 아이템을 개수에 상관 없이 삭제함. </summary>
         void RemoveSingleItem(ItemBase item)
         {
