@@ -3,6 +3,17 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2021.07.06
+
+### Added
+- Dialogue Editor Window추가. 간단한 기능만 존재함. 아직 작업중.
+- IEquipment에서 ItemBase 프로퍼티 추가. 자신을 반환함.
+- 빌드 시 오류가 없도록 Editor asmdef 변경 및 전처리기 수정함.
+
+### TODO
+- Dialogue Editor Window랑 UI연결하기.
+- 데이터 Checker / Setter / 씬 이벤트 연결 만들기
+
 ## [0.1.12] - 2021.06.30
 ### Added
 - 아이템 확장 샘플 추가.

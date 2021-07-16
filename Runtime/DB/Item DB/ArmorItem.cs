@@ -44,6 +44,7 @@ namespace OcDialogue
         [Range(0, 100f), BoxGroup("Elemental Defense"), LabelText("Light"), LabelWidth(100)] public float lighteningDefense = 10;
         [Range(0, 100f), BoxGroup("Elemental Defense"), LabelText("Dark"),  LabelWidth(100)] public float darkDefense       = 10;
         public AssetReference Avatar => avatar;
+        public ItemBase ItemBase => this;
         public AssetReference avatar;
 
         void OnValidate()

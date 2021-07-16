@@ -12,6 +12,7 @@ namespace OcDialogue
         [ReadOnly, BoxGroup("ReadOnly")] public AccessoryType subtype;
         public override string SubTypeString => subtype.ToString();
         public AssetReference Avatar => null;
+        public ItemBase ItemBase => this;
 
         public int MaxUpgrade => 0;
 

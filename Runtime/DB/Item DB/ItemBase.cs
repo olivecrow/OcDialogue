@@ -13,11 +13,11 @@ namespace OcDialogue
         [BoxGroup("ReadOnly")][ReadOnly]public ItemType type;
         public string itemName;
         public bool isStackable;
-        // TODO : 인게임 아이콘은 Addressable을 사용해서 구현할것.
-#if UNITY_EDITOR
-        [PropertyOrder(-10)]public Texture editorIcon;
         /// <summary> Editor Only. </summary>
         public abstract string SubTypeString { get; }
+#if UNITY_EDITOR
+        // TODO : 인게임 아이콘은 Addressable을 사용해서 구현할것.
+        [PropertyOrder(-10)]public Texture editorIcon;
         /// <summary> Editor Only. 각 아이템 타입에 맞는 SubType을 할당함. </summary>
         public abstract void SetSubTypeFromString(string subtypeName);
         /// <summary> Editor Only. 데이터베이스 편집기에서 보여주는 참조된 아이템 설명. </summary>

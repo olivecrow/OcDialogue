@@ -14,5 +14,6 @@ namespace OcDialogue
         float Weight { get; }
         bool Equipped { get; set; }
         AssetReference Avatar { get; }
+        ItemBase ItemBase { get; }
     }
 }

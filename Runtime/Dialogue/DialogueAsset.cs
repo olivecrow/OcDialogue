@@ -2,7 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Sirenix.OdinInspector;
+
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace OcDialogue
@@ -20,6 +23,7 @@ namespace OcDialogue
             Categories = new[] {"Main"};
         }
 
+#if UNITY_EDITOR
         [Button]
         public Conversation AddConversation()
         {
@@ -51,5 +55,7 @@ namespace OcDialogue
             EditorUtility.SetDirty(this);
             AssetDatabase.SaveAssets();
         }
+#endif
+        
     }
 }

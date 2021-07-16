@@ -22,6 +22,11 @@ namespace OcDialogue
 #endif
         
         [TableList(IsReadOnly = true)]public List<NPC> NPCs = new List<NPC>();
+        
+#if UNITY_EDITOR
+        /// <summary> Editor Only. 이름 수정 후 매칭할때 사용함. </summary>
+        [HideInInspector]public bool isNameDirty;
+        
         void OnValidate()
         {
             foreach (var npc in NPCs)
@@ -31,9 +36,6 @@ namespace OcDialogue
                 break;
             }
         }
-#if UNITY_EDITOR
-        /// <summary> Editor Only. 이름 수정 후 매칭할때 사용함. </summary>
-        [HideInInspector]public bool isNameDirty;
         
         [HorizontalGroup("Buttons"), Button(ButtonSizes.Medium), GUIColor(1, 1, 0), EnableIf("isNameDirty")]
         public void MatchAllNames()

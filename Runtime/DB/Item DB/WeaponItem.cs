@@ -33,6 +33,7 @@ namespace OcDialogue
         [BoxGroup("Elemental Attack")] public int darkAttack;
 
         public AssetReference Avatar => avatar;
+        public ItemBase ItemBase => this;
         public AssetReference avatar;
         public override ItemBase GetCopy()
         {
