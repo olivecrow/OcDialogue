@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,39 +12,34 @@ namespace OcDialogue
     public class QuestDatabase : ScriptableObject
     {
         public static QuestDatabase Instance => DBManager.Instance.QuestDatabase;
-        [ShowIf("IsEditingCategory"), InlineButton("DoneEditCategory", "Apply")] public string[] Category;
+        public static RuntimeQuestData Runtime => _runtime;
+        static RuntimeQuestData _runtime;
+        [HideInInspector]public string[] Category;
         [InlineEditor(InlineEditorModes.FullEditor)]public List<Quest> Quests;
+
+        [RuntimeInitializeOnLoadMethod]
+        static void RuntimeInit()
+        {
+            // TODO : 세이브 & 로드 기능 넣기.
+            _runtime = new RuntimeQuestData(Instance.Quests);
+        }
         
         #if UNITY_EDITOR
 
-        /// <summary> Editor Only. 에디터에서 카테고리 목록별로 볼 때 사용. </summary>
-        [ShowInInspector, InlineButton("EditCategory", "Edit")]
-        [HideIf("IsEditingCategory")]
-        [ValueDropdown("GetCategoryList"), PropertyOrder(-100), HideInInspector] public string CurrentCategory;
-        bool IsEditingCategory { get; set; }
+        [HideInInspector] public QuestEditorPreset editorPreset;
+        
 
-        void EditCategory() => IsEditingCategory = true;
-        void DoneEditCategory() => IsEditingCategory = false;
-
-        ValueDropdownList<string> GetCategoryList()
+        void Reset()
         {
-            var list = new ValueDropdownList<string>();
-            foreach (var s in Category)
-            {
-                list.Add(s);
-            }
-
-            return list;
+            if (Category == null || Category.Length == 0) Category = new[] {"Main"};
         }
-
-        [HorizontalGroup("Buttons"), Button(ButtonSizes.Medium), GUIColor(0, 1, 1)]
-        public void AddQuest()
+        public void AddQuest(string category)
         {
             var asset = CreateInstance<Quest>();
 
             asset.name = OcDataUtility.CalculateDataName("New Quest", Quests.Select(x => x.key));
             asset.key = asset.name;
-            asset.Category = CurrentCategory;
+            asset.Category = category;
             Quests.Add(asset);
             OcDataUtility.Repaint();
             var path = AssetDatabase.GetAssetPath(this).Replace($"{name}.asset", $"{asset.name}.asset");
@@ -52,7 +48,6 @@ namespace OcDialogue
             AssetDatabase.SaveAssets();
         }
         
-        [HorizontalGroup("Buttons"), Button]
         public void DeleteQuest(string key)
         {
             if(!EditorUtility.DisplayDialog("삭제?", "정말 해당 Quest를 삭제하겠습니까?", "OK", "Cancel"))
@@ -76,10 +71,13 @@ namespace OcDialogue
         /// <summary> 각종 문제들을 해결함. </summary>
         public void Resolve()
         {
-            // datarow의 ownerDB가 Quest가 아닌 것을 고침.
             foreach (var quest in Quests)
             {
-                foreach (var data in quest.DataRows)
+                // 각 퀘스트의 DataRowContainer에 대해서 owner를 재설정함.
+                quest.DataRowContainer.owner = quest;
+                
+                // datarow의 ownerDB가 Quest가 아닌 것을 고침.
+                foreach (var data in quest.DataRowContainer.dataRows)
                 {
                     if(data.ownerDB != DBType.Quest)
                     {

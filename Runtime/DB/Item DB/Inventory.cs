@@ -9,8 +9,22 @@ namespace OcDialogue
     public class Inventory
     {
         public static Inventory PlayerInventory { get; set; }
+        public Inventory()
+        {
+            _items = new List<ItemBase>();
+        }
+
+        public Inventory(IEnumerable<ItemBase> items)
+        {
+            _items = new List<ItemBase>();
+            foreach (var item in items)
+            {
+                _items.Add(item.GetCopy());
+            }
+        }
+
         public IEnumerable<ItemBase> Items => _items;
-        List<ItemBase> _items = new List<ItemBase>();
+        List<ItemBase> _items;
 
         public event Action<ItemBase> OnItemAdded;
         public event Action<ItemBase> OnItemRemoved;

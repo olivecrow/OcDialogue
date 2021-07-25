@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
+using Sirenix.Utilities;
 using Sirenix.Utilities.Editor;
 using UnityEditor;
 using UnityEngine;
@@ -24,7 +25,8 @@ namespace OcDialogue.Editor
         }
 
         DBType _dbType;
-        
+        ItemDatabaseEditor _itemDatabaseEditor;
+        QuestDatabaseEditor _questDatabaseEditor;
         [MenuItem("Tools/데이터베이스 에디터")]
         static void Open()
         {
@@ -37,74 +39,67 @@ namespace OcDialogue.Editor
             ResizableMenuWidth = false;
         }
 
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            _itemDatabaseEditor ??= new ItemDatabaseEditor(this);
+        }
+
         protected override void OnBeginDrawEditors()
         {
             SirenixEditorGUI.BeginHorizontalToolbar();
             {
-                DBType = (DBType) GUILayout.Toolbar((int) DBType, Enum.GetNames(typeof(DBType)));
-                switch (DBType)
-                {
-                    case DBType.Item:
-                        MenuWidth = 256;
-                        break;
-                    default:
-                        MenuWidth = 256;
-                        break;
-                }
+                GUI.backgroundColor = new Color(2f, 1f, 0f);
+                GUI.contentColor = Color.yellow;
+                DBType = (DBType) GUILayout.Toolbar(
+                    (int) DBType, Enum.GetNames(typeof(DBType)), 
+                    GUILayoutOptions.Height(40));
+                GUI.backgroundColor = Color.white;
+                GUI.contentColor = Color.white;
             }
             SirenixEditorGUI.EndHorizontalToolbar();
 
-            if (DBType == DBType.Quest)
+            switch (DBType)
             {
-                SirenixEditorGUI.BeginHorizontalToolbar();
+                case DBType.Quest:
                 {
-                    var toList = QuestDatabase.Instance.Category.ToList();
-                    var currentIdx = toList.IndexOf(QuestDatabase.Instance.CurrentCategory);
-                    var idx = GUILayout.Toolbar(currentIdx, QuestDatabase.Instance.Category);
-                    
-                    var rebuildRequest = currentIdx != idx;
-                    
-                    QuestDatabase.Instance.CurrentCategory = QuestDatabase.Instance.Category[idx];
-                    switch (DBType)
+                    if (QuestDatabase.Instance == null)
                     {
-                        case DBType.Item:
-                            MenuWidth = 256;
-                            break;
-                        default:
-                            MenuWidth = 256;
-                            break;
+                        GUI.Label(EditorGUILayout.GetControlRect(), "퀘스트 데이터베이스가 없는듯?");
+                        GUI.Label(EditorGUILayout.GetControlRect(), "DB Manager에 등록이 안 되었는지 확인해보고, 없으면 새로 만드셈");
+                        return;
                     }
-                    if(rebuildRequest) ForceMenuTreeRebuild();
+
+                    if (_questDatabaseEditor == null)
+                    {
+                        _questDatabaseEditor = UnityEditor.Editor.CreateEditor(QuestDatabase.Instance) as QuestDatabaseEditor;
+                    }
+                    
+                    if (MenuTree.Selection.SelectedValue is QuestEditorPreset)
+                    {
+                        var preset = QuestDatabase.Instance.editorPreset;
+                        preset.tmpList = 
+                            preset.Quests.Where(x => x.quest.Category == _questDatabaseEditor.CurrentCategory).ToList();
+                    }
+                    _questDatabaseEditor.Draw();
+                    break;
                 }
-                SirenixEditorGUI.EndHorizontalToolbar();
-                
-                SirenixEditorGUI.BeginHorizontalToolbar();
+                case DBType.Item:
                 {
-                    if (SirenixEditorGUI.ToolbarButton("Create"))
+                    if (ItemDatabase.Instance == null)
                     {
-                        QuestDatabase.Instance.AddQuest();
-                        ForceMenuTreeRebuild();
-                        TrySelectMenuItemWithObject(QuestDatabase.Instance.Quests[QuestDatabase.Instance.Quests.Count - 1]);
+                        GUI.Label(EditorGUILayout.GetControlRect(), "아이템 데이터베이스가 없는듯?");
+                        GUI.Label(EditorGUILayout.GetControlRect(), "DB Manager에 등록이 안 되었는지 확인해보고, 없으면 새로 만드셈");
+                        return;
                     }
-                    if (SirenixEditorGUI.ToolbarButton("Delete"))
+                    
+                    if(!(MenuTree.Selection.SelectedValue is InventoryEditorPreset))
                     {
-                        if(MenuTree.Selection == null) return;
-                        var q = MenuTree.Selection.SelectedValue as Quest;
-                        QuestDatabase.Instance.DeleteQuest(q.key);
+                        _itemDatabaseEditor.Draw(MenuTree.Selection?.SelectedValue as ItemBase);
                     }
-                    if (SirenixEditorGUI.ToolbarButton("Resolve"))
-                    {
-                        QuestDatabase.Instance.Resolve();
-                    }
+
+                    break;
                 }
-                SirenixEditorGUI.EndHorizontalToolbar();
-            }
-            
-            if(DBType == DBType.Item)
-            {
-                new ItemDatabaseEditor(ForceMenuTreeRebuild).Draw(
-                    ref ItemDatabase.Instance.itemType,
-                    ref ItemDatabase.Instance.itemSubType, MenuTree.Selection?.SelectedValue as ItemBase);
             }
         }
 
@@ -116,23 +111,38 @@ namespace OcDialogue.Editor
                 Selection.activeObject = selection.SelectedValue as UnityEngine.Object;
                 EditorGUIUtility.PingObject(Selection.activeObject);
             };
+            var yellowTex = new Texture2D(1, 1);
+            yellowTex.SetPixel(0,0, Color.yellow);
+            yellowTex.Apply();
+            var greenTex = new Texture2D(1, 1);
+            greenTex.SetPixel(0,0, Color.green);
+            greenTex.Apply();
             switch (DBType)
             {
                 case DBType.GameProcess:
-                    tree.Add("GameProcess DB", GameProcessDatabase.Instance);
-                    
+                    tree.Add("Game Process DB", GameProcessDatabase.Instance, greenTex);
+                    tree.Add("Game Process Editor Preset", GameProcessDatabase.Instance.editorPreset, yellowTex);
                     break;
                 case DBType.Item:
+                    if (ItemDatabase.Instance == null)
+                    {
+                        break;
+                    }
+                    
+                    tree.Add("Item Database", ItemDatabase.Instance, greenTex);
+                    tree.Add("Inventory Editor Preset", ItemDatabase.Instance.editorPreset, yellowTex);
                     foreach (var itemBase in ItemDatabase.Instance.Items)
                     {
-                        if(itemBase.SubTypeString != ItemDatabase.Instance.itemSubType) continue;
+                        if(itemBase.SubTypeString != _itemDatabaseEditor.subTypeName) continue;
                         tree.Add(itemBase.itemName, itemBase, itemBase.editorIcon); 
                     }
                     break;
                 case DBType.Quest:
+                    tree.Add("Quest Database", QuestDatabase.Instance, greenTex);
+                    tree.Add("Quest Database Editor Preset", QuestDatabase.Instance.editorPreset, yellowTex);
                     foreach (var quest in QuestDatabase.Instance.Quests)
                     {
-                        if(quest.Category != QuestDatabase.Instance.CurrentCategory) continue;
+                        if(quest.Category != _questDatabaseEditor.CurrentCategory) continue;
                         tree.Add(quest.key, quest);
                     }
                     break;
@@ -142,6 +152,11 @@ namespace OcDialogue.Editor
                 case DBType.Enemy:
                     break;
             }
+
+            tree.Selection.SelectionChanged += type =>
+            {
+                _questDatabaseEditor.IsEditMode = false;
+            };
             return tree;
         }
     }

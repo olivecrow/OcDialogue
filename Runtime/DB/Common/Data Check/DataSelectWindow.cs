@@ -168,7 +168,7 @@ namespace OcDialogue.Editor
             switch (DBType)
             {
                 case DBType.GameProcess:
-                    foreach (var row in GameProcessDatabase.Instance.DataRows) list.Add(row);
+                    foreach (var row in GameProcessDatabase.Instance.DataRowContainer.dataRows) list.Add(row);
                     break;
                 case DBType.Item:
                     var targetItems = ItemDatabase.Instance.Items.Where(x =>
@@ -181,7 +181,7 @@ namespace OcDialogue.Editor
                     else if (secondDropDown == "DataRows")
                     {
                         var currentQuest = QuestDatabase.Instance.Quests.Find(x => x.key == thirdDropDown);
-                        foreach (var dataRow in currentQuest.DataRows) list.Add(dataRow);
+                        foreach (var dataRow in currentQuest.DataRowContainer.dataRows) list.Add(dataRow);
                     }
                     break;
                 case DBType.NPC:
@@ -201,8 +201,11 @@ namespace OcDialogue.Editor
         [Button]
         void Apply()
         {
-            Target.targetRow = Data as DataRow;
-            
+            Target.targetData = Data as DataRow;
+            Target.path = $"{DBType}";
+            if (UseFirstDropdown()) Target.path += $"/{firstDropdown}";
+            if (UseSecondDropdown()) Target.path += $"/{secondDropDown}";
+            if (UseThirdDropdown()) Target.path += $"/{thirdDropDown}";
             Close();
         }
     }

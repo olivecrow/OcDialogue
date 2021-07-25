@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,28 +21,24 @@ namespace OcDialogue
         }
 
         public override string Key => key;
-        [InlineButton("MatchName", ShowIf = "@key != name"), PropertyOrder(0), HorizontalGroup("Key"), LabelWidth(100)]public string key;
+        [InlineButton("MatchName", ShowIf = "@key != name"), HorizontalGroup("Key"), LabelWidth(100)]public string key;
         [HorizontalGroup("Key"), ValueDropdown("GetCategory"), LabelWidth(100)]public string Category;
-        [Multiline(5), PropertyOrder(1), LabelWidth(100)]public string description;
-        [PropertyOrder(5)]public List<ComparableData> References;
-        [TableList(IsReadOnly = true), PropertyOrder(20)] public List<DataRow> DataRows;
+        [Multiline(5), LabelWidth(100)]public string description;
+        public List<ComparableData> References;
+        [HideLabel, BoxGroup(Order = 10)]public DataRowContainer DataRowContainer;
         public State QuestState { get; set; }
 
         public Quest GetCopy()
         {
             var quest = CreateInstance<Quest>();
+            quest.name = key;
             quest.key = key;
             quest.Category = Category;
             quest.description = description;
 
             quest.References = References;
-            var rows = new List<DataRow>();
-            foreach (var dataRow in DataRows)
-            {
-                rows.Add(dataRow.GetCopy());
-            }
-
-            quest.DataRows = rows;
+            var rows = DataRowContainer.GetAllCopies();
+            quest.DataRowContainer = new DataRowContainer(quest, rows);
 
             return quest;
         }
@@ -59,8 +56,16 @@ namespace OcDialogue
         }
         
 #if UNITY_EDITOR
+        void Reset()
+        {
+            if(DataRowContainer == null) return;
+            DataRowContainer.owner = this;
+        }
 
-        bool MisMatchDataNames() => DataRows.Any(x => x.name != x.key);
+        void OnValidate()
+        {
+            DataRowContainer.CheckNames();
+        }
 
         ValueDropdownList<string> GetCategory()
         {
@@ -80,53 +85,25 @@ namespace OcDialogue
             AssetDatabase.SaveAssets();
         }
 
-        [HorizontalGroup("Buttons"), Button("Add DataRow"), GUIColor(0,1,1), PropertyOrder(10)]
+        [Button, HorizontalGroup("Row"), PropertyOrder(9), GUIColor(0,1,1)]
         void AddData()
         {
-            var row = CreateInstance<DataRow>();
-            row.ownerDB = DBType.Quest;
-            row.name = OcDataUtility.CalculateDataName("New DataRow", DataRows.Select(x => x.key));
-            row.key = row.name;
-            DataRows.Add(row);
-            OcDataUtility.Repaint();
-            AssetDatabase.AddObjectToAsset(row, this);
-            EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssets();
+            DataRowContainer.owner = this;
+            DataRowContainer.AddData(DBType.Quest, DataStorageType.Embeded);
         }
-        [HorizontalGroup("Buttons"), Button("Delete Row"), GUIColor(1,0,0), PropertyOrder(11)]
-        void DeleteRow(string key)
+        
+        [Button, HorizontalGroup("Row"), PropertyOrder(9), GUIColor(1,0,0)]
+        void DeleteData(string k)
         {
-            var row = DataRows.FirstOrDefault(x => x.key == key);
-            if (row == null)
-            {
-                var path = AssetDatabase.GetAssetPath(this);
-                var allAssets = AssetDatabase.LoadAllAssetsAtPath(path).Select(x => x as DataRow);
-                row = allAssets.FirstOrDefault(x => x.key == key);
-                if(row == null)
-                {
-                    Debug.LogWarning($"해당 키값의 DataRow가 없어서 삭제에 실패함 : {key}");
-                    return;
-                }
-            }
+            DataRowContainer.DeleteRow(k, DataStorageType.Embeded);
+        }
 
-            DataRows.Remove(row);
-            
-            OcDataUtility.Repaint();
-            AssetDatabase.RemoveObjectFromAsset(row);
-            DataRows = DataRows.Where(x => x != null).ToList();
-            EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssets();
-        }
-        [HorizontalGroup("Buttons"), Button("Match Names"), PropertyOrder(12), ShowIf("MisMatchDataNames")]
-        void MatchDataRowNames()
+        [Button, HorizontalGroup("Row"), PropertyOrder(9)]
+        void MatchNames()
         {
-            foreach (var dataRow in DataRows)
-            {
-                if (dataRow.name != dataRow.key) dataRow.name = dataRow.key;
-            }
-            EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssets();
+            DataRowContainer.MatchDataRowNames();
         }
+        
 #endif
 
     }

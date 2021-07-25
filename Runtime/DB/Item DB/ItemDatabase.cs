@@ -17,9 +17,8 @@ namespace OcDialogue
     {
         public static ItemDatabase Instance => DBManager.Instance.ItemDatabase;
 #if UNITY_EDITOR
-        [EnumToggleButtons] public ItemType itemType;
-        [ValueDropdown("GetSubTypeDropdownList")]public string itemSubType;
-
+        [HideInInspector]public InventoryEditorPreset editorPreset;
+        
         public ItemBase AddItem(ItemType type, string subType)
         {
             ItemBase asset = type switch
@@ -36,7 +35,7 @@ namespace OcDialogue
             asset.type = type;
             asset.SetSubTypeFromString(subType);
 
-            asset.name = OcDataUtility.CalculateDataName($"New {itemSubType}", Items.Select(x => x.itemName));
+            asset.name = OcDataUtility.CalculateDataName($"New {subType}", Items.Select(x => x.itemName));
             asset.itemName = asset.name;
             
             Items.Add(asset);
@@ -55,32 +54,6 @@ namespace OcDialogue
             AssetDatabase.RemoveObjectFromAsset(item);
             EditorUtility.SetDirty(this);
             AssetDatabase.SaveAssets();
-        }
-        
-        
-        ValueDropdownList<string> GetSubTypeDropdownList()
-        {
-            var list = new ValueDropdownList<string>();
-            switch (itemType)
-            {
-                case ItemType.Generic:
-                    Enum.GetNames(typeof(GenericType)).ForEach(x => list.Add(x));
-                    break;
-                case ItemType.Armor:
-                    Enum.GetNames(typeof(ArmorType)).ForEach(x => list.Add(x));
-                    break;
-                case ItemType.Weapon:
-                    Enum.GetNames(typeof(WeaponType)).ForEach(x => list.Add(x));
-                    break;
-                case ItemType.Important:
-                    Enum.GetNames(typeof(ImportantItemType)).ForEach(x => list.Add(x));
-                    break;
-                case ItemType.Accessory:
-                    Enum.GetNames(typeof(AccessoryType)).ForEach(x => list.Add(x));
-                    break;
-            }
-
-            return list;
         }
 #endif
         public List<ItemBase> Items;

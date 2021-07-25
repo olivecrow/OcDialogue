@@ -20,8 +20,8 @@ namespace OcDialogue
         /// <summary> Editor Only. 시스템 NPC </summary>
         public NPC DefaultNPC;
 #endif
-        
-        [TableList(IsReadOnly = true)]public List<NPC> NPCs = new List<NPC>();
+        public string[] Category;
+        public List<NPC> NPCs = new List<NPC>();
         
 #if UNITY_EDITOR
         /// <summary> Editor Only. 이름 수정 후 매칭할때 사용함. </summary>

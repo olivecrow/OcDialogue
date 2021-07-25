@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,22 +10,9 @@ using UnityEngine;
 
 namespace OcDialogue
 {
-    [CreateAssetMenu(fileName = "Inventory Editor Preset", menuName = "Oc Dialogue/Editor Preset/Inventory Editor Preset")]
-    public class InventoryEditorPreset : ScriptableObject
+    [Serializable]
+    public class InventoryEditorPreset
     {
-#if UNITY_EDITOR
-        /// <summary> Editor Only. </summary>
-        public const string AssetPath = "Inventory Editor Preset.asset";
-        /// <summary> Editor Only. </summary>
-        public static InventoryEditorPreset Instance => _instance;
-        static InventoryEditorPreset _instance;
-
-        [InitializeOnLoadMethod]
-        static void EditorInit()
-        {
-            _instance = EditorGUIUtility.Load(AssetPath) as InventoryEditorPreset;
-        }
-
         public bool usePreset;
         [TableList]public List<ItemPreset> ItemPresets;
         
@@ -87,6 +75,8 @@ namespace OcDialogue
             
             [VerticalGroup("Item")][ValueDropdown("GetItemList"), OnValueChanged("ApplyIcon"), HideLabel]public ItemBase item;
             [VerticalGroup("Item")][ShowIf("@item != null && item.isStackable")] public int count;
+            [VerticalGroup("Item")][ShowIf("@item != null && (type == ItemType.Weapon || type == ItemType.Armor || type == ItemType.Accessory)")]
+            public bool equip;
 
             [HideInInspector] public UnityEngine.Object _cachedIcon;
             void OnTypeChanged()
@@ -169,6 +159,6 @@ namespace OcDialogue
                 return copy;
             }
         }
-#endif
     }
 }
+#endif

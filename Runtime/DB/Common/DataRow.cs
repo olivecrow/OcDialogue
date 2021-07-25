@@ -18,7 +18,7 @@ namespace OcDialogue
 
         [HideInInspector]public DBType ownerDB;
         public override string Key => key;
-        [TableColumnWidth(150, Resizable = false)]public string key;
+        [GUIColor("e_keyColor")][TableColumnWidth(150, Resizable = false)]public string key;
         [TableColumnWidth(100, Resizable = false)]public Type type;
         [ShowIf("type", Type.Boolean), VerticalGroup("Value"), HideLabel, TableColumnWidth(100, Resizable = false)][ExplicitToggle]public bool boolValue;
         [ShowIf("type", Type.Int),     VerticalGroup("Value"), HideLabel, TableColumnWidth(100, Resizable = false)]public int intValue;
@@ -31,10 +31,10 @@ namespace OcDialogue
             {
                 return type switch
                 {
-                    DataRow.Type.Boolean => boolValue,
-                    DataRow.Type.Int => intValue,
-                    DataRow.Type.Float => floatValue,
-                    DataRow.Type.String => stringValue,
+                    Type.Boolean => boolValue,
+                    Type.Int => intValue,
+                    Type.Float => floatValue,
+                    Type.String => stringValue,
                     _ => 0
                 };
             }
@@ -103,5 +103,14 @@ namespace OcDialogue
             return false;
         }
 
+#if UNITY_EDITOR
+        Color e_keyColor = Color.white;
+        /// <summary> Editor Only. 이름과 키값을 매칭해서 맞지 않으면 guiColor를 바꿈. </summary>
+        public void CheckName()
+        {
+            if (name != key) e_keyColor = Color.magenta;
+            else e_keyColor = Color.white;
+        }
+#endif
     }
 }
