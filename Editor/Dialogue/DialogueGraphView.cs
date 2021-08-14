@@ -20,15 +20,17 @@ namespace OcDialogue.Editor
         readonly Vector2 DefaultNodeSize = new Vector2(160, 200);
         public DialogueGraphView(Conversation conversation)
         {
-            Debug.Log("New GraphView");
+            Debug.Log("[GraphView] New Instanciated");
             Conversation = conversation;
             InitOutline();
             CheckBalloons();
             DrawNodesAndEdges();
         }
+
         /// <summary> 배경이나 줌 상태 등, 개괄적인 것을 초기화함. </summary>
         void InitOutline()
         {
+            Debug.Log("[GraphView] InitOutline");
             SetupZoom(ContentZoomer.DefaultMinScale, ContentZoomer.DefaultMaxScale);
 
             this.AddManipulator(new ContentDragger());
@@ -43,10 +45,16 @@ namespace OcDialogue.Editor
             
             UpdateViewTransform(Conversation.lastViewPosition, Conversation.lastViewScale);
             graphViewChanged += OnGraphViewChanged;
+            viewTransformChanged += g =>
+            {
+                Conversation.lastViewPosition = g.viewTransform.position;
+                Conversation.lastViewScale = g.viewTransform.scale;
+            };
         }
-
+        
         GraphViewChange OnGraphViewChanged(GraphViewChange change)
         {
+            EditorUtility.SetDirty(DialogueAsset.Instance);
             if (change.movedElements != null)
             {
                 foreach (var element in change.movedElements)
@@ -61,11 +69,12 @@ namespace OcDialogue.Editor
 
             if (change.edgesToCreate != null)
             {
+                Debug.Log("[GraphView] Edge Created !!!!!!!");
                 foreach (var edge in change.edgesToCreate)
                 {
-                    Debug.Log("Edge Created");
+                    Debug.Log("[GraphView] Edge Created");
                     var linkData = CreateLinkDataFromEdge(edge);
-                    Conversation.LinkData.Add(linkData);
+                    Conversation.AddLinkData(linkData);
                 }
                 EditorUtility.SetDirty(Conversation);
             }
@@ -76,7 +85,11 @@ namespace OcDialogue.Editor
                 {
                     if (element is DialogueNode node)
                     {
-                        Conversation.RemoveBalloon(node.Balloon);
+                        if (node.Balloon.type == Balloon.Type.Entry)
+                        {
+                            CreateNode(node.Balloon, node.Balloon.position);
+                        }
+                        else Conversation.RemoveBalloon(node.Balloon);
                     }
                     else if (element is Edge edge)
                     {
@@ -98,6 +111,7 @@ namespace OcDialogue.Editor
                 selected = node;
                 break;
             }
+            if(selected != null) evt.menu.RemoveItemAt(0);
 
             evt.menu.AppendAction( "Add Dialogue", a =>
             {
@@ -105,22 +119,21 @@ namespace OcDialogue.Editor
                 else
                 {
                     var newBalloon = Conversation.AddBalloon(Balloon.Type.Dialogue);
-                    DrawNode(newBalloon, _lastMousePosition);
+                    CreateNode(newBalloon, _lastMousePosition);
                     
-                    newBalloon.position = _lastMousePosition;
                     EditorUtility.SetDirty(newBalloon);
                     AssetDatabase.SaveAssets();
                 }
             });
             evt.menu.AppendAction("Add Choice", a =>
                 {
-                    if (selected == null) CreateLinkedNode(selected, Balloon.Type.Choice);
+                    Debug.Log($"Add Choice : selected == null ? {selected == null}");
+                    if (selected != null) CreateLinkedNode(selected, Balloon.Type.Choice);
                     else
                     {
                         var newBalloon = Conversation.AddBalloon(Balloon.Type.Choice);
-                        DrawNode(newBalloon, _lastMousePosition);
+                        CreateNode(newBalloon, _lastMousePosition);
                         
-                        newBalloon.position = _lastMousePosition;
                         EditorUtility.SetDirty(newBalloon);
                         AssetDatabase.SaveAssets();
                     }
@@ -133,19 +146,6 @@ namespace OcDialogue.Editor
                             ? DropdownMenuAction.Status.Normal
                             : DropdownMenuAction.Status.Disabled;
                 });
-            evt.menu.AppendAction( "Add Event", a =>
-            {
-                if(selected != null)CreateLinkedNode(selected, Balloon.Type.Event);
-                else
-                {
-                    var newBalloon = Conversation.AddBalloon(Balloon.Type.Event);
-                    DrawNode(newBalloon, _lastMousePosition);
-                    
-                    newBalloon.position = _lastMousePosition;
-                    EditorUtility.SetDirty(newBalloon);
-                    AssetDatabase.SaveAssets();
-                }
-            });
             evt.menu.AppendSeparator();
             if (selected == null)
             {
@@ -201,7 +201,7 @@ namespace OcDialogue.Editor
             Nodes = new List<DialogueNode>();
             foreach (var balloon in Conversation.Balloons)
             {
-                var node = DrawNode(balloon, balloon.position);
+                var node = CreateNode(balloon, balloon.position);
                 if (node.Balloon.type == Balloon.Type.Entry) EntryNode = node;
             }
 
@@ -212,7 +212,7 @@ namespace OcDialogue.Editor
         }
         
         /// <summary> Balloon 하나에 대응되는 노드 하나를 그림. </summary>
-        DialogueNode DrawNode(Balloon balloon, Vector2 position)
+        DialogueNode CreateNode(Balloon balloon, Vector2 position)
         {
             var node = new DialogueNode(balloon);
             AddElement(node);
@@ -221,8 +221,12 @@ namespace OcDialogue.Editor
             {
                 node.SetPosition(new Rect(position, DefaultNodeSize));
                 node.style.minWidth = DefaultNodeSize.x;
+                balloon.position = position;
             }
-            else node.SetPosition(new Rect(position, new Vector2(150, DefaultNodeSize.y)));
+            else
+            {
+                node.SetPosition(new Rect(position, new Vector2(150, DefaultNodeSize.y)));
+            }
 
             Nodes.Add(node);
             return node;
@@ -245,18 +249,18 @@ namespace OcDialogue.Editor
         {
             var newBalloon = Conversation.AddBalloon(balloonType);
             var rect = source.GetPosition();
-            var node = DrawNode(newBalloon,  rect.position + new Vector2(rect.width + 50f, 0f));
-            newBalloon.position = node.GetPosition().position;
+            var node = CreateNode(newBalloon,  rect.position + new Vector2(rect.width + 50f, source.Balloon.linkedBalloons.Count * rect.height));
             var edge = source.OutputPort.ConnectTo(node.InputPort);
             
             var linkData = CreateLinkDataFromEdge(edge);
-            Conversation.LinkData.Add(linkData);
-            
+            Conversation.AddLinkData(linkData);
+
             AddElement(edge);
             
             EditorUtility.SetDirty(newBalloon);
             AssetDatabase.SaveAssets();
-            
+            ClearSelection();
+            AddToSelection(node);
             return node;
         }
         
@@ -266,6 +270,11 @@ namespace OcDialogue.Editor
             var toBalloon = Conversation.Balloons.Find(x => x.GUID == linkData.to);
             var fromNode = FindNode(fromBalloon);
             var toNode = FindNode(toBalloon);
+            if (fromNode == null || toNode == null)
+            {
+                Debug.LogError("[GraphView] linkData에 맞는 노드가 없음");
+                return null;
+            }
             var edge = fromNode.OutputPort.ConnectTo(toNode.InputPort);
             AddElement(edge);
             return edge;
@@ -278,7 +287,9 @@ namespace OcDialogue.Editor
             {
                 if (node.Balloon == balloon) return node;
             }
-            Debug.LogError($"해당되는 노드를 찾지 못 함. balloon => actor : {balloon.actor} | text : {balloon.text}");
+
+            if (balloon == null) Debug.LogError($"[GraphView] 빈 balloon이 전달됨");
+            else Debug.LogError($"[GraphView] 해당되는 노드를 찾지 못 함. balloon => actor : {balloon.actor} | text : {balloon.text}");
             return null;
         }
         /// <summary> 인풋 혹은 아웃풋 포트가 일치하는 노드를 찾음. 없으면 null을 반환함. </summary>
@@ -288,7 +299,7 @@ namespace OcDialogue.Editor
             {
                 if (node.InputPort == port || node.OutputPort == port) return node; 
             }
-            Debug.LogError($"해당되는 노드를 찾지 못 함. port => type : {port.portType}");
+            Debug.LogError($"[GraphView] 해당되는 노드를 찾지 못 함. port => type : {port.portType}");
             return null;
         }
         
@@ -329,7 +340,8 @@ namespace OcDialogue.Editor
         public override void HandleEvent(EventBase evt)
         {
             base.HandleEvent(evt);
-            if (evt.originalMousePosition != Vector2.zero) _lastMousePosition = evt.originalMousePosition;
+            if (evt.originalMousePosition != Vector2.zero) 
+                _lastMousePosition = (evt.originalMousePosition - (Vector2) viewTransform.position) / viewTransform.scale.x + new Vector2(0, -DefaultNodeSize.y * 0.2f);
         }
     }
 }

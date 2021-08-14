@@ -28,7 +28,13 @@ namespace OcDialogue
         static void RuntimeInit()
         {
             // TODO : 세이브 & 로드 기능 넣기.
-            _runtime = new RuntimeGameProcessData(Instance.DataRowContainer.dataRows);
+#if UNITY_EDITOR
+            _runtime = Instance.editorPreset.usePreset
+                ? new RuntimeGameProcessData(Instance.editorPreset.GetAppliedCopies())
+                : new RuntimeGameProcessData(Instance.DataRowContainer.GetAllCopies());
+#else
+            new RuntimeGameProcessData(Instance.DataRowContainer.GetAllCopies());
+#endif
         }
 
         void OnDisable()

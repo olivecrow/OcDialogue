@@ -7,13 +7,13 @@ using UnityEngine;
 namespace OcDialogue
 {
     [Serializable]
-    public class OverridenRow
+    public class OverridenRow : IComparableData
     {
         [HideInInspector] public DataRow row;
 
         [GUIColor("GetColor")]
         [ShowInInspector, TableColumnWidth(150, false)]
-        public string key => row == null ? "" : row.key;
+        public string Key => row == null ? "" : row.key;
 
         [GUIColor("GetColor")]
         [ShowInInspector, TableColumnWidth(100, false)]
@@ -30,7 +30,7 @@ namespace OcDialogue
         [ShowIf("type", DataRow.Type.String)]
         public string stringValue;
 
-        [GUIColor("GetColor")] [VerticalGroup("Override"), PropertyOrder(10), HideLabel] [ShowIf("type", DataRow.Type.Int)]
+        [GUIColor("GetColor")] [VerticalGroup("Value"), PropertyOrder(10), HideLabel] [ShowIf("type", DataRow.Type.Int)]
         public int intValue;
 
         [GUIColor("GetColor")]
@@ -53,13 +53,25 @@ namespace OcDialogue
             }
         }
         
-        public OverridenRow(DataRow row)
+        public OverridenRow(DataRow row, object value)
         {
             this.row = row;
-            boolValue = row.boolValue;
-            stringValue = row.stringValue;
-            intValue = row.intValue;
-            floatValue = row.floatValue;
+
+            switch (row.type)
+            {
+                case DataRow.Type.Boolean:
+                    boolValue = (bool)value;
+                    break;
+                case DataRow.Type.Int:
+                    intValue = (int) value;
+                    break;
+                case DataRow.Type.Float:
+                    floatValue = (float) value;
+                    break;
+                case DataRow.Type.String:
+                    stringValue = (string) value;
+                    break;
+            }
         }
 
         public bool IsOverriden()
@@ -90,6 +102,33 @@ namespace OcDialogue
 
 
             return IsOverriden() ? Color.yellow : Color.white;
+        }
+
+        public bool IsTrue(Operator op, object value)
+        {
+            return IsTrue(type.ToCompareFactor(), op, value);
+        }
+        public bool IsTrue(CompareFactor factor, Operator op, object value)
+        {
+            return factor switch
+            {
+                CompareFactor.Float => floatValue.IsTrue(op, (float)value),
+                CompareFactor.Int => intValue.IsTrue(op, (int)value),
+                CompareFactor.String => stringValue.IsTrue(op, (string)value),
+                CompareFactor.Boolean => boolValue.IsTrue(op, (bool)value),
+                _ => false
+            };
+        }
+
+        public DataRow GetAppliedCopy()
+        {
+            var copy = row.GetCopy();
+            copy.boolValue = boolValue;
+            copy.intValue = intValue;
+            copy.floatValue = floatValue;
+            copy.stringValue = stringValue;
+
+            return copy;
         }
     }
 }

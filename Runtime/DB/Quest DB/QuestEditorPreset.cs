@@ -25,7 +25,7 @@ namespace OcDialogue
             foreach (var overrideQuest in Quests)
             {
                 var copy = overrideQuest.quest.GetCopy();
-                copy.QuestState = overrideQuest.overrideState;
+                overrideQuest.ApplyOverrides(copy);
                 list.Add(copy);
             }
 
@@ -46,11 +46,12 @@ namespace OcDialogue
         }
 
         [Serializable]
-        public class OverridenQuest
+        public class OverridenQuest : IComparableData
         {
             [ReadOnly]public Quest quest;
+            [HorizontalGroup("1")]
             [GUIColor("GetColor")]public Quest.State overrideState;
-            [TableList]public List<OverridenRow> overrideRows;
+            [TableList][HorizontalGroup("1")]public List<OverridenRow> overrideRows;
 
             public OverridenQuest(Quest quest)
             {
@@ -59,8 +60,17 @@ namespace OcDialogue
 
                 foreach (var dataRow in quest.DataRowContainer.dataRows)
                 {
-                    var overrideRow = new OverridenRow(dataRow);
+                    var overrideRow = new OverridenRow(dataRow, dataRow.TargetValue);
                     overrideRows.Add(overrideRow);
+                }
+            }
+
+            public void ApplyOverrides(Quest target)
+            {
+                target.QuestState = overrideState;
+                for (int i = 0; i < target.DataRowContainer.dataRows.Count; i++)
+                {
+                    target.DataRowContainer.SetValue(overrideRows[i].Key, overrideRows[i].OverridenValue);
                 }
             }
 
@@ -69,6 +79,14 @@ namespace OcDialogue
                 if(overrideState != Quest.State.None) return Color.yellow;
                 
                 return Color.white;
+            }
+
+            public string Key => quest.key;
+            public bool IsTrue(CompareFactor factor, Operator op, object value1)
+            {
+                var tmp = quest.GetCopy();
+                ApplyOverrides(tmp);
+                return tmp.IsTrue(factor, op, value1);
             }
         }
     }

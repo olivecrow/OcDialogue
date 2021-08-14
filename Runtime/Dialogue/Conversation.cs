@@ -12,21 +12,30 @@ namespace OcDialogue
 {
     public class Conversation : ScriptableObject
     {
-[ReadOnly]public string GUID;
+        [ReadOnly]public string GUID;
         [ValueDropdown("GetCategoryList")]public string Category;
         [InlineButton("ApplyName", ShowIf = "@name != key")]public string key;
+        [InfoBox("Main NPC가 설정되어있지 않음", InfoMessageType.Warning, "@MainNPC == null")]
+        [ValueDropdown("GetNPCList")]public NPC MainNPC;
         /// <summary> 에디터에서 참고용으로 사용되는 설명. 인게임에서는 등장하지 않음. </summary>
         [TextArea]public string description;
         public List<Balloon> Balloons;
         public List<LinkData> LinkData;
-        // [ValueDropdown("GetNPCList")]public NPC MainActor;
 
         /// <summary> Editor Only. 그래프에서의 뷰 위치 </summary>
         [HideInInspector]public Vector3 lastViewPosition;
         /// <summary> Editor Only. 그래프의 줌 스케일 </summary>
         [HideInInspector]public Vector3 lastViewScale = new Vector3(1f, 1f, 1f);
 
+
+        public Balloon FindBalloon(string guid)
+        {
+            return Balloons.Find(x => x.GUID == guid);
+        }
+        
 #if UNITY_EDITOR
+        public event Action onValidate;
+
         void ApplyName()
         {
             name = key;
@@ -52,7 +61,7 @@ namespace OcDialogue
                     balloon.type = Balloon.Type.Dialogue;
                     balloon.GUID = Guid.NewGuid().ToString();
                     balloon.text = "New Dialogue";
-                    // balloon.actor = MainActor;
+                    balloon.actor = MainNPC;
                     break;
                 case Balloon.Type.Choice:
                     balloon = CreateInstance<Balloon>();
@@ -80,10 +89,24 @@ namespace OcDialogue
             AssetDatabase.SaveAssets();
         }
 
+        public void AddLinkData(LinkData linkData)
+        {
+            LinkData.Add(linkData);
+            
+            UpdateLinkedBalloonList();
+        }
+
         public void RemoveLinkData(string from, string to)
         {
             var target = LinkData.Find(x => x.@from == from && x.to == to);
             if(target == null) return;
+
+            var rootBalloon = Balloons.Find(x => x.GUID == from);
+            var targetBalloon = Balloons.Find(x => x.GUID == to);
+            
+            // 여러 노드와 엣지를 선택 후 삭제하면 이미 삭제되어 빈 노드가 전달될 수 있으므로 둘 다 있을때만 실행함.
+            if(rootBalloon != null && targetBalloon != null) rootBalloon.linkedBalloons.Remove(targetBalloon);
+            
             LinkData.Remove(target);
             
             EditorUtility.SetDirty(this);
@@ -112,6 +135,73 @@ namespace OcDialogue
             }
         
             return list;
+        }
+
+
+        [BoxGroup("유틸리티 메서드")]
+        [HorizontalGroup("유틸리티 메서드/1", LabelWidth = 100), LabelText("Replace"), ValueDropdown("GetNPCList")]
+        public NPC replace_before;
+        [HorizontalGroup("유틸리티 메서드/1", LabelWidth = 50), LabelText("  =>"), ValueDropdown("GetNPCList")][InlineButton("ReplaceNPC", "Replace")]
+        public NPC replace_after;
+
+        void ReplaceNPC()
+        {
+            foreach (var balloon in Balloons)
+            {
+                if (balloon.actor == replace_before) balloon.actor = replace_after;
+            }
+            onValidate?.Invoke();
+        }
+
+        [BoxGroup("유틸리티 메서드"), Button("모든 말풍선의 LinkBalloons 리스트 업데이트")]
+        void UpdateLinkedBalloonList()
+        {
+            foreach (var linkData in LinkData)
+            {
+                var rootBalloon = Balloons.Find(x => x.GUID == linkData.@from);
+                var targetBalloon = Balloons.Find(x => x.GUID == linkData.to);
+                
+                // 새로 생긴 노드면 아직 직렬화가 안 돼서 linkBalloons가 null이라 오류가 날 수 있음.
+                if (rootBalloon.linkedBalloons == null) rootBalloon.linkedBalloons = new List<Balloon>();
+                
+                if(rootBalloon.linkedBalloons.Contains(targetBalloon)) continue;
+                
+                rootBalloon.linkedBalloons.Add(targetBalloon);
+            }
+        }
+
+
+        [BoxGroup("유틸리티 메서드"), Button("AssetObject 삭제")]
+        void RemoveAssetObject(ScriptableObject so)
+        {
+            AssetDatabase.RemoveObjectFromAsset(so);
+            EditorUtility.SetDirty(this);
+            AssetDatabase.SaveAssets();
+        }
+
+        [BoxGroup("유틸리티 메서드"), Button("사용하지 않는 이미지 참조 해제")]
+        void ReleaseUnusedImage()
+        {
+            foreach (var balloon in Balloons)
+            {
+                balloon.ReleaseUnusedImage();
+            }
+        }
+
+        [BoxGroup("유틸리티 메서드"), Button("사용하지 않는 LinkData 제거")]
+        void RemoveUnusedLinkData()
+        {
+            var removeList = new List<LinkData>();
+            foreach (var linkData in LinkData)
+            {
+                if(FindBalloon(linkData.@from) == null || FindBalloon(linkData.to) == null) removeList.Add(linkData);
+            }
+
+            foreach (var linkData in removeList)
+            {
+                Debug.Log($"[Conversation] LinkData 제거됨 | from : {linkData.@from} | to : {linkData.to}");
+                LinkData.Remove(linkData);
+            }
         }
 #endif
     }

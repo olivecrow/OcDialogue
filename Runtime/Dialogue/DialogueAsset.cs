@@ -24,8 +24,7 @@ namespace OcDialogue
         }
 
 #if UNITY_EDITOR
-        [Button]
-        public Conversation AddConversation()
+        public Conversation AddConversation(int categoryIndex)
         {
             var conv = CreateInstance<Conversation>();
             conv.key = OcDataUtility.CalculateDataName("New Conversation", Conversations.Select(x => x.key));
@@ -34,7 +33,16 @@ namespace OcDialogue
             if (Conversations == null) Conversations = new List<Conversation>();
             Conversations.Add(conv);
 
-            var path = AssetDatabase.GetAssetPath(this).Replace($"{name}.asset", $"{conv.name}.asset");
+            // Dialogue Asset이 있는 폴더를 구함.
+            var assetFolderPath = AssetDatabase.GetAssetPath(this).Replace($"/{name}.asset", "");
+
+            var folderPath = assetFolderPath + $"/{Categories[categoryIndex]}";
+            if(!AssetDatabase.IsValidFolder(folderPath))
+            {
+                AssetDatabase.CreateFolder(assetFolderPath, Categories[categoryIndex]);
+            }
+
+            var path = folderPath + $"/{conv.key}.asset";
             AssetDatabase.CreateAsset(conv, path);
             EditorUtility.SetDirty(this);
             AssetDatabase.SaveAssets();
@@ -52,6 +60,14 @@ namespace OcDialogue
             }
 
             Conversations = new List<Conversation>();
+            EditorUtility.SetDirty(this);
+            AssetDatabase.SaveAssets();
+        }
+
+        public void RemoveConversation(Conversation conv)
+        {
+            Conversations.Remove(conv);
+            AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(conv));
             EditorUtility.SetDirty(this);
             AssetDatabase.SaveAssets();
         }

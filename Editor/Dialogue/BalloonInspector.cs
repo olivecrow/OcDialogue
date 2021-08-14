@@ -1,9 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Timeline;
 
 namespace OcDialogue.Editor
 {
@@ -24,6 +26,7 @@ namespace OcDialogue.Editor
             if (EditorGUI.EndChangeCheck())
             {
                 if(DialogueEditorWindow.Instance == null) return;
+                if(DialogueEditorWindow.Instance.GraphView == null) return;
                 var selections = DialogueEditorWindow.Instance.GraphView.selection; 
                 if(selections.Count == 0) return;
                 foreach (var selection in selections)
@@ -31,12 +34,11 @@ namespace OcDialogue.Editor
                     if (selection is DialogueNode node)
                     {
                         // TextField는 노드 내에서 바인딩으로 연결함.
-                        node.UpdateTitle();
-                    
+                        node.RefreshTitle();
+                        node.RefreshIcons();
                     }
                 }
             }
         }
-
     }
 }

@@ -12,14 +12,12 @@ namespace OcDialogue
         public override string SubTypeString => subtype.ToString();
         /// <summary> 사용할 수 있는 아이템인지 여부. 현재 상태가 아니라 아이템의 특성을 말하는 것. </summary>
         public bool isUsable;
-        public override ItemBase GetCopy()
+
+        protected override ItemBase CreateInstance()
         {
-            var copy = CreateInstance<GenericItem>();
-            ApplyBase(copy);
-            ApplyTypeProperty(copy);
-            return copy;
+            return CreateInstance<GenericItem>();
         }
-        
+
         protected override void ApplyTypeProperty(ItemBase baseCopy)
         {
             var copy = baseCopy as GenericItem;

@@ -21,11 +21,11 @@ namespace OcDialogue.Editor
             _user = user;
         }
 
-        public void Draw(Color textColor, Color buttonColor, in SerializedObject serializedObject, out bool isDirty)
+        public void Draw(Color textColor, Color buttonColor, in SerializedObject serializedObject, out bool isSelectionChanged)
         {
-            isDirty = false;
             GUI.contentColor = textColor;
             GUI.backgroundColor = buttonColor;
+            isSelectionChanged = false;
             if(_user.CategoryRef.Length > 0 && !IsEditMode)
             {
                 var categoryList = _user.CategoryRef.ToList();
@@ -33,8 +33,7 @@ namespace OcDialogue.Editor
 
                 var idx = GUILayout.Toolbar(currentIdx, _user.CategoryRef, GUILayoutOptions.Height(25));
 
-                if (currentIdx != idx) isDirty = true;
-
+                if (CurrentCategory != _user.CategoryRef[idx]) isSelectionChanged = true;
                 CurrentCategory = _user.CategoryRef[idx];
             }
 
@@ -44,7 +43,6 @@ namespace OcDialogue.Editor
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("Category"));
                 serializedObject.ApplyModifiedProperties();
             }
-                
             GUI.contentColor = Color.white;
             GUI.backgroundColor = Color.white;
         }

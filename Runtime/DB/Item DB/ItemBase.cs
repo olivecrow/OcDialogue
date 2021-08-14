@@ -56,7 +56,16 @@ namespace OcDialogue
         }
 
         /// <summary> 아이템의 복사본을 반환함. 실제 런타임에서 쓰이는 데이터. </summary>
-        public abstract ItemBase GetCopy();
+        public virtual ItemBase GetCopy()
+        {
+            var copy = CreateInstance();
+            ApplyBase(copy);
+            ApplyTypeProperty(copy);
+            return copy;
+        }
+
+        /// <summary> ItemBase를 상속받는 아이템 클래스에서 카피용 인스턴스를 생성 후, 반환함. ItemBase는 추상 클래스라 직접 생성이 안되기 때문. </summary>
+        protected abstract ItemBase CreateInstance();
         /// <summary> 전달된 아이템에 ItemBase 속성 및 필드를 적용함. </summary>
         protected void ApplyBase(ItemBase baseCopy)
         {
@@ -65,11 +74,10 @@ namespace OcDialogue
             baseCopy.itemName = itemName;
             baseCopy.isStackable = isStackable;
             baseCopy.maxStackCount = maxStackCount;
-            baseCopy.CurrentStack = 1;
             baseCopy.IsCopy = true;
             baseCopy.description = description;
         }
-
+        
         /// <summary> GetCopy에서 생성된 복사본을 전달받아서 각 타입에서 구현해야 할 속성 및 필드를 반영하여 반환함. </summary>
         protected abstract void ApplyTypeProperty(ItemBase baseCopy);
         

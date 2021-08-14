@@ -40,12 +40,9 @@ namespace OcDialogue
         }  
 #endif
 
-        public override ItemBase GetCopy()
+        protected override ItemBase CreateInstance()
         {
-            var copy = CreateInstance<AccessoryItem>();
-            ApplyBase(copy);
-            ApplyTypeProperty(copy);
-            return copy;
+            return CreateInstance<AccessoryItem>();
         }
 
         protected override void ApplyTypeProperty(ItemBase baseCopy)

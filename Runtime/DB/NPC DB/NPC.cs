@@ -18,16 +18,15 @@ namespace OcDialogue
 
         public override string Key => NPCName;
 
-        [ValueDropdown("GetCategory"), LabelWidth(100)]
+        [HorizontalGroup("1")]
+        public string NPCName;
+        [ValueDropdown("GetCategory"), HorizontalGroup("1"), LabelWidth(100)]
         public string Category;
 
-        [TableColumnWidth(150, false), VerticalGroup("NPC"), HideLabel]
-        public string NPCName;
-
-        [VerticalGroup("NPC"), HideLabel] public Gender gender;
+        [HorizontalGroup("2")]public Gender gender;
 
         /// <summary> Dialogue Editor 등에서 한 눈에 알아보기 쉽도록 지정하는 고유색. </summary>
-        [VerticalGroup("NPC"), HideLabel, ColorUsage(false)]
+        [HorizontalGroup("2"), HideLabel, ColorUsage(false)]
         public Color color;
 
         /// <summary> 게임 내의 도감에서 보여지는 설명 </summary>
@@ -37,14 +36,29 @@ namespace OcDialogue
 
         public bool IsEncounter { get; set; }
 
-        public override bool IsTrue(CompareFactor factor, Operator op, object value)
+        public NPC GetCopy()
+        {
+            var npc = CreateInstance<NPC>();
+            npc.NPCName = NPCName;
+            npc.name = name;
+            npc.Category = Category;
+            npc.gender = gender;
+            npc.color = color;
+            npc.description = description;
+            var dataRowCopy = DataRowContainer.GetAllCopies();
+            npc.DataRowContainer = new DataRowContainer(npc, dataRowCopy);
+
+            return npc;
+        }
+        
+        public override bool IsTrue(CompareFactor factor, Operator op, object value1)
         {
             if (factor != CompareFactor.NpcEncounter) return false;
 
             return op switch
             {
-                Operator.Equal => IsEncounter == (bool) value,
-                Operator.NotEqual => IsEncounter != (bool) value,
+                Operator.Equal => IsEncounter == (bool) value1,
+                Operator.NotEqual => IsEncounter != (bool) value1,
                 _ => false
             };
         }
@@ -71,7 +85,7 @@ namespace OcDialogue
         
         void Reset()
         {
-            DataRowContainer.owner = this;
+            if(DataRowContainer != null) DataRowContainer.owner = this;
         }
 
         void OnValidate()

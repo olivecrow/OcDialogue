@@ -3,9 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using OcUtility;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 #endif
 using Random = UnityEngine.Random;
 
@@ -13,6 +15,68 @@ namespace OcDialogue
 {
     public static class OcDataUtility
     {
+        /// <summary> ComparableData의 데이터 검사 메서드 </summary>
+        public static bool IsTrue(this bool source, Operator op, bool value)
+        {
+            return op switch
+            {
+                Operator.Equal    => source == value,
+                Operator.NotEqual => source != value,
+                _ => false
+            };
+        }
+        /// <summary> ComparableData의 데이터 검사 메서드 </summary>
+        public static bool IsTrue(this int source, Operator op, int value)
+        {
+            return op switch
+            {
+                Operator.Equal        => source == value,
+                Operator.NotEqual     => source != value,
+                Operator.Greater      => source >  value,
+                Operator.GreaterEqual => source >= value,
+                Operator.Less         => source <  value,
+                Operator.LessEqual    => source <= value,
+                _ => false
+            };
+        }
+        /// <summary> ComparableData의 데이터 검사 메서드 </summary>
+        public static bool IsTrue(this float source, Operator op, float value)
+        {
+            return op switch
+            {
+                Operator.Equal        => Math.Abs(value - source) < 0.0001f,
+                Operator.NotEqual     => Math.Abs(value - source) > 0.0001f,
+                Operator.Greater      => source >  value,
+                Operator.GreaterEqual => source >= value,
+                Operator.Less         => source <  value,
+                Operator.LessEqual    => source <= value,
+                _ => false
+            };
+        }
+        /// <summary> ComparableData의 데이터 검사 메서드 </summary>
+        public static bool IsTrue(this string source, Operator op, string value)
+        {
+            return op switch
+            {
+                Operator.Equal    => source == value,
+                Operator.NotEqual => source != value,
+                _ => false
+            };
+        }
+
+        /// <summary> DataRow의 Type인 기본타입에서 비교용 enum인 CompareFactor에 대응돠는 값을 반환함. </summary>
+        public static CompareFactor ToCompareFactor(this DataRow.Type type)
+        {
+            return type switch
+            {
+                DataRow.Type.Boolean => CompareFactor.Boolean,
+                DataRow.Type.Int => CompareFactor.Int,
+                DataRow.Type.Float => CompareFactor.Float,
+                DataRow.Type.String => CompareFactor.String,
+                _ => CompareFactor.Boolean
+            };
+        }
+
 #if UNITY_EDITOR
         /// <summary> Selection을 재설정해서 현재 인스펙터를 다시 그림. </summary>
         public static void Repaint()
@@ -47,12 +111,12 @@ namespace OcDialogue
             return id;
         }
 
-        public static string ToConditionString(this DataChecker.Condition condition)
+        public static string ToConditionString(this Condition condition)
         {
             return condition switch
             {
-                DataChecker.Condition.And => "&&",
-                DataChecker.Condition.Or => "||",
+                Condition.And => "&&",
+                Condition.Or => "||",
                 _ => "??"
             };
         }
@@ -73,53 +137,9 @@ namespace OcDialogue
             return "?";
         }
 
-        /// <summary> DataRow의 Type인 기본타입에서 비교용 enum인 CompareFactor에 대응돠는 값을 반환함. </summary>
-        public static CompareFactor ToCompareFactor(this DataRow.Type type)
+        public static void SetVisible(this VisualElement source, bool isVisible)
         {
-            return type switch
-            {
-                DataRow.Type.Boolean => CompareFactor.Boolean,
-                DataRow.Type.Int => CompareFactor.Int,
-                DataRow.Type.Float => CompareFactor.Float,
-                DataRow.Type.String => CompareFactor.String,
-                _ => CompareFactor.Boolean
-            };
-        }
-
-        /// <summary> DataChecker의 요소들에서 문자열로 된 조건 표현식을 출력함. </summary>
-        public static string ToStringFromBindings(CheckFactor[] factors, DataChecker.Binding[] bindings)
-        {
-            if (bindings == null || bindings.Length == 0)
-            {
-                var sb = new StringBuilder();
-                for (int i = 0; i < factors.Length; i++)
-                {
-                    sb.Append(factors[i]);
-                    if(i < factors.Length - 1) sb.Append($" {DataChecker.Condition.And.ToConditionString()} ");
-                }
-
-                return sb.ToString();
-            }
-
-            for (int i = 0; i < factors.Length; i++)
-            {
-                factors[i].Index = i;
-            }
-            var allCheckables = new List<ICheckable>();
-            var allGroups = new List<DataChecker.CheckGroup>();
-            allCheckables.AddRange(factors);
-            for (int i = 0; i < bindings.Length; i++)
-            {
-                var group = new DataChecker.CheckGroup(bindings[i]);
-                allCheckables.Add(group);
-                allGroups.Add(group);
-            }
-
-            for (int i = 0; i < allGroups.Count; i++)
-            {
-                allGroups[i].SetCheckables(allCheckables);
-            }
-            return allGroups[allGroups.Count - 1].ToString();
+            source.style.display = new StyleEnum<DisplayStyle>(isVisible ? DisplayStyle.Flex : DisplayStyle.None);
         }
 #endif
     }

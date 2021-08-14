@@ -4,18 +4,12 @@ using UnityEngine;
 
 namespace OcDialogue
 {
-    public class Enemy : MonoBehaviour
+    public class Enemy : ComparableData
     {
-        // Start is called before the first frame update
-        void Start()
+        public override string Key { get; }
+        public override bool IsTrue(CompareFactor factor, Operator op, object value1)
         {
-        
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-        
+            throw new System.NotImplementedException();
         }
     }
 }

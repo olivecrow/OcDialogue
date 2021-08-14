@@ -3,6 +3,20 @@
 
 ## [Unreleased]
 
+## [TODO]
+
+### Added
+- 타임라인 의존성 추가.
+
+## [0.2.1] - 2021.08.01
+
+### Added
+- DataChecker의 간단한 기능 구현. 현재 런타임 데이터가 아닌 EditorPreset으로 값 검사 가능.
+
+### Fixed
+- 패키지 의존성에 OcUtility 패키지 추가
+- GameProcessData, ItemDatabase, QuestDatabase, NPCDatabase의 데이터베이스 - 에디터프리셋 구조 리팩토링.
+
 ## [0.2.0] - 2021.07.06
 
 ### Added

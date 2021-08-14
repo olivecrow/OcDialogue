@@ -2,19 +2,21 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using OcUtility;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.OdinInspector.Editor.Drawers;
 using Sirenix.Utilities.Editor;
 using UnityEditor;
 using UnityEditor.EditorTools;
+using UnityEditor.Graphs;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace OcDialogue.Editor
 {
-    public class DialogueEditorWindow : EditorWindow
+    public class DialogueEditorWindow : EditorWindow, ICategoryUser
     {
         public static DialogueEditorWindow Instance => _instance;
         static DialogueEditorWindow _instance;
@@ -26,18 +28,30 @@ namespace OcDialogue.Editor
         public Toolbar ConversationSelectToolbar;
         public DropdownField ConversationField;
         public Button AddConversationButton;
+        public Button RemoveConversationButton;
         
         public Conversation Conversation;
         // public ToolbarPopupSearchField ConversationSearchField;
         public DialogueGraphView GraphView { get; private set; }
 
+        public string[] CategoryRef
+        {
+            get => Asset.Categories;
+            set => Asset.Categories = value;
+        }
+
         string _currentCategory;
-        const string lastConversationKey = "OcDialogue_LastConversation";
+        static Dictionary<string, int> _lastViewConversation;
+
+        static DialogueEditorWindow()
+        {
+            _lastViewConversation = new Dictionary<string, int>();
+        }
         [MenuItem("Tools/다이얼로그 에디터")]
         public static void Open()
         {
-            DialogueEditorWindow wnd = GetWindow<DialogueEditorWindow>();
-            wnd.titleContent = new GUIContent("Dialogue Editor Window");
+            DialogueEditorWindow wnd = GetWindow<DialogueEditorWindow>(false, "다이얼로그 에디터", true);
+            wnd.minSize = new Vector2(720, 480);
         }
         
         [MenuItem("Tools/다이얼로그 에디터 닫기")]
@@ -47,6 +61,7 @@ namespace OcDialogue.Editor
             else
             {
                 DialogueEditorWindow wnd = GetWindow<DialogueEditorWindow>();
+                
                 wnd.Close();
             }
         }
@@ -63,7 +78,9 @@ namespace OcDialogue.Editor
 
         void OnInspectorUpdate()
         {
-            if (ConversationField.text != Conversation.key) ConversationField.SetValueWithoutNotify(Conversation.key);
+            if(DialogueAsset.Instance == null) return;
+            if(Conversation == null) return;
+            if (ConversationField != null && ConversationField.text != Conversation.key) ConversationField.SetValueWithoutNotify(Conversation.key);
         }
 
         void CreateGUI()
@@ -82,7 +99,8 @@ namespace OcDialogue.Editor
                 rootVisualElement.Add(warning);
                 var addButton = new Button(() =>
                 {
-                    Asset.AddConversation();
+                    if (string.IsNullOrEmpty(_currentCategory)) _currentCategory = Asset.Categories[0];
+                    AddConversation();
                     Close();
                     Open();
                 });
@@ -90,18 +108,9 @@ namespace OcDialogue.Editor
                 rootVisualElement.Add(addButton);
                 return;
             }
-            
-            if (EditorPrefs.HasKey(lastConversationKey))
-            {
-                var conversationKey = EditorPrefs.GetString(lastConversationKey);
-                Conversation = Asset.Conversations.Find(x => x.key == conversationKey);
-            }
-            else
-            {
-                Conversation = Asset.Conversations.Count > 0 ? Asset.Conversations[0] : null;
-            }
+
             GenerateCategoryToolbar();
-            GenerateConversationToolbar();
+            GenerateConversationToolbar(0);
         }
 
         void GenerateCategoryToolbar()
@@ -147,50 +156,73 @@ namespace OcDialogue.Editor
                 }
             }
 
+            // TODO : 카테고리 별로 인덱스를 저장해서 그걸 불러오기.
             _currentCategory = t.text;
-            GenerateConversationToolbar();
+            var convIndex = _lastViewConversation.ContainsKey(_currentCategory) ? _lastViewConversation[_currentCategory] : 0;
+            GenerateConversationToolbar(convIndex);
         }
 
-        void GenerateConversationToolbar()
+        void GenerateConversationToolbar(int index)
         {
-            Debug.Log($"On Generate Conversation Toolbar | Category : {_currentCategory}");
-            if(ConversationSelectToolbar != null) rootVisualElement.Remove(ConversationSelectToolbar);
+            Debug.Log($"On Generate Conversation Toolbar | Category : {_currentCategory} | index : {index}");
+            if (ConversationSelectToolbar != null) rootVisualElement.Remove(ConversationSelectToolbar);
             ConversationSelectToolbar = new Toolbar();
             rootVisualElement.Add(ConversationSelectToolbar);
-            
+
+            ConversationField = new DropdownField(
+                "Conversation",
+                Asset.Conversations.Where(x => x.Category == _currentCategory).Select(x => x.key).ToList(),
+                index, s =>
+                {
+                    // 이전 Conversation이 있다면, OnConversationChanged 콜백을 해제함.
+                    if (Conversation != null)
+                    {
+                        Conversation.onValidate -= OnConversationChanged;
+                    }
+                    Conversation = Asset.Conversations.Find(x => x.key == s);
+                    
+                    // 이번 Conversation이 null이 아니면, OnConversationChanged 콜백을 할당함.
+                    if (Conversation != null)
+                    {
+                        Conversation.onValidate += OnConversationChanged;
+                    }
+                    Debug.Log($"Generate Conversation Toolbar : key : {s}");
+                    OnConversationChanged();
+                    return Conversation == null ? null : Conversation.key;
+                });
+
             if (Asset.Conversations.Find(x => x.Category == _currentCategory) == null)
             {
                 var warning = new Label($"{_currentCategory} 카테고리에 해당되는 대화목록이 없음.");
                 ConversationSelectToolbar.Add(warning);
 
-                var addButton = new Button(AddConversation){text = "Conversation 생성"};
+                var addButton = new Button(AddConversation) {text = "Conversation 생성"};
                 ConversationSelectToolbar.Add(addButton);
                 ConversationField.value = null;
                 return;
             }
-            ConversationField = new DropdownField(
-                "Conversation",
-                Asset.Conversations.Where(x => x.Category == _currentCategory).Select(x => x.key).ToList(),
-                0, s =>
-                {
-                    Conversation = Asset.Conversations.Find(x => x.key == s);
-                    OnConversationChanged();
-                    return Conversation == null ? null : Conversation.key;
-                });
-            
+
+
             ConversationField.style.width = 400;
             ConversationSelectToolbar.Add(ConversationField);
 
             AddConversationButton = new Button(AddConversation);
             AddConversationButton.text = "+";
             ConversationSelectToolbar.Add(AddConversationButton);
+
+            RemoveConversationButton = new Button(RemoveConversation);
+            RemoveConversationButton.text = "Remove";
+            RemoveConversationButton.style.backgroundColor = new Color(0.8f, 0f, 0f);
+            ConversationSelectToolbar.Add(RemoveConversationButton);
         }
+        /// <summary> DropDown에서 다른 Conversation으로 변경되었을때 호출됨. 근데 Conversation의 key를 변경해도 호출됨...? </summary>
         void OnConversationChanged()
         {
             Debug.Log("On Conversation Changed");
             if (Conversation != null)
             {
-                EditorPrefs.SetString(lastConversationKey, Conversation.key);
+                var targetConvList = Asset.Conversations.Where(x => x.Category == _currentCategory).ToList();
+                _lastViewConversation[_currentCategory] = targetConvList.IndexOf(Conversation);
                 if(GraphView != null && rootVisualElement.Contains(GraphView)) rootVisualElement.Remove(GraphView);
                 GraphView = new DialogueGraphView(Conversation);
                 rootVisualElement.Add(GraphView);
@@ -200,17 +232,28 @@ namespace OcDialogue.Editor
             }
             else
             {
-                EditorPrefs.DeleteKey(lastConversationKey);
-                rootVisualElement.Remove(GraphView);
+                if(GraphView != null && rootVisualElement.Contains(GraphView)) rootVisualElement.Remove(GraphView);
             }
         }
 
         void AddConversation()
         {
-            var conv = Asset.AddConversation();
+            var categoryIndex = Asset.Categories.ToList().IndexOf(_currentCategory);
+            var conv = Asset.AddConversation(categoryIndex);
             conv.Category = _currentCategory;
-            Conversation = conv;
-            GenerateConversationToolbar();
+            
+            var targetConvList = Asset.Conversations.Where(x => x.Category == _currentCategory).ToList();
+            var idx = targetConvList.IndexOf(conv);
+            GenerateConversationToolbar(idx);
         }
+
+        void RemoveConversation()
+        {
+            if(Conversation == null) return;
+            if(EditorUtility.DisplayDialog("Remove Conversation", "이 Conversation을 삭제하시겠습니까? 되돌릴 수 없는 작업입니다.", "안돼!", "질러!")) return;
+            Asset.RemoveConversation(Conversation);
+            GenerateConversationToolbar(0);
+        }
+        
     }
 }

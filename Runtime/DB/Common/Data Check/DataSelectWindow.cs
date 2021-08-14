@@ -11,27 +11,26 @@ namespace OcDialogue.Editor
 {
     public class DataSelectWindow : OdinEditorWindow
     {
-        public CheckFactor Target { get; set; }
+        public DataSelector Target { get; set; }
 
         public static DataSelectWindow Open()
         {
-            var wnd = GetWindow<DataSelectWindow>();
-            wnd.ShowUtility();
+            var wnd = GetWindow<DataSelectWindow>(true);
             return wnd;
         }
         
         public DBType DBType;
-        [ValueDropdown("GetFirstList"), HideLabel, ShowIf("UseFirstDropdown")]
+        [ValueDropdown("GetFirstList"), HideLabel, ShowIf("UseFirstDropdown"), GUIColor(2f, 0.8f, 1.2f)]
         public string firstDropdown;
-        [ValueDropdown("GetSecondList"), HideLabel, ShowIf("UseSecondDropdown")]
+        [ValueDropdown("GetSecondList"), HideLabel, ShowIf("UseSecondDropdown"), GUIColor(2.2f, 1.2f, 1.6f)]
         public string secondDropDown;
-        [ValueDropdown("GetThirdList"), HideLabel, ShowIf("UseThirdDropdown")]
+        [ValueDropdown("GetThirdList"), HideLabel, ShowIf("UseThirdDropdown"), GUIColor(2.5f, 1.8f, 2f)]
         public string thirdDropDown;
+
         [ValueDropdown("GetDataList"), HideLabel, GUIColor(0,1,1)] public ComparableData Data;
         bool UseFirstDropdown() => DBType != DBType.GameProcess && DBType != DBType.NPC;
         bool UseSecondDropdown() => UseFirstDropdown() && (DBType == DBType.Item || DBType == DBType.Quest);
-        bool UseThirdDropdown() => UseSecondDropdown() && ((DBType == DBType.Quest && secondDropDown != "QuestState")
-                                                           || (DBType == DBType.Item));
+        bool UseThirdDropdown() => UseSecondDropdown() && ((DBType == DBType.Quest && secondDropDown != "QuestState"));
 
         void OnValidate()
         {
@@ -76,6 +75,7 @@ namespace OcDialogue.Editor
         ValueDropdownList<string> GetSecondList()
         {
             var list = new ValueDropdownList<string>();
+            if (string.IsNullOrWhiteSpace(firstDropdown)) return list;
             switch (DBType)
             {
                 case DBType.GameProcess:
@@ -138,6 +138,7 @@ namespace OcDialogue.Editor
         ValueDropdownList<string> GetThirdList()
         {
             var list = new ValueDropdownList<string>();
+            if (string.IsNullOrWhiteSpace(secondDropDown)) return list;
             switch (DBType)
             {
                 case DBType.GameProcess:
@@ -201,7 +202,8 @@ namespace OcDialogue.Editor
         [Button]
         void Apply()
         {
-            Target.targetData = Data as DataRow;
+            Target.DBType = DBType;
+            Target.targetData = Data;
             Target.path = $"{DBType}";
             if (UseFirstDropdown()) Target.path += $"/{firstDropdown}";
             if (UseSecondDropdown()) Target.path += $"/{secondDropDown}";

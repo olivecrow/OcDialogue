@@ -25,7 +25,9 @@ namespace OcDialogue
         [HorizontalGroup("Key"), ValueDropdown("GetCategory"), LabelWidth(100)]public string Category;
         [Multiline(5), LabelWidth(100)]public string description;
         public List<ComparableData> References;
-        [HideLabel, BoxGroup(Order = 10)]public DataRowContainer DataRowContainer;
+        [BoxGroup("Data")]
+        [HorizontalGroup("Data/1", Width = 500, Order = 10)]public DataRowContainer DataRowContainer;
+        [HorizontalGroup("Data/1", Order = 11), LabelText("클리어 조건")]public DataChecker checker;
         public State QuestState { get; set; }
 
         public Quest GetCopy()
@@ -42,15 +44,25 @@ namespace OcDialogue
 
             return quest;
         }
+
+        public bool IsClearAvailable()
+        {
+            return checker.IsTrue();
+        }
+
+        public bool IsTrue(Operator op, Quest.State questState)
+        {
+            return IsTrue(CompareFactor.QuestState, op, questState);
+        }
         
-        public override bool IsTrue(CompareFactor factor, Operator op, object value)
+        public override bool IsTrue(CompareFactor factor, Operator op, object value1)
         {
             if (factor != CompareFactor.QuestState) return false;
 
             return op switch
             {
-                Operator.Equal => QuestState == (State) value,
-                Operator.NotEqual => QuestState != (State) value,
+                Operator.Equal => QuestState == (State) value1,
+                Operator.NotEqual => QuestState != (State) value1,
                 _ => false
             };
         }

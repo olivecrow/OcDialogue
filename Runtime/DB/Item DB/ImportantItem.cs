@@ -10,15 +10,12 @@ namespace OcDialogue
     {
         [ReadOnly, BoxGroup("ReadOnly")] public ImportantItemType subtype;
         public override string SubTypeString => subtype.ToString();
-        
-        public override ItemBase GetCopy()
+
+        protected override ItemBase CreateInstance()
         {
-            var copy = CreateInstance<ImportantItem>();
-            ApplyBase(copy);
-            ApplyTypeProperty(copy);
-            return copy;
+            return CreateInstance<ImportantItem>();
         }
-        
+
         protected override void ApplyTypeProperty(ItemBase baseCopy)
         {
             var copy = baseCopy as ImportantItem;

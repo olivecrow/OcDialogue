@@ -2,13 +2,32 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using OcUtility;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace OcDialogue
 {
     public class Inventory
     {
-        public static Inventory PlayerInventory { get; set; }
+        public static Inventory PlayerInventory
+        {
+            get => _playerInventory;
+            set
+            {
+                var isNew = _playerInventory != value;
+                _playerInventory = value;
+                if(isNew) OnPlayerInventoryChanged?.Invoke(value);
+                
+#if UNITY_EDITOR
+                Application.quitting += ReleaseEvent;
+#endif
+            }
+        }
+        static Inventory _playerInventory;
         public Inventory()
         {
             _items = new List<ItemBase>();
@@ -29,29 +48,39 @@ namespace OcDialogue
         public event Action<ItemBase> OnItemAdded;
         public event Action<ItemBase> OnItemRemoved;
         public event Action<ItemBase> OnStackOverflow;
+        public static event Action<Inventory> OnPlayerInventoryChanged;
+        
 
-        /// <summary> 아이템 추가. 데이터 베이스 원본이 아닌 카피를 넣어야 하며, stackable 아이템의 경우, 미리 개수를 정해둬야함. </summary>
-        public void AddItem(ItemBase item)
+        /// <summary> 아이템 추가. 내부적으로 카피를 생성하기 때문에 아무거나 집어넣으면 됨.</summary>
+        public void AddItem(ItemBase item, int count = 1)
         {
-            if(!item.IsCopy)
+            if (count < 1)
             {
-                Debug.LogWarning($"아이템 원본을 인벤토리에 추가하려 했음. item : {item.itemName}");
+                Printer.Print($"[Inventory] 잘못된 개수가 입력됨 | count : {count}", LogType.Error);
                 return;
             }
             if (item.isStackable)
             {
                 var exist = _items.Find(x => x.GUID == item.GUID);
-                if(exist == null) AddNewItem(item);
+                if(exist == null)
+                {
+                    var copy = item.GetCopy();
+                    copy.AddStack(count);
+                    AddNewItem(copy);
+                }
                 else
                 {
-                    exist.AddStack(item.CurrentStack, () => OnStackOverflow?.Invoke(exist));
+                    exist.AddStack(count, () => OnStackOverflow?.Invoke(exist));
                 }
             }
             else
             {
-                AddNewItem(item);
+                for (int i = 0; i < count; i++)
+                {
+                    AddNewItem(item.GetCopy());
+                }
             }
-            OnItemAdded?.Invoke(item);
+            OnItemAdded?.Invoke(_items.Find(x => x.GUID == item.GUID));
         }
 
         void AddNewItem(ItemBase item)
@@ -94,5 +123,14 @@ namespace OcDialogue
         {
             _items.Remove(item);
         }
+
+
+#if UNITY_EDITOR
+        static void ReleaseEvent()
+        {
+            OnPlayerInventoryChanged = null;
+            Application.quitting -= ReleaseEvent;
+        }
+#endif
     }
 }

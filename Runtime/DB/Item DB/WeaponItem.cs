@@ -35,12 +35,10 @@ namespace OcDialogue
         public AssetReference Avatar => avatar;
         public ItemBase ItemBase => this;
         public AssetReference avatar;
-        public override ItemBase GetCopy()
+
+        protected override ItemBase CreateInstance()
         {
-            var copy = CreateInstance<WeaponItem>();
-            ApplyBase(copy);
-            ApplyTypeProperty(copy);
-            return copy;
+            return CreateInstance<WeaponItem>();
         }
 
         protected override void ApplyTypeProperty(ItemBase baseCopy)

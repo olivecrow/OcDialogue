@@ -2,7 +2,11 @@
     "name": "olivecrow.ocdialogue.Editor",
     "rootNamespace": "OcDialogue.Editor",
     "references": [
-        "GUID:b2827b5227fde439da75d0495d5d531d"
+        "GUID:b2827b5227fde439da75d0495d5d531d",
+        "GUID:43e224429687d6e4680fdb553321205f",
+        "GUID:478a2357cc57436488a56e564b08d223",
+        "GUID:f06555f75b070af458a003d92f9efb00",
+        "GUID:02f771204943f4a40949438e873e3eff"
     ],
     "includePlatforms": [
         "Editor"

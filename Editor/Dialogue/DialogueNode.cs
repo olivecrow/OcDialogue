@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using OcUtility;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.UIElements;
@@ -15,12 +16,12 @@ namespace OcDialogue.Editor
         public Balloon Balloon;
         public Port InputPort;
         public Port OutputPort;
-        public Button AddNodeButton;
         public TextField TextField;
         public VisualElement CheckerIcon;
         public VisualElement SetterIcon;
-        public VisualElement CheckerWarningIcon;
-        public VisualElement SetterWarningIcon;
+        public VisualElement EventIcon;
+        public VisualElement ImageIcon;
+        public VisualElement WarningIcon;
 
         public Action<Edge, int, int> OnEdgeConnected;
         public Action<Edge, int, int> OnEdgeDisconnected;
@@ -34,7 +35,6 @@ namespace OcDialogue.Editor
         public DialogueNode(Balloon balloon)
         {
             Balloon = balloon;
-            UpdateTitle();
             switch (Balloon.type)
             {
                 case Balloon.Type.Entry:
@@ -49,8 +49,6 @@ namespace OcDialogue.Editor
                     InputPort = GeneratePort(Direction.Input);
                     inputContainer.Add(InputPort);
                     break;
-                case Balloon.Type.Event:
-                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -63,15 +61,52 @@ namespace OcDialogue.Editor
                 TextField.Bind(so);
                 TextField.multiline = true;
                 mainContainer.Add(TextField);
+                CreateIcons();
             }
             
             OutputPort = GeneratePort(Direction.Output);
             outputContainer.Add(OutputPort);
             outputContainer.parent.style.height = 15;
 
+            RefreshTitle();
             RefreshPorts();
             RefreshExpandedState();
         }
+
+        void CreateIcons()
+        {
+            var iconBar = new VisualElement();
+            iconBar.style.flexDirection = new StyleEnum<FlexDirection>(FlexDirection.Row);
+            titleContainer.parent.Insert(0,iconBar);
+            
+            CheckerIcon = CreateIcon(Resources.Load<Texture2D>("Checker Icon"));
+            iconBar.Add(CheckerIcon);
+            
+            SetterIcon = CreateIcon(Resources.Load<Texture2D>("Setter Icon"));
+            iconBar.Add(SetterIcon);
+
+            
+            EventIcon = CreateIcon(Resources.Load<Texture2D>("Event Icon"));
+            iconBar.Add(EventIcon);
+            
+            ImageIcon = CreateIcon(Resources.Load<Texture2D>("Image Icon"));
+            iconBar.Add(ImageIcon);
+
+            WarningIcon = CreateIcon(Resources.Load<Texture2D>("Warning Icon"));
+            titleContainer.Add(WarningIcon);
+            
+            RefreshIcons();
+        }
+
+        static VisualElement CreateIcon(Texture2D texture)
+        {
+            var icon = new VisualElement();
+            icon.style.width = texture.width;
+            icon.style.height = texture.height;
+            icon.style.backgroundImage = texture;
+            return icon;
+        }
+
 
         Port GeneratePort(Direction portDirection)
         {
@@ -80,7 +115,7 @@ namespace OcDialogue.Editor
             return port;
         }
 
-        public void UpdateTitle()
+        public void RefreshTitle()
         {
             switch (Balloon.type)
             {
@@ -98,17 +133,23 @@ namespace OcDialogue.Editor
                     title = "Choice";
                     titleContainer.style.backgroundColor =  new Color(0f, 0f, 1f);
                     break;
-                case Balloon.Type.Event:
-                    title = "Event";
-                    titleContainer.style.backgroundColor =  new Color(0.7f, 0.7f, 0.9f);
-                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
             var label = titleContainer.Q<Label>();
-            var rgb = label.style.color.value;
+            var rgb = titleContainer.style.backgroundColor.value;
             var rgbSum = rgb.r + rgb.g + rgb.b;
             label.style.color = rgbSum > 1.5f ? Color.black : Color.white;
+            if(WarningIcon != null) WarningIcon.style.unityBackgroundImageTintColor = rgbSum > 1.5f ? Color.red : Color.yellow;
+        }
+
+        public void RefreshIcons()
+        {
+            CheckerIcon.SetVisible(Balloon.useChecker);
+            SetterIcon.SetVisible(Balloon.useSetter);
+            EventIcon.SetVisible(Balloon.useEvent);
+            ImageIcon.SetVisible(Balloon.useImage);
+            WarningIcon.SetVisible(Balloon.IsWarningOn());
         }
 
         public override void OnSelected()

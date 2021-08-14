@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace OcDialogue
 {
@@ -58,51 +59,23 @@ namespace OcDialogue
             return row;
         }
         
+        public bool IsTrue(Operator op, object value)
+        {
+            return IsTrue(type.ToCompareFactor(), op, value);
+        }
+        
         public override bool IsTrue(CompareFactor factor, Operator op, object value)
         {
-            switch (factor)
+            return factor switch
             {
-                case CompareFactor.Float:
-                    return op switch
-                    {
-                        Operator.Equal        => Math.Abs((float) value - floatValue) < 0.0001f,
-                        Operator.NotEqual     => Math.Abs((float) value - floatValue) > 0.0001f,
-                        Operator.Greater      => floatValue > (float) value,
-                        Operator.GreaterEqual => floatValue >= (float) value,
-                        Operator.Less         => floatValue < (float) value,
-                        Operator.LessEqual    => floatValue <= (float) value,
-                        _ => false
-                    };
-                case CompareFactor.Int:
-                    return op switch
-                    {
-                        Operator.Equal        => intValue == (int) value,
-                        Operator.NotEqual     => intValue != (int) value,
-                        Operator.Greater      => intValue >  (int) value,
-                        Operator.GreaterEqual => intValue >= (int) value,
-                        Operator.Less         => intValue <  (int) value,
-                        Operator.LessEqual    => intValue <= (int) value,
-                        _ => false
-                    };
-                case CompareFactor.String:
-                    return op switch
-                    {
-                        Operator.Equal    => stringValue == (string) value,
-                        Operator.NotEqual => stringValue != (string) value,
-                        _ => false
-                    };
-                case CompareFactor.Boolean:
-                    return op switch
-                    {
-                        Operator.Equal    => boolValue == (bool) value,
-                        Operator.NotEqual => boolValue != (bool) value,
-                        _ => false
-                    };
-            }
-
-            return false;
+                CompareFactor.Float => floatValue.IsTrue(op, (float)value),
+                CompareFactor.Int => intValue.IsTrue(op, (int)value),
+                CompareFactor.String => stringValue.IsTrue(op, (string)value),
+                CompareFactor.Boolean => boolValue.IsTrue(op, (bool)value),
+                _ => false
+            };
         }
-
+        
 #if UNITY_EDITOR
         Color e_keyColor = Color.white;
         /// <summary> Editor Only. 이름과 키값을 매칭해서 맞지 않으면 guiColor를 바꿈. </summary>

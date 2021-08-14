@@ -62,7 +62,7 @@ namespace OcDialogue
 
 
         [Serializable]
-        public class ItemPreset
+        public class ItemPreset : ComparableData
         {
             [TableColumnWidth(48, false), PreviewField, OnValueChanged("OnItemDropped")] public UnityEngine.Object icon;
             [VerticalGroup("Type"), TableColumnWidth(200, false), OnValueChanged("OnTypeChanged")]public ItemType type;
@@ -157,6 +157,16 @@ namespace OcDialogue
                 if (copy.isStackable) copy.AddStack(count);
 
                 return copy;
+            }
+
+            public override string Key => item.itemName;
+            public override bool IsTrue(CompareFactor factor, Operator op, object value)
+            {
+                return factor switch
+                {
+                    CompareFactor.ItemCount => count.IsTrue(op, (int)value),
+                    _ => false
+                };
             }
         }
     }

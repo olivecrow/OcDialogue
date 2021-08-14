@@ -61,14 +61,11 @@ namespace OcDialogue
             stability = float.Parse($"{stability:0.0}");
         }
 
-        public override ItemBase GetCopy()
+        protected override ItemBase CreateInstance()
         {
-            var copy = CreateInstance<ArmorItem>();
-            ApplyBase(copy);
-            ApplyTypeProperty(copy);
-            return copy;
+            return CreateInstance<ArmorItem>();
         }
-        
+
         protected override void ApplyTypeProperty(ItemBase baseCopy)
         {
             var copy = baseCopy as ArmorItem;

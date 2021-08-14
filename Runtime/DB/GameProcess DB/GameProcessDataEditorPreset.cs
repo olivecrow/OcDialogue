@@ -19,12 +19,7 @@ namespace OcDialogue
         [Button, PropertyOrder(-100), HorizontalGroup("Button")]
         void ToDefault()
         {
-            dataRows = new List<OverridenRow>();
-            foreach (var row in GameProcessDatabase.Instance.DataRowContainer.dataRows)
-            {
-                var overrideRow = new OverridenRow(row);
-                dataRows.Add(overrideRow);
-            }
+            Apply(GameProcessDatabase.Instance.DataRowContainer.dataRows);
         }
 
         [Button, PropertyOrder(-100), HorizontalGroup("Button")]
@@ -34,6 +29,12 @@ namespace OcDialogue
                 "Match",
                 "오버라이드 된 값을 유지한 채, 기존의 데이터베이스의 변경된 요소들을 적용함!",
                 "질러!", "안돼!")) return;
+            
+            MatchProcess();
+        }
+
+        void MatchProcess()
+        {
             var overrideValues = new Dictionary<DataRow, object>();
             foreach (var overrideRow in dataRows)
             {
@@ -64,6 +65,34 @@ namespace OcDialogue
                         throw new ArgumentOutOfRangeException();
                 }
             }
+        }
+
+        /// <summary> 다른 DataRow목록으로부터 오버라이드를 만들어서 에디터 프리셋에 적용함 </summary>
+        public void Apply(IEnumerable<DataRow> data)
+        {
+            dataRows = new List<OverridenRow>();
+            foreach (var row in data)
+            {
+                var originalRow = GameProcessDatabase.Instance.DataRowContainer.FindData(row.key);
+                var overrideRow = new OverridenRow(originalRow, row.TargetValue);
+                dataRows.Add(overrideRow);
+            }
+            EditorUtility.SetDirty(GameProcessDatabase.Instance);
+        }
+
+        /// <summary> 에디터 프리셋에서 오버라이드 된 값들로 DataRow 리스트를 만들어 반환함. </summary>
+        public List<DataRow> GetAppliedCopies()
+        {
+            MatchProcess();
+            
+            var list = new List<DataRow>();
+            foreach (var overridenRow in dataRows)
+            {
+                var copy = overridenRow.GetAppliedCopy();
+                list.Add(copy);
+            }
+
+            return list;
         }
     }
 }

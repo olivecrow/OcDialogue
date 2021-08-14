@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using OcUtility;
 #if UNITY_EDITOR
 using OcDialogue.Editor;
 #endif
@@ -13,45 +15,51 @@ namespace OcDialogue
     {
         int Index { get; }
         bool IsTrue();
+        string ToExpression(bool useRichText = false);
     }
     
     [Serializable]
     public class CheckFactor : ICheckable
     {
         public int Index { get; set; }
-        [ReadOnly]
-        public string path;
-        [HideInInspector] public DBType DBType;
-        [HideLabel, HorizontalGroup("Value"), InlineButton("OpenSelectWindow", "선택"), LabelWidth(200)]
-        public ComparableData targetData;
 
-        [HideLabel, HorizontalGroup("Value"), LabelWidth(100)]
+        public DataSelector DataSelector;
+
+        [LabelText("=>"), HorizontalGroup("Value", Width = 150), LabelWidth(40)]
         public Operator op;
 
         [HideLabel, HorizontalGroup("Value")] 
-        [ShowIf("GetValidFactor", CompareFactor.Boolean | CompareFactor.NpcEncounter), ExplicitToggle(), LabelWidth(100)]
+        [ShowIf("@DataSelector.GetValidFactor() == CompareFactor.Boolean || DataSelector.GetValidFactor() == CompareFactor.NpcEncounter"), ExplicitToggle()]
         public bool BoolValue;
 
-        [HideLabel, HorizontalGroup("Value")] [ShowIf("GetValidFactor", CompareFactor.String)]
+        [HideLabel, HorizontalGroup("Value")] [ShowIf("@DataSelector.GetValidFactor() == CompareFactor.String")]
         public string StringValue;
         
-        [HideLabel, HorizontalGroup("Value")] [ShowIf("GetValidFactor", CompareFactor.Int | CompareFactor.ItemCount)]
+        [HideLabel, HorizontalGroup("Value")] [ShowIf("@DataSelector.GetValidFactor() == CompareFactor.Int || DataSelector.GetValidFactor() == CompareFactor.ItemCount")]
         public int IntValue;
 
-        [HideLabel, HorizontalGroup("Value")] [ShowIf("GetValidFactor", CompareFactor.Float)]
+        [HideLabel, HorizontalGroup("Value")] [ShowIf("@DataSelector.GetValidFactor() == CompareFactor.Float")]
         public float FloatValue;
-        [HideLabel, HorizontalGroup("Value")] [ShowIf("GetValidFactor", CompareFactor.QuestState)]
+        [HideLabel, HorizontalGroup("Value")] [ShowIf("@DataSelector.GetValidFactor() == CompareFactor.QuestState")]
         public Quest.State QuestStateValue;
 
         public object TargetValue
         {
             get
             {
-                return targetData switch
+                return DataSelector.targetData switch
                 {
-                    DataRow dataRow => dataRow.TargetValue,
+                    DataRow dataRow => dataRow.type switch
+                    {
+                        DataRow.Type.Boolean => BoolValue,
+                        DataRow.Type.Int => IntValue,
+                        DataRow.Type.Float => FloatValue,
+                        DataRow.Type.String => StringValue,
+                        _ => throw new ArgumentOutOfRangeException()
+                    },
                     Quest quest => QuestStateValue,
                     ItemBase item => IntValue,
+                    NPC npc => IntValue,
                     _ => throw new ArgumentOutOfRangeException()
                 };
             }
@@ -59,72 +67,173 @@ namespace OcDialogue
 
         public bool IsTrue()
         {
+            if (DataSelector.targetData == null)
+            {
+                Debug.LogError($"[{"CheckFactor".ToRichText(ColorExtension.Random(GetHashCode()))}] targetData가 비어있음".ToRichText(Color.cyan));
+                return false;
+            }
+            
 #if UNITY_EDITOR
             if (!Application.isPlaying)
             {
-                // var presetRow = GameProcessDataEditorPreset.Instance.GetCopy(targetData.Key);
-                // return presetRow.IsTrue(presetRow.type.ToCompareFactor(), op, TargetValue);
+                return IsTrueEditorPreset();
             }
 #endif
-            // TODO : 런타임용 데이터에서 값을 읽기.
+            switch (DataSelector.DBType)
+            {
+                case DBType.GameProcess:
+                {
+                    return GameProcessDatabase.Runtime.IsTrue(DataSelector.targetData.Key, op, TargetValue);
+                }
+                case DBType.Item:
+                {
+                    return Inventory.PlayerInventory.Count(DataSelector.targetData as ItemBase).IsTrue(op, IntValue);
+                }
+                case DBType.Quest:
+                {
+                    switch (DataSelector.targetData)
+                    {
+                        case Quest quest:
+                            return QuestDatabase.Runtime.IsTrue(quest.key, op, QuestStateValue);
+                        case DataRow dataRow:
+                        {
+                            var targetQuest = QuestDatabase.Runtime.FindQuest(dataRow);
+                            if (targetQuest == null) return false;
+                            return targetQuest.DataRowContainer.IsTrue(dataRow.key, op, TargetValue);
+                        }
+                    }
+                    break;
+                }
+                case DBType.NPC:
+                {
+                    switch (DataSelector.targetData)
+                    {
+                        case NPC npc:
+                            return NPCDatabase.Runtime.IsTrue(npc.Key, op, TargetValue);
+                        case DataRow dataRow:
+                        {
+                            var targetNPC = NPCDatabase.Runtime.FindNPC(dataRow);
+                            if (targetNPC == null) return false;
+                            return targetNPC.DataRowContainer.IsTrue(dataRow.key, op, TargetValue);
+                        }
+                    }
+                    break;
+                }
+                case DBType.Enemy:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
             return false;
         }
-        
-#if UNITY_EDITOR
-        public override string ToString()
+
+        public string ToExpression(bool useRichText)
         {
-            return $"{targetData.Key} {op.ToOperationString()} {TargetValue}";
+            var isExplicitFactor = DataSelector.GetValidFactor() == CompareFactor.ItemCount || DataSelector.GetValidFactor() == CompareFactor.NpcEncounter ||
+                                   DataSelector.GetValidFactor() == CompareFactor.QuestState;
+            var text = $"{DataSelector.targetData.Key}{(isExplicitFactor ? "." + DataSelector.GetValidFactor() : "")} {op.ToOperationString()} {TargetValue}"; 
+            return useRichText ? text.ToRichText(ColorExtension.Random(GetHashCode(), 0.5f)) : text;
         }
 
-        /// <summary> 현재 값을 추론하려는 데이터의 비교값 타입을 반환함. </summary>
-        public CompareFactor GetValidFactor()
-        {
-            return targetData switch
-            {
-                DataRow dataRow => dataRow.type switch
-                {
-                    DataRow.Type.Boolean => CompareFactor.Boolean,
-                    DataRow.Type.String => CompareFactor.String,
-                    DataRow.Type.Int => CompareFactor.Int,
-                    DataRow.Type.Float => CompareFactor.Float,
-                },
-                Quest quest => CompareFactor.QuestState,
-                ItemBase item => CompareFactor.ItemCount,
-                NPC npc => CompareFactor.NpcEncounter,
-            };
-        }
+#if UNITY_EDITOR
+
 
         [HorizontalGroup("Expression"), HideLabel, ReadOnly]public string expression;
         
-        void OpenSelectWindow()
-        {
-            var window = DataSelectWindow.Open();
-            window.Target = this;
-        }
-        
+
         /// <summary> 에디터에선 프리셋을 기준으로 출력하고, 플레이 모드에선 로드된 값을 기준으로 출력함. </summary>
         [HorizontalGroup("Expression"), Button("결과 출력")]
         void Check()
         {
-            if (Application.isPlaying)
+            var isExplicitFactor = DataSelector.GetValidFactor() == CompareFactor.ItemCount || DataSelector.GetValidFactor() == CompareFactor.NpcEncounter ||
+                                   DataSelector.GetValidFactor() == CompareFactor.QuestState;
+            expression = $"{DataSelector.targetData.Key}{(isExplicitFactor ? "." + DataSelector.GetValidFactor() : "")} {op.ToOperationString()} {TargetValue} ? " +
+                         $"=> {IsTrue()}";
+        }
+
+
+        bool IsTrueEditorPreset()
+        {
+            var isTrue = false;
+
+            switch (DataSelector.DBType)
             {
-                // TODO : 런타임에 DB Manager에서 GameProcessDataUser 등 DataUser를 캐싱해서 거기서 참조를 얻고 값을 출력할 것.
+                case DBType.GameProcess:
+                {
+                    var preset = GameProcessDatabase.Instance.editorPreset.dataRows.Find(x => x.Key == DataSelector.targetData.Key);
+                    if (GameProcessDatabase.Instance.editorPreset.dataRows.Count == 0 || preset == null)
+                    {
+                        Debug.LogWarning("아직 GameProcessDatabase의 에디터 프리셋이 없음");
+                        return false;
+                    }
+
+                    isTrue = preset.IsTrue(op, TargetValue);
+                    break;
+                }
+                case DBType.Item:
+                {
+                    var count = ItemDatabase.Instance.editorPreset.ItemPresets.Count(x => x.Key == DataSelector.targetData.Key);
+                    isTrue = count.IsTrue(op, IntValue);
+                    break;
+                }
+                case DBType.Quest:
+                {
+                    if (DataSelector.targetData is Quest quest)
+                    {
+                        var preset = QuestDatabase.Instance.editorPreset.Quests.Find(x => x.Key == quest.Key);
+                        if (QuestDatabase.Instance.editorPreset.Quests.Count == 0 || preset == null)
+                        {
+                            Debug.LogWarning("아직 QuestDatabase의 에디터 프리셋이 없음");
+                            return false;
+                        }
+
+                        isTrue = preset.IsTrue(CompareFactor.QuestState, op, QuestStateValue);
+                    }
+                    else if (DataSelector.targetData is DataRow dataRow)
+                    {
+                        var preset = QuestDatabase.Instance.editorPreset.Quests.Find(x => x.quest.DataRowContainer.dataRows.Contains(dataRow));
+                        if (QuestDatabase.Instance.editorPreset.Quests.Count == 0 || preset == null)
+                        {
+                            Debug.LogWarning("아직 QuestDatabase의 에디터 프리셋이 없음");
+                            return false;
+                        }
+
+                        var presetRow = preset.overrideRows.Find(x => x.Key == DataSelector.targetData.Key);
+                        isTrue = presetRow.IsTrue(op, TargetValue);
+                    }
+
+                    break;
+                }
+                case DBType.NPC:
+                {
+                    var preset = NPCDatabase.Instance.editorPreset.NPCs.Find(x => x.Key == DataSelector.targetData.Key);
+                    if (NPCDatabase.Instance.editorPreset.NPCs.Count == 0 || preset == null)
+                    {
+                        Debug.LogWarning("아직 NPC Database의 에디터 프리셋이 없음");
+                        return false;
+                    }
+
+                    if (DataSelector.targetData is NPC npc)
+                    {
+                        isTrue = preset.IsTrue(CompareFactor.NpcEncounter, op, BoolValue);
+                    }
+                    else if (DataSelector.targetData is DataRow dataRow)
+                    {
+                        var presetRow = preset.overrideRows.Find(x => x.Key == DataSelector.targetData.Key);
+                        isTrue = presetRow.IsTrue(op, TargetValue);
+                    }
+
+
+                    break;
+                }
+                case DBType.Enemy:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
-            else
-            {
-                // 플레이 모드가 아닐때 사용하는 디버그용 코드.
-                // var presetRow = DBType switch
-                // {
-                //     DBType.GameProcess => GameProcessDataEditorPreset.Instance.dataRows.Find(x => x.key == targetData.Key),
-                //     DBType.Item => InventoryEditorPreset.Instance.ItemPresets.Find(x => x.item.Key == targetData.Key),
-                //     DBType.Quest => QuestEditorPreset.Instance.Quests.Find(x => x.quest.Key == targetData.Key),
-                //     DBType.NPC => expr,
-                //     DBType.Enemy => expr,
-                //     _ => throw new ArgumentOutOfRangeException()
-                // }
-                // expression = $"{targetData.Key} {op.ToOperationString()} {TargetValue} ? " +
-                //              $"=> {presetRow.IsTrue(presetRow.type.ToCompareFactor(), op, TargetValue)}";
-            }
+
+            return isTrue;
         }
 #endif
     }
