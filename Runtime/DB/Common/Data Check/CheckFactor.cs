@@ -28,8 +28,10 @@ namespace OcDialogue
         [LabelText("=>"), HorizontalGroup("Value", Width = 150), LabelWidth(40)]
         public Operator op;
 
-        [HideLabel, HorizontalGroup("Value")] 
-        [ShowIf("@DataSelector.GetValidFactor() == CompareFactor.Boolean || DataSelector.GetValidFactor() == CompareFactor.NpcEncounter"), ExplicitToggle()]
+        [HideLabel, HorizontalGroup("Value")] [ExplicitToggle()]
+        [ShowIf("@DataSelector.GetValidFactor() == CompareFactor.Boolean || " +
+                "DataSelector.GetValidFactor() == CompareFactor.NpcEncounter ||" +
+                "DataSelector.GetValidFactor() == CompareFactor.QuestClearAvailability")]
         public bool BoolValue;
 
         [HideLabel, HorizontalGroup("Value")] [ShowIf("@DataSelector.GetValidFactor() == CompareFactor.String")]
@@ -47,6 +49,18 @@ namespace OcDialogue
         {
             get
             {
+                if (DataSelector.targetData is Quest)
+                {
+                    switch (DataSelector.GetValidFactor())
+                    {
+                        case CompareFactor.QuestState:
+                            return QuestStateValue;
+                        case CompareFactor.QuestClearAvailability:
+                            return BoolValue;
+                    }
+                }
+                
+                
                 return DataSelector.targetData switch
                 {
                     DataRow dataRow => dataRow.type switch
@@ -57,8 +71,6 @@ namespace OcDialogue
                         DataRow.Type.String => StringValue,
                         _ => throw new ArgumentOutOfRangeException()
                     },
-                    Quest quest => QuestStateValue,
-                    ItemBase item => IntValue,
                     NPC npc => IntValue,
                     _ => throw new ArgumentOutOfRangeException()
                 };
@@ -85,20 +97,20 @@ namespace OcDialogue
                 {
                     return GameProcessDatabase.Runtime.IsTrue(DataSelector.targetData.Key, op, TargetValue);
                 }
-                case DBType.Item:
-                {
-                    return Inventory.PlayerInventory.Count(DataSelector.targetData as ItemBase).IsTrue(op, IntValue);
-                }
                 case DBType.Quest:
                 {
                     switch (DataSelector.targetData)
                     {
                         case Quest quest:
-                            return QuestDatabase.Runtime.IsTrue(quest.key, op, QuestStateValue);
+                            return QuestDatabase.Runtime.IsTrue(quest.key, DataSelector.GetValidFactor(), op, TargetValue);
                         case DataRow dataRow:
                         {
                             var targetQuest = QuestDatabase.Runtime.FindQuest(dataRow);
-                            if (targetQuest == null) return false;
+                            if (targetQuest == null)
+                            {
+                                Printer.Print($"[CheckFactor] 이 DataRow를 가진 퀘스트를 찾을 수 없음 | DataRow : {dataRow.key}", LogType.Error);
+                                return false;
+                            }
                             return targetQuest.DataRowContainer.IsTrue(dataRow.key, op, TargetValue);
                         }
                     }
@@ -130,8 +142,10 @@ namespace OcDialogue
 
         public string ToExpression(bool useRichText)
         {
-            var isExplicitFactor = DataSelector.GetValidFactor() == CompareFactor.ItemCount || DataSelector.GetValidFactor() == CompareFactor.NpcEncounter ||
-                                   DataSelector.GetValidFactor() == CompareFactor.QuestState;
+            var isExplicitFactor = DataSelector.GetValidFactor() == CompareFactor.ItemCount || 
+                                   DataSelector.GetValidFactor() == CompareFactor.NpcEncounter ||
+                                   DataSelector.GetValidFactor() == CompareFactor.QuestState ||
+                                   DataSelector.GetValidFactor() == CompareFactor.QuestClearAvailability;
             var text = $"{DataSelector.targetData.Key}{(isExplicitFactor ? "." + DataSelector.GetValidFactor() : "")} {op.ToOperationString()} {TargetValue}"; 
             return useRichText ? text.ToRichText(ColorExtension.Random(GetHashCode(), 0.5f)) : text;
         }
@@ -146,8 +160,10 @@ namespace OcDialogue
         [HorizontalGroup("Expression"), Button("결과 출력")]
         void Check()
         {
-            var isExplicitFactor = DataSelector.GetValidFactor() == CompareFactor.ItemCount || DataSelector.GetValidFactor() == CompareFactor.NpcEncounter ||
-                                   DataSelector.GetValidFactor() == CompareFactor.QuestState;
+            var isExplicitFactor = DataSelector.GetValidFactor() == CompareFactor.ItemCount || 
+                                   DataSelector.GetValidFactor() == CompareFactor.NpcEncounter ||
+                                   DataSelector.GetValidFactor() == CompareFactor.QuestState ||
+                                   DataSelector.GetValidFactor() == CompareFactor.QuestClearAvailability;
             expression = $"{DataSelector.targetData.Key}{(isExplicitFactor ? "." + DataSelector.GetValidFactor() : "")} {op.ToOperationString()} {TargetValue} ? " +
                          $"=> {IsTrue()}";
         }
@@ -171,12 +187,12 @@ namespace OcDialogue
                     isTrue = preset.IsTrue(op, TargetValue);
                     break;
                 }
-                case DBType.Item:
-                {
-                    var count = ItemDatabase.Instance.editorPreset.ItemPresets.Count(x => x.Key == DataSelector.targetData.Key);
-                    isTrue = count.IsTrue(op, IntValue);
-                    break;
-                }
+                // case DBType.Item:
+                // {
+                //     var count = ItemDatabase.Instance.editorPreset.ItemPresets.Count(x => x.Key == DataSelector.targetData.Key);
+                //     isTrue = count.IsTrue(op, IntValue);
+                //     break;
+                // }
                 case DBType.Quest:
                 {
                     if (DataSelector.targetData is Quest quest)
@@ -187,8 +203,8 @@ namespace OcDialogue
                             Debug.LogWarning("아직 QuestDatabase의 에디터 프리셋이 없음");
                             return false;
                         }
-
-                        isTrue = preset.IsTrue(CompareFactor.QuestState, op, QuestStateValue);
+                        
+                        isTrue = preset.IsTrue(DataSelector.GetValidFactor(), op, TargetValue);
                     }
                     else if (DataSelector.targetData is DataRow dataRow)
                     {

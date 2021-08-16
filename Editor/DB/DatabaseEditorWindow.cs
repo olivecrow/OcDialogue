@@ -28,7 +28,9 @@ namespace OcDialogue.Editor
         ItemDatabaseToolbarDrawer _itemDatabaseToolbarDrawer;
         QuestDatabaseToolbarDrawer _questDatabaseToolbarDrawer;
         NPCDatabaseToolbarDrawer _npcDatabaseToolbarDrawer;
+        EnemyDatabaseToolbarDrawer _enemyDatabaseToolbarDrawer;
         Texture2D _yellowIcon, _greenIcon, _redIcon;
+        InventorySerializer _playerInventorySerializer;
         [MenuItem("Tools/데이터베이스 에디터")]
         static void Open()
         {
@@ -45,18 +47,21 @@ namespace OcDialogue.Editor
         {
             base.OnEnable();
             CreateToolbarDrawers();
+            EditorApplication.playModeStateChanged -= OnPlayModeChanged;
+            EditorApplication.playModeStateChanged += OnPlayModeChanged;
+        }
 
-            Texture2D CreateIcon(Color color)
+        void OnPlayModeChanged(PlayModeStateChange change)
+        {
+            switch (change)
             {
-                var i = new Texture2D(1, 1);
-                i.SetPixel(0,0, color);
-                i.Apply();
-                return i;
+                case PlayModeStateChange.EnteredEditMode:
+                    EditorApplication.delayCall += ForceMenuTreeRebuild;
+                    break;
+                case PlayModeStateChange.EnteredPlayMode:
+                    EditorApplication.delayCall += ForceMenuTreeRebuild;
+                    break;
             }
-
-            _yellowIcon = CreateIcon(Color.yellow);
-            _greenIcon = CreateIcon(Color.green);
-            _redIcon = CreateIcon(Color.red);
         }
 
         protected override void OnBeginDrawEditors()
@@ -94,7 +99,8 @@ namespace OcDialogue.Editor
                         nullDBWarning();
                         return;
                     }
-                    _itemDatabaseToolbarDrawer.Draw(MenuTree.Selection?.SelectedValue as ItemBase);
+                    
+                    _itemDatabaseToolbarDrawer.Draw(MenuTree?.Selection?.SelectedValue as ItemBase);
                     break;
                 }
                 case DBType.Quest:
@@ -123,6 +129,12 @@ namespace OcDialogue.Editor
                     _npcDatabaseToolbarDrawer.Draw();
                     break;
                 case DBType.Enemy:
+                    if (EnemyDatabase.Instance == null)
+                    {
+                        nullDBWarning();
+                        return;
+                    }
+                    _enemyDatabaseToolbarDrawer.Draw();
                     break;
             }
         }
@@ -138,6 +150,10 @@ namespace OcDialogue.Editor
             };
             MenuWidth = 250;
 
+            _yellowIcon = CreateIcon(Color.yellow);
+            _greenIcon = CreateIcon(Color.green);
+            _redIcon = CreateIcon(Color.red);
+
             switch (DBType)
             {
                 case DBType.GameProcess:
@@ -150,6 +166,11 @@ namespace OcDialogue.Editor
                     
                     tree.Add("Item DB", ItemDatabase.Instance, _greenIcon);
                     tree.Add("Inventory Editor Preset", ItemDatabase.Instance.editorPreset, _yellowIcon);
+                    if(Application.isPlaying)
+                    {
+                        tree.Add("런타임 Player Inventory", _playerInventorySerializer, _redIcon);
+                        _playerInventorySerializer.DrawItems(_itemDatabaseToolbarDrawer.itemType);
+                    }
                     
                     foreach (var itemBase in ItemDatabase.Instance.Items)
                     {
@@ -161,6 +182,7 @@ namespace OcDialogue.Editor
                     
                     tree.Add("Quest DB", QuestDatabase.Instance, _greenIcon);
                     tree.Add("Quest Editor Preset", QuestDatabase.Instance.editorPreset, _yellowIcon);
+                    if(Application.isPlaying) tree.Add("런타임 Quest DB", QuestDatabase.Runtime, _redIcon);
                     
                     foreach (var quest in QuestDatabase.Instance.Quests)
                     {
@@ -171,6 +193,7 @@ namespace OcDialogue.Editor
                     
                     tree.Add("NPC DB", NPCDatabase.Instance, _greenIcon);
                     tree.Add("NPC Editor Preset", NPCDatabase.Instance.editorPreset, _yellowIcon);
+                    if(Application.isPlaying) tree.Add("런타임 NPC DB", NPCDatabase.Runtime, _redIcon);
 
                     foreach (var npc in NPCDatabase.Instance.NPCs)
                     {
@@ -178,16 +201,33 @@ namespace OcDialogue.Editor
                     }
                     break;
                 case DBType.Enemy:
+                    tree.Add("Enemy DB", EnemyDatabase.Instance, _greenIcon);
+                    tree.Add("Enemy Editor Preset", EnemyDatabase.Instance.editorPreset, _yellowIcon);
+                    if(Application.isPlaying) tree.Add("런타임 Enemy DB", EnemyDatabase.Runtime, _redIcon);
+                    
+                    foreach (var enemy in EnemyDatabase.Instance.Enemies)
+                    {
+                        if(enemy.Category == _enemyDatabaseToolbarDrawer.CurrentCategory) tree.Add(enemy.key, enemy);
+                    }
                     break;
             }
             return tree;
         }
-
+        Texture2D CreateIcon(Color color)
+        {
+            var i = new Texture2D(1, 1);
+            i.SetPixel(0,0, color);
+            i.Apply();
+            return i;
+        }
         void CreateToolbarDrawers()
         {
             if(_itemDatabaseToolbarDrawer == null) _itemDatabaseToolbarDrawer =  new ItemDatabaseToolbarDrawer(this);
             if(_questDatabaseToolbarDrawer == null) _questDatabaseToolbarDrawer = new QuestDatabaseToolbarDrawer(this);
             if (_npcDatabaseToolbarDrawer == null) _npcDatabaseToolbarDrawer = new NPCDatabaseToolbarDrawer(this);
+            if (_enemyDatabaseToolbarDrawer == null) _enemyDatabaseToolbarDrawer = new EnemyDatabaseToolbarDrawer(this);
+            
+            _playerInventorySerializer = new InventorySerializer(Inventory.PlayerInventory);
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
+using UnityEditor;
 using UnityEngine;
 
 namespace OcDialogue.Editor
@@ -28,23 +29,47 @@ namespace OcDialogue.Editor
         public string thirdDropDown;
 
         [ValueDropdown("GetDataList"), HideLabel, GUIColor(0,1,1)] public ComparableData Data;
-        bool UseFirstDropdown() => DBType != DBType.GameProcess && DBType != DBType.NPC;
-        bool UseSecondDropdown() => UseFirstDropdown() && (DBType == DBType.Item || DBType == DBType.Quest);
-        bool UseThirdDropdown() => UseSecondDropdown() && ((DBType == DBType.Quest && secondDropDown != "QuestState"));
+        bool UseFirstDropdown() => DBType != DBType.GameProcess;
+        bool UseSecondDropdown() => UseFirstDropdown() && (DBType == DBType.Item || DBType == DBType.Quest || DBType == DBType.NPC || DBType == DBType.Enemy);
+        bool UseThirdDropdown() => UseSecondDropdown() && (secondDropDown == "DataRows");
 
         void OnValidate()
         {
-            if (DBType == DBType.Quest)
+            switch (DBType)
             {
-                if (secondDropDown == "QuestState") thirdDropDown = null;
-                else if (secondDropDown == "DataRows")
+                case DBType.Quest:
                 {
-                    if(Data is Quest)
+                    if (secondDropDown == "Quest.DataRows")
                     {
-                        thirdDropDown = Data.Key;
-                        Data = null;
+                        if(Data is Quest)
+                        {
+                            thirdDropDown = Data.Key;
+                            Data = null;
+                        }
                     }
+
+                    break;
                 }
+                case DBType.NPC:
+                    if (secondDropDown == "NPC.DataRows")
+                    {
+                        if(Data is NPC)
+                        {
+                            thirdDropDown = Data.Key;
+                            Data = null;
+                        }
+                    } 
+                    break;
+                case DBType.Enemy:
+                    if (secondDropDown == "Enemy.DataRows")
+                    {
+                        if(Data is Enemy)
+                        {
+                            thirdDropDown = Data.Key;
+                            Data = null;
+                        }
+                    } 
+                    break;
             }
         }
 
@@ -56,15 +81,29 @@ namespace OcDialogue.Editor
                 case DBType.GameProcess:
                     break;
                 case DBType.Item:
+                {
                     var itemTypes = Enum.GetNames(typeof(ItemType));
                     foreach (var type in itemTypes) list.Add(type);
                     break;
+                }
                 case DBType.Quest:
+                {
                     var category = QuestDatabase.Instance.Category;
                     foreach (var c in category) list.Add(c);
                     break;
-                case DBType.Enemy:
+                }
+                case DBType.NPC:
+                {
+                    var category = NPCDatabase.Instance.Category;
+                    foreach(var c in category) list.Add(c);
                     break;
+                }
+                case DBType.Enemy:
+                {
+                    var category = EnemyDatabase.Instance.Category;
+                    foreach(var c in category) list.Add(c);
+                    break;
+                }
                 default:
                     Debug.LogWarning("해당 타입의 ValueDropDown이 미구현됨.");
                     break;
@@ -120,12 +159,16 @@ namespace OcDialogue.Editor
                     }
                     break;
                 case DBType.Quest:
-                    list.Add("QuestState");
+                    list.Add("Quest");
                     list.Add("DataRows");
                     break;
-                    
+                case DBType.NPC:
+                    list.Add("NPC");
+                    list.Add("DataRows");
+                    break;    
                 case DBType.Enemy:
-                    // 아직 없음.
+                    list.Add("Enemy");
+                    list.Add("DataRows");
                     break;
                 default:
                     Debug.LogWarning("해당 타입의 ValueDropDown이 미구현됨.");
@@ -152,8 +195,16 @@ namespace OcDialogue.Editor
                     }
                     break;
                 case DBType.NPC:
+                    if (secondDropDown == "DataRows")
+                    {
+                        foreach (var npc in NPCDatabase.Instance.NPCs) list.Add(npc.NPCName);
+                    }
                     break;
                 case DBType.Enemy:
+                    if (secondDropDown == "DataRows")
+                    {
+                        foreach (var enemy in EnemyDatabase.Instance.Enemies) list.Add(enemy.key);
+                    }
                     break;
                 default:
                     Debug.LogWarning("해당 타입의 ValueDropDown이 미구현됨.");
@@ -171,13 +222,13 @@ namespace OcDialogue.Editor
                 case DBType.GameProcess:
                     foreach (var row in GameProcessDatabase.Instance.DataRowContainer.dataRows) list.Add(row);
                     break;
-                case DBType.Item:
-                    var targetItems = ItemDatabase.Instance.Items.Where(x =>
-                        x.type.ToString() == firstDropdown && x.SubTypeString == secondDropDown);
-                    foreach (var item in targetItems) list.Add(item);
-                    break;
+                // case DBType.Item:
+                //     var targetItems = ItemDatabase.Instance.Items.Where(x =>
+                //         x.type.ToString() == firstDropdown && x.SubTypeString == secondDropDown);
+                //     foreach (var item in targetItems) list.Add(item);
+                //     break;
                 case DBType.Quest:
-                    if(secondDropDown == "QuestState")
+                    if(secondDropDown == "Quest")
                         foreach (var quest in QuestDatabase.Instance.Quests) list.Add(quest);
                     else if (secondDropDown == "DataRows")
                     {
@@ -186,10 +237,22 @@ namespace OcDialogue.Editor
                     }
                     break;
                 case DBType.NPC:
-                    foreach (var npc in NPCDatabase.Instance.NPCs) list.Add(npc);
+                    if(secondDropDown == "NPC")
+                        foreach (var npc in NPCDatabase.Instance.NPCs) list.Add(npc);
+                    else if (secondDropDown == "DataRows")
+                    {
+                        var currentNPC = NPCDatabase.Instance.NPCs.Find(x => x.Key == thirdDropDown);
+                        foreach (var dataRow in currentNPC.DataRowContainer.dataRows) list.Add(dataRow);
+                    }
                     break;
                 case DBType.Enemy:
-                    // 아직 없음.
+                    if(secondDropDown == "Enemy")
+                        foreach (var enemy in EnemyDatabase.Instance.Enemies) list.Add(enemy);
+                    else if (secondDropDown == "DataRows")
+                    {
+                        var currentEnemy = EnemyDatabase.Instance.Enemies.Find(x => x.key == thirdDropDown);
+                        foreach (var dataRow in currentEnemy.DataRowContainer.dataRows) list.Add(dataRow);
+                    }
                     break;
                 default:
                     Debug.LogWarning("해당 타입의 ValueDropDown이 미구현됨.");
@@ -208,7 +271,9 @@ namespace OcDialogue.Editor
             if (UseFirstDropdown()) Target.path += $"/{firstDropdown}";
             if (UseSecondDropdown()) Target.path += $"/{secondDropDown}";
             if (UseThirdDropdown()) Target.path += $"/{thirdDropDown}";
+
             Close();
+            EditorUtility.SetDirty(Selection.activeObject);
         }
     }
 }

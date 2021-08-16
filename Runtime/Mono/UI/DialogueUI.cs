@@ -40,7 +40,7 @@ namespace OcDialogue
         [BoxGroup("Subtitle/Cutscene")] [Range(0f, 2f)] public float TextFadeInTime = 0.7f;
         [BoxGroup("Subtitle/Cutscene")] [Range(0f, 2f)] public float TextFadeOutTime = 0.95f;
         [BoxGroup("Subtitle/Cutscene")] [Range(0f, 2f)] public float CutsceneSubtitleInterval = 0.7f;
-        [BoxGroup("Subtitle/Cutscene")] [SuffixLabel("@CalcWaitingDuration()")]public float CutsceneTextSpeed = 0.2f; 
+        [BoxGroup("Subtitle/Cutscene")] public float CutsceneTextSpeed = 0.2f; 
 
         [BoxGroup("Image Viewer")] public RawImage fullSizeImage;
         [BoxGroup("Image Viewer")] public RawImage floatingImage;
@@ -233,6 +233,12 @@ namespace OcDialogue
                 floatingImageRoot.gameObject.SetActive(false);
             }
 
+            if (Balloon.actor != null)
+            {
+                var npc = NPCDatabase.Runtime.FindNPC(Balloon.actor.NPCName);
+                if (!npc.IsEncounter) npc.IsEncounter = true;
+            }
+
             
             // TODO: 여기서 로컬라이징.
             var targetText = Balloon.text;
@@ -345,15 +351,5 @@ namespace OcDialogue
                 yield return new WaitForSeconds(CutsceneSubtitleInterval);
             }
         }
-
-#if UNITY_EDITOR
-        string CalcWaitingDuration()
-        {
-            var type = "쓸쓸한 낯이 옛날같이 늙었다. 나는 불경처럼 서러워졌다.";
-            var length = type.Length * CutsceneTextSpeed;
-
-            return $"{type} => {length: 0.00}초";
-        }
-#endif
     }
 }

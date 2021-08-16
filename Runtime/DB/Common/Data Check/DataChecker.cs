@@ -9,6 +9,7 @@ using OcDialogue.Editor;
 #endif
 using Sirenix.OdinInspector;
 using UnityEngine;
+using OcDialogue.DB;
 
 namespace OcDialogue
 {
@@ -92,8 +93,8 @@ namespace OcDialogue
         [VerticalGroup("Binding/Button"), Button("바인딩 윈도우 열기")]
         void OpenBindWindow()
         {
-            var window = CheckableBindingWindow.Open();
-            window.SetChecker(this);
+            // var window = CheckableBindingWindow.Open();
+            // window.SetChecker(this);
         }  
         
         [VerticalGroup("Binding/Button"), Button( "결과 출력")]

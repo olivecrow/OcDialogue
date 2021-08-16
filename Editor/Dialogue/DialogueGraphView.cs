@@ -277,6 +277,7 @@ namespace OcDialogue.Editor
             }
             var edge = fromNode.OutputPort.ConnectTo(toNode.InputPort);
             AddElement(edge);
+            
             return edge;
         }
 

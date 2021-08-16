@@ -1,15 +1,17 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using OcUtility;
 using Sirenix.OdinInspector;
+using UnityEditor;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace OcDialogue
 {
-    public abstract class ItemBase : ComparableData
+    public abstract class ItemBase : AddressableData
     {
-        public override string Key => itemName;
+        public override string Address => itemName;
 
         [BoxGroup("ReadOnly")][ReadOnly]public int GUID;
         [BoxGroup("ReadOnly")][ReadOnly]public ItemType type;
@@ -27,7 +29,7 @@ namespace OcDialogue
         public string descriptionRefPreview => descriptionReference == null ? "No Reference" : descriptionReference.description;
 #endif
         [ShowIf("isStackable")]public int maxStackCount = 999;
-        public int CurrentStack { get; protected set; }
+        [ShowInInspector]public int CurrentStack { get; protected set; }
         /// <summary> 원본이 인벤토리에 들어가는 것을 막기위한 값. 새 카피를 생성해서 인벤토리에 넣을 때, 이 부분을 true로 바꿔야함. </summary>
         public bool IsCopy { get; set; }
         /// <summary> 독자적인 설명을 가질지, 참조할지 여부. </summary>
@@ -52,7 +54,7 @@ namespace OcDialogue
             if(!isStackable) return;
             if(count < 1) return;
             CurrentStack -= count;
-            if(CurrentStack < 0) onEmpty?.Invoke();
+            if(CurrentStack <= 0) onEmpty?.Invoke();
         }
 
         /// <summary> 아이템의 복사본을 반환함. 실제 런타임에서 쓰이는 데이터. </summary>
@@ -71,6 +73,7 @@ namespace OcDialogue
         {
             baseCopy.GUID = GUID;
             baseCopy.type = type;
+            baseCopy.name = name;
             baseCopy.itemName = itemName;
             baseCopy.isStackable = isStackable;
             baseCopy.maxStackCount = maxStackCount;
@@ -81,26 +84,6 @@ namespace OcDialogue
         /// <summary> GetCopy에서 생성된 복사본을 전달받아서 각 타입에서 구현해야 할 속성 및 필드를 반영하여 반환함. </summary>
         protected abstract void ApplyTypeProperty(ItemBase baseCopy);
         
-        public override bool IsTrue(CompareFactor factor, Operator op, object value)
-        {
-            if (factor != CompareFactor.ItemCount) return false;
-            if (Inventory.PlayerInventory == null)
-            {
-                Debug.LogWarning("Inventory.PlayerInventory가 비어있어서 개수 판단을 할 수 없음.");
-                return false;
-            }
-
-            return op switch
-            {
-                Operator.Equal        => Inventory.PlayerInventory.Count(this) == (int) value,
-                Operator.NotEqual     => Inventory.PlayerInventory.Count(this) != (int) value,
-                Operator.Greater      => Inventory.PlayerInventory.Count(this) > (int) value,
-                Operator.GreaterEqual => Inventory.PlayerInventory.Count(this) >= (int) value,
-                Operator.Less         => Inventory.PlayerInventory.Count(this) < (int) value,
-                Operator.LessEqual    => Inventory.PlayerInventory.Count(this) <= (int) value,
-                _ => false
-            };
-        }
         
 #if UNITY_EDITOR
         void OnOtherReferenceChanged()

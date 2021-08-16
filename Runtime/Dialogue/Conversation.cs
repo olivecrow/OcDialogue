@@ -156,13 +156,14 @@ namespace OcDialogue
         [BoxGroup("유틸리티 메서드"), Button("모든 말풍선의 LinkBalloons 리스트 업데이트")]
         void UpdateLinkedBalloonList()
         {
+            foreach (var balloon in Balloons)
+            {
+                balloon.linkedBalloons = new List<Balloon>();
+            }
             foreach (var linkData in LinkData)
             {
                 var rootBalloon = Balloons.Find(x => x.GUID == linkData.@from);
                 var targetBalloon = Balloons.Find(x => x.GUID == linkData.to);
-                
-                // 새로 생긴 노드면 아직 직렬화가 안 돼서 linkBalloons가 null이라 오류가 날 수 있음.
-                if (rootBalloon.linkedBalloons == null) rootBalloon.linkedBalloons = new List<Balloon>();
                 
                 if(rootBalloon.linkedBalloons.Contains(targetBalloon)) continue;
                 

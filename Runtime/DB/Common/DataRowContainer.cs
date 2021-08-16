@@ -116,7 +116,7 @@ namespace OcDialogue
         }
 
 #if UNITY_EDITOR
-        public void AddData(DBType dbType, DataStorageType method)
+        public DataRow AddData(DBType dbType, DataStorageType method)
         {
             var row = ScriptableObject.CreateInstance<DataRow>();
             row.ownerDB = dbType;
@@ -137,6 +137,8 @@ namespace OcDialogue
             }
             EditorUtility.SetDirty(owner);
             AssetDatabase.SaveAssets();
+
+            return row;
         }
 
         public void DeleteRow(string key, DataStorageType method)

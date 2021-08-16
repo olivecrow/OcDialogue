@@ -13,6 +13,8 @@ namespace OcDialogue
 {
     public class Inventory
     {
+        /// <summary> 런타임에서 사용되는 플레이어의 인벤토리. 시작 시 여기에 할당해줘야함.
+        /// Application.quitting에서 자동으로 해제되기때문에 에디터에서 따로 해제할 필요는 없음.</summary>
         public static Inventory PlayerInventory
         {
             get => _playerInventory;
@@ -45,20 +47,23 @@ namespace OcDialogue
         public IEnumerable<ItemBase> Items => _items;
         List<ItemBase> _items;
 
-        public event Action<ItemBase> OnItemAdded;
-        public event Action<ItemBase> OnItemRemoved;
+        public event Action<ItemBase, int> OnItemAdded;
+        public event Action<ItemBase, int> OnItemRemoved;
+        public event Action OnInventoryChanged;
         public event Action<ItemBase> OnStackOverflow;
         public static event Action<Inventory> OnPlayerInventoryChanged;
         
 
-        /// <summary> 아이템 추가. 내부적으로 카피를 생성하기 때문에 아무거나 집어넣으면 됨.</summary>
-        public void AddItem(ItemBase item, int count = 1)
+        /// <summary> 아이템 추가. 내부적으로 카피를 생성하기 때문에 아무거나 집어넣으면 됨. 한 개라도 성공하면 true를 반환.</summary>
+        public bool AddItem(ItemBase item, int count = 1)
         {
             if (count < 1)
             {
                 Printer.Print($"[Inventory] 잘못된 개수가 입력됨 | count : {count}", LogType.Error);
-                return;
+                return false;
             }
+
+            var addedCount = 0;
             if (item.isStackable)
             {
                 var exist = _items.Find(x => x.GUID == item.GUID);
@@ -70,6 +75,15 @@ namespace OcDialogue
                 }
                 else
                 {
+                    var existCount = Count(exist); 
+                    if(existCount == exist.maxStackCount)
+                    {
+                        OnStackOverflow?.Invoke(exist);
+                        return false;
+                    }
+                    
+                    addedCount = existCount + count > exist.maxStackCount ? 
+                        count - (exist.maxStackCount - existCount) : count;
                     exist.AddStack(count, () => OnStackOverflow?.Invoke(exist));
                 }
             }
@@ -77,10 +91,14 @@ namespace OcDialogue
             {
                 for (int i = 0; i < count; i++)
                 {
+                    addedCount++;
                     AddNewItem(item.GetCopy());
                 }
             }
-            OnItemAdded?.Invoke(_items.Find(x => x.GUID == item.GUID));
+            OnItemAdded?.Invoke(_items.Find(x => x.GUID == item.GUID), addedCount);
+            OnInventoryChanged?.Invoke();
+            Printer.Print($"[Inventory] 아이템 추가됨. item : {item.itemName} | count : {count}");
+            return true;
         }
 
         void AddNewItem(ItemBase item)
@@ -92,10 +110,15 @@ namespace OcDialogue
         /// stackable이 아닌 아이템의 경우, 항상 1개만 제거됨. </summary>
         public void RemoveItem(ItemBase item, int count = 1)
         {
+            if (count <= 0)
+            {
+                Printer.Print($"[Inventory] 잘못된 아이템 개수가 입력됨. item : {item.itemName} | count : {count}", LogType.Error);
+                return;
+            }
             var exist = _items.Find(x => x.GUID == item.GUID);
             if(exist == null)
             {
-                Debug.LogWarning($"존재하지 않는 아이템을 인벤토리에서 제거하려 함. item : {item.itemName} | count : {count}");
+                Printer.Print($"[Inventory] 존재하지 않는 아이템을 인벤토리에서 제거하려 함. item : {item.itemName} | count : {count}", LogType.Error);
                 return;
             }
             if (item.isStackable)
@@ -106,7 +129,9 @@ namespace OcDialogue
             {
                 RemoveSingleItem(exist);
             }
-            OnItemRemoved?.Invoke(exist);
+            OnInventoryChanged?.Invoke();
+            OnItemRemoved?.Invoke(exist, count);
+            Printer.Print($"[Inventory] 아이템 제거됨. item : {item.itemName} | count : {count}");
         }
 
         /// <summary> 현재 인벤토리에 존재하는 아이템의 개수를 반환함. isStackable인 경우, StackAmount를 반환하고, 아닌 경우에 총 개수를 반환함. </summary>
@@ -117,7 +142,7 @@ namespace OcDialogue
 
             return item.isStackable ? exist.CurrentStack : _items.Count(x => x.GUID == item.GUID);
         }
-        
+
         /// <summary> 아이템을 개수에 상관 없이 삭제함. </summary>
         void RemoveSingleItem(ItemBase item)
         {
@@ -128,6 +153,7 @@ namespace OcDialogue
 #if UNITY_EDITOR
         static void ReleaseEvent()
         {
+            _playerInventory = null;
             OnPlayerInventoryChanged = null;
             Application.quitting -= ReleaseEvent;
         }

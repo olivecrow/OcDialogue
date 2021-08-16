@@ -36,7 +36,7 @@ namespace OcDialogue
 #if UNITY_EDITOR
         public override void SetSubTypeFromString(string subtypeName)
         {
-            subtype = (AccessoryType) Enum.Parse(typeof(ArmorType), subtypeName);
+            subtype = (AccessoryType) Enum.Parse(typeof(AccessoryType), subtypeName);
         }  
 #endif
 

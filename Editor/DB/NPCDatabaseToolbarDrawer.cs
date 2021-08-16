@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using OcUtility;
 using Sirenix.Utilities.Editor;
 using UnityEngine;
 
@@ -44,8 +45,13 @@ namespace OcDialogue.Editor
                 if (SirenixEditorGUI.ToolbarButton("Delete"))
                 {
                     if(EditorWindow.MenuTree.Selection == null) return;
-                    var q = EditorWindow.MenuTree.Selection.SelectedValue as NPC;
-                    NPCDatabase.Instance.DeleteNPC(q.NPCName);
+                    var npc = EditorWindow.MenuTree.Selection.SelectedValue as NPC;
+                    if (npc == null)
+                    {
+                        Printer.Print("NPC가 선택되어있지 않음.");
+                        return;
+                    }
+                    NPCDatabase.Instance.DeleteNPC(npc.NPCName);
                 }
                 if (!_categoryDrawer.IsEditMode && SirenixEditorGUI.ToolbarButton("Edit Category"))
                 {

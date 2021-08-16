@@ -33,7 +33,7 @@ namespace OcDialogue
         {
             if (Category == null || Category.Length == 0) Category = new[] {"Main"};
         }
-        public void AddQuest(string category)
+        public Quest AddQuest(string category)
         {
             var asset = CreateInstance<Quest>();
 
@@ -46,11 +46,12 @@ namespace OcDialogue
             AssetDatabase.CreateAsset(asset, path);
             EditorUtility.SetDirty(this);
             AssetDatabase.SaveAssets();
+            return asset;
         }
         
-        public void DeleteQuest(string key)
+        public void DeleteQuest(string key, bool withoutNotify = false)
         {
-            if(!EditorUtility.DisplayDialog("삭제?", "정말 해당 Quest를 삭제하겠습니까?", "OK", "Cancel"))
+            if(!withoutNotify && !EditorUtility.DisplayDialog("삭제?", "정말 해당 Quest를 삭제하겠습니까?", "OK", "Cancel"))
                 return;
             var asset = Quests.FirstOrDefault(x => x.key == key);
             if (asset == null)

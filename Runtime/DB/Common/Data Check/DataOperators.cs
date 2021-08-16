@@ -21,7 +21,9 @@ namespace OcDialogue
         String,
         Boolean,
         QuestState,
+        QuestClearAvailability,
         ItemCount,
-        NpcEncounter
+        NpcEncounter,
+        EnemyKillCount
     }
 }

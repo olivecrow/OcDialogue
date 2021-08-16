@@ -56,7 +56,6 @@ namespace OcDialogue
                         _ => throw new ArgumentOutOfRangeException()
                     },
                     Quest quest => QuestStateValue,
-                    ItemBase item => IntValue,
                     NPC npc => IntValue,
                     _ => throw new ArgumentOutOfRangeException()
                 };
@@ -74,35 +73,42 @@ namespace OcDialogue
                     GameProcessDatabase.Runtime.SetValue(DataSelector.targetData.Key, TargetValue);
                     break;
                 case DBType.Item:
-                    if (Inventory.PlayerInventory == null)
-                    {
-                        Debug.LogError("[DataSetter] Inventory.PlayerInventory가 설정되어있지 않음");
-                        return;
-                    }
-                    var item = ((ItemBase)DataSelector.targetData).GetCopy();
-                    
-                    if(IntValue > 0)
-                    {
-                        Inventory.PlayerInventory.AddItem(item, IntValue);
-                    }
-                    if(IntValue < 0)
-                    {
-                        Inventory.PlayerInventory.RemoveItem(item, IntValue);
-                    }
-                    else
-                    {
-                        Debug.LogError("[DataSetter] 아이템 증감의 개수가 0으로 설정됨".ToRichText(Color.cyan));
-                    }
+                    // if (Inventory.PlayerInventory == null)
+                    // {
+                    //     Debug.LogError("[DataSetter] Inventory.PlayerInventory가 설정되어있지 않음");
+                    //     return;
+                    // }
+                    // var item = ((ItemBase)DataSelector.targetData).GetCopy();
+                    //
+                    // if(IntValue > 0)
+                    // {
+                    //     Inventory.PlayerInventory.AddItem(item, IntValue);
+                    // }
+                    // if(IntValue < 0)
+                    // {
+                    //     Inventory.PlayerInventory.RemoveItem(item, -IntValue);
+                    // }
+                    // else
+                    // {
+                    //     Debug.LogError("[DataSetter] 아이템 증감의 개수가 0으로 설정됨".ToRichText(Color.cyan));
+                    // }
                     break;
                 case DBType.Quest:
+                    var quest = DataSelector.targetData as Quest;
+                    if (DataSelector.DetailTargetProperty == DataSelector.PROPERTY_QUESTSTATE)
+                    {
+                        QuestDatabase.Runtime.SetQuestState(quest.key, QuestStateValue);
+                    }
                     break;
                 case DBType.NPC:
+                    Debug.LogWarning("[DataSetter] 아직 NPC에 대한 setter 설정이 없음".ToRichText(Color.cyan));
                     break;
                 case DBType.Enemy:
+                    Debug.LogWarning("[DataSetter] 아직 Enemy에 대한 setter 설정이 없음".ToRichText(Color.cyan));
                     break;
             }
             
-            Printer.Print($"[DataSetter] < {DataSelector.targetData.Key} > (을)를 < {TargetValue} > {e_SuffixLabel}".ToRichText(Color.white));
+            Printer.Print($"[DataSetter] < {DataSelector.targetData.Key.ToRichText(Color.cyan)} > (을)를 < {TargetValue} > 로 변경".ToRichText(Color.green.Brighten(0.5f)));
         }
 
 #if UNITY_EDITOR
@@ -118,12 +124,16 @@ namespace OcDialogue
                 case DataRow dataRow:
                     e_SuffixLabel = "로 변경";
                     break;
-                case ItemBase item:
-                    e_SuffixLabel = IntValue > 0 ? "개 추가" : "개 제거";
-                    if (IntValue == 0) e_message += "- 아이템의 증감 개수는 0이 될 수 없음 \n";
-                    break;
+                // case ItemBase item:
+                //     e_SuffixLabel = IntValue > 0 ? "개 추가" : "개 제거";
+                //     if (IntValue == 0) e_message += "- 아이템의 증감 개수는 0이 될 수 없음 \n";
+                //     break;
                 case Quest quest:
                     e_SuffixLabel = "로 변경";
+                    if (DataSelector.DetailTargetProperty == DataSelector.PROPERTY_QUESTCLEARAVAILABILITY)
+                    {
+                        e_message += "- Quest Clear Availability는 읽기전용이라 무시됨.\n";
+                    }
                     break;
                 case NPC npc:
                     e_SuffixLabel = "로 변경";

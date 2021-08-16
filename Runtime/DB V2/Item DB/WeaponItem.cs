@@ -21,16 +21,8 @@ namespace OcDialogue
         public int maxDurability = 100;
         public int weight;
 
-        [BoxGroup("Physical Attack"), ShowInInspector, ReadOnly] public float AveragePhysicalAttack => (strikeAttack + sliceAttack + thrustAttack) / 3f;
-        [BoxGroup("Physical Attack")][Range(0f, 200f)]public int strikeAttack = 100;
-        [BoxGroup("Physical Attack")][Range(0f, 200f)]public int sliceAttack = 100;
-        [BoxGroup("Physical Attack")][Range(0f, 200f)]public int thrustAttack = 100;
-        
-        [BoxGroup("Elemental Attack"), ShowInInspector, ReadOnly] public float AverageElementalAttack => (fireAttack + iceAttack + lighteningAttack + darkAttack) / 4f;
-        [BoxGroup("Elemental Attack")] public int fireAttack;
-        [BoxGroup("Elemental Attack")] public int iceAttack;
-        [BoxGroup("Elemental Attack")] public int lighteningAttack;
-        [BoxGroup("Elemental Attack")] public int darkAttack;
+        public BattleStat AttackStat => attackStat;
+        [SerializeField]BattleStat attackStat;
 
         public AssetReference Avatar => avatar;
         public ItemBase ItemBase => this;
@@ -48,17 +40,18 @@ namespace OcDialogue
             copy.maxDurability = maxDurability;
             copy.weight = weight;
             
-            copy.fireAttack = fireAttack;
-            copy.iceAttack = iceAttack;
-            copy.lighteningAttack = lighteningAttack;
-            copy.darkAttack = darkAttack;
+            copy.attackStat.Strike = attackStat.Strike;
+            copy.attackStat.Slice = attackStat.Slice;
+            copy.attackStat.Thrust = attackStat.Thrust;
             
-            copy.strikeAttack = strikeAttack;
-            copy.sliceAttack = sliceAttack;
-            copy.thrustAttack = thrustAttack;
+            copy.attackStat.Fire = attackStat.Fire;
+            copy.attackStat.Ice = attackStat.Ice;
+            copy.attackStat.Lightening = attackStat.Lightening;
+            copy.attackStat.Dark = attackStat.Dark;
 
             copy.avatar = avatar;
         }
+
         
         
 #if UNITY_EDITOR

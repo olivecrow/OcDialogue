@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace OcDialogue
@@ -9,33 +10,22 @@ namespace OcDialogue
     {
         public event Action<Quest> OnQuestDataChanged;
         
-        readonly List<Quest> _quests;
+        [ShowInInspector][InlineEditor()] public List<Quest> Quests { get; }
+
         public RuntimeQuestData(IEnumerable<Quest> original)
         {
-            _quests = new List<Quest>();
+            Quests = new List<Quest>();
             foreach (var quest in original)
             {
-                _quests.Add(quest.GetCopy());
-            }
-
-            if (Inventory.PlayerInventory == null)
-            {
-                Inventory.OnPlayerInventoryChanged += inv =>
-                {
-                    inv.OnItemAdded += x => CheckQuestCondition();
-                    inv.OnItemRemoved += x => CheckQuestCondition();
-                };
-            }
-            else
-            {
-                Inventory.PlayerInventory.OnItemAdded += x => CheckQuestCondition();
-                Inventory.PlayerInventory.OnItemRemoved += x => CheckQuestCondition();
+                var q = quest.GetCopy();
+                q.OnStateChanged += state => OnQuestDataChanged?.Invoke(q);
+                Quests.Add(q);
             }
         }
 
         public Quest FindQuest(string key)
         {
-            var q = _quests.Find(x => x.key == key);
+            var q = Quests.Find(x => x.key == key);
             if (q == null)
             {
                 Debug.LogWarning($"해당 키값의 퀘스트를 찾을 수 없음 | key : {key}");
@@ -67,22 +57,14 @@ namespace OcDialogue
             quest.QuestState = state;
             OnQuestDataChanged?.Invoke(quest);
         }
-        
 
-        public bool IsTrue(string key, Operator op, Quest.State questState)
+
+        public bool IsTrue(string key, CompareFactor factor, Operator op, object value)
         {
             var q = FindQuest(key);
             if (q == null) return false;
 
-            return q.IsTrue(op, questState);
-        }
-
-        public void CheckQuestCondition()
-        {
-            foreach (var quest in _quests)
-            {
-                // TODO : 퀘스트 클리어 가능 여부 등 업데이트.
-            }
+            return q.IsTrue(factor, op, value);
         }
     }
 }

@@ -9,6 +9,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 #endif
+using OcDialogue.DB;
 using Random = UnityEngine.Random;
 
 namespace OcDialogue
@@ -140,6 +141,56 @@ namespace OcDialogue
         public static void SetVisible(this VisualElement source, bool isVisible)
         {
             source.style.display = new StyleEnum<DisplayStyle>(isVisible ? DisplayStyle.Flex : DisplayStyle.None);
+        }
+
+        /// <summary> 전달받은 디렉토리 내부에 folderName의 폴더가 없으면 생성하고, 해당 폴더의 패스를 반환함. </summary>
+        public static string CreateFolderIfNull(string parentFolderPath, string folderName)
+        {
+            var folderPath = parentFolderPath + $"/{folderName}";
+            if(!AssetDatabase.IsValidFolder(folderPath))
+            {
+                var folderGUID =AssetDatabase.CreateFolder(parentFolderPath, folderName);
+                return AssetDatabase.GUIDToAssetPath(folderGUID);
+            }
+
+            return folderPath;
+        }
+
+        public static void FindMissingDataRows(AddressableData asset, DataRowContainerV2 container)
+        {
+            var missingList = new List<DataRowV2>();
+            var allAssets = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(asset));
+            foreach (var a in allAssets)
+            {
+                if (a is DataRowV2 dataRow && !container.DataRows.Contains(dataRow))
+                {
+                    missingList.Add(dataRow);
+                }
+            }
+
+            if (missingList.Count == 0)
+            {
+                Printer.Print($"[{asset.Address}] 누락된 데이터를 찾을 수 없음.");
+                return;
+            }
+
+            var assetNames = new StringBuilder();
+            foreach (var data in missingList)
+            {
+                assetNames.Append($"{data.name}.asset\n");
+            }
+
+            if (!EditorUtility.DisplayDialog("누락된 데이터가 감지됨", 
+                $"다음 데이터를 현재의 DataContainer에 추가하시겠습니까?\n{assetNames}",
+                "추가", "취소")) return;
+            
+            container.DataRows.AddRange(missingList);
+            foreach (var data in missingList)
+            {
+                data.SetParent(asset);  
+            }
+            EditorUtility.SetDirty(asset);
+            AssetDatabase.SaveAssets();
         }
 #endif
     }

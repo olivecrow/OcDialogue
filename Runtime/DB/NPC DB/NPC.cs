@@ -18,6 +18,7 @@ namespace OcDialogue
 
         public override string Key => NPCName;
 
+        [InfoBox("NPC의 Hp, Balance등의 요소는 직접 프리팹에서 편집 할 것")]
         [HorizontalGroup("1")]
         public string NPCName;
         [ValueDropdown("GetCategory"), HorizontalGroup("1"), LabelWidth(100)]
@@ -28,13 +29,14 @@ namespace OcDialogue
         /// <summary> Dialogue Editor 등에서 한 눈에 알아보기 쉽도록 지정하는 고유색. </summary>
         [HorizontalGroup("2"), HideLabel, ColorUsage(false)]
         public Color color;
-
+        
         /// <summary> 게임 내의 도감에서 보여지는 설명 </summary>
         [Multiline] public string description;
 
         [HideLabel, BoxGroup, PropertyOrder(10)]public DataRowContainer DataRowContainer;
 
-        public bool IsEncounter { get; set; }
+        [BoxGroup("Runtime")] [ShowInInspector]public bool IsEncounter { get; set; }
+        [BoxGroup("Runtime")] [ShowInInspector]public Vector3 Position { get; set; }
 
         public NPC GetCopy()
         {
@@ -97,7 +99,7 @@ namespace OcDialogue
         void AddData()
         {
             DataRowContainer.owner = this;
-            DataRowContainer.AddData(DBType.Quest, DataStorageType.Embeded);
+            DataRowContainer.AddData(DBType.NPC, DataStorageType.Embeded);
         }
         
         [Button, HorizontalGroup("Row"), PropertyOrder(9), GUIColor(1,0,0)]

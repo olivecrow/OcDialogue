@@ -5,7 +5,7 @@ using System.Text;
 using OcUtility;
 using UnityEngine;
 
-namespace OcDialogue
+namespace OcDialogue.DB
 {
     public class CheckGroup : ICheckable
     {
@@ -46,7 +46,7 @@ namespace OcDialogue
         {
             var sb = new StringBuilder();
             sb.Append("( ");
-
+            
             for (int i = 0; i < Checkables.Count; i++)
             {
                 var checkableText = Checkables[i].ToExpression(useRichText);

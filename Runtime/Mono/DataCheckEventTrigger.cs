@@ -14,15 +14,18 @@ namespace OcDialogue
             Manual,
             TriggerEnter
         }
-
         public SignalReceiver SignalReceiver => signalReceiver;
         public Conversation Conversation => conversation;
 
         public DataChecker checker;
         
         // conversation
-        [BoxGroup("Conversation")][LabelWidth(150)]
+        [BoxGroup("Conversation")]
+        [HorizontalGroup("Conversation/h")][LabelWidth(150)]
         public bool startConversation;
+
+        [HorizontalGroup("Conversation/h")] [LabelWidth(50), LabelText("Scene")]
+        public string dialogueSceneName = "Dialogue UI";
         [HorizontalGroup("Conversation/1"), ShowIf("startConversation"), ValueDropdown("GetCategoryList")][LabelText("Conversation"), LabelWidth(150)] 
         public string category;
         [HorizontalGroup("Conversation/1"), ShowIf("startConversation"), ValueDropdown("GetConversationList")][HideLabel][OnValueChanged("CheckEventUsage")]
@@ -42,7 +45,7 @@ namespace OcDialogue
             if (!checker.IsTrue()) return;
             if (startConversation && conversation != null)
             {
-                DialogueUI.StartConversation("DialogueUI Sample", conversation, this, dialogueDisplayMode);
+                DialogueUI.StartConversation(dialogueSceneName, conversation, this, dialogueDisplayMode);
             }
             e.Invoke();
         }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
 using System.Linq;
+using OcDialogue.DB;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -15,7 +16,7 @@ namespace OcDialogue
     [CreateAssetMenu(fileName = "Item Database", menuName = "Oc Dialogue/DB/Item Database")]
     public class ItemDatabase : ScriptableObject
     {
-        public static ItemDatabase Instance => DBManager.Instance.ItemDatabase;
+        public static ItemDatabase Instance => DBManagerV2.Instance.ItemDatabase;
 #if UNITY_EDITOR
         [HideInInspector]public InventoryEditorPreset editorPreset;
         

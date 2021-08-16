@@ -148,6 +148,7 @@ namespace OcDialogue
         {
             if (useChecker)
             {
+                if (checker.factors == null) return false;
                 if(checker.factors.Length == 0) return true;
                 foreach (var factor in checker.factors)
                 {

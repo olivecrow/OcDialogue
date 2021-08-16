@@ -26,8 +26,8 @@ namespace OcDialogue
         public NPC DefaultNPC;
 #endif
         
-        public string[] Category;
-        public List<NPC> NPCs = new List<NPC>();
+        [HideInInspector]public string[] Category;
+        public List<NPC> NPCs;
         
         
         [RuntimeInitializeOnLoadMethod]
@@ -117,7 +117,7 @@ namespace OcDialogue
                 {
                     if(data.ownerDB != DBType.NPC)
                     {
-                        Debug.Log($"[{npc.NPCName}] [{data.key}] ownerDB : {data.ownerDB} => Quest");
+                        Debug.Log($"[{npc.NPCName}] [{data.key}] ownerDB : {data.ownerDB} => NPC");
                         data.ownerDB = DBType.NPC;
                         EditorUtility.SetDirty(npc);
                     }

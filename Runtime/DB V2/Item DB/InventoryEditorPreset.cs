@@ -59,10 +59,18 @@ namespace OcDialogue
             OnItemDropped(arrayDropDesk[0]);
             arrayDropDesk.Clear();
         }
+        
+        public int Count(ItemBase item)
+        {
+            if (ItemPresets == null || ItemPresets.Count == 0) return 0;
+            return item.isStackable ? 
+                ItemPresets.Find(x => x.item.GUID == item.GUID).count : 
+                ItemPresets.Count(x => x.item.GUID == item.GUID);
+        }
 
 
         [Serializable]
-        public class ItemPreset : ComparableData
+        public class ItemPreset
         {
             [TableColumnWidth(48, false), PreviewField, OnValueChanged("OnItemDropped")] public UnityEngine.Object icon;
             [VerticalGroup("Type"), TableColumnWidth(200, false), OnValueChanged("OnTypeChanged")]public ItemType type;
@@ -157,16 +165,6 @@ namespace OcDialogue
                 if (copy.isStackable) copy.AddStack(count);
 
                 return copy;
-            }
-
-            public override string Key => item.itemName;
-            public override bool IsTrue(CompareFactor factor, Operator op, object value)
-            {
-                return factor switch
-                {
-                    CompareFactor.ItemCount => count.IsTrue(op, (int)value),
-                    _ => false
-                };
             }
         }
     }

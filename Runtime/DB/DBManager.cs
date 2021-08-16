@@ -10,7 +10,7 @@ using UnityEngine;
 namespace OcDialogue
 {
     [CreateAssetMenu(fileName = "DB Manager", menuName = "Oc Dialogue/DB/DB Manager")]
-    public class DBManager : ScriptableObject
+    public class DBManager : AddressableData
     {
         /*
          * 이 에셋은 실제 이 패키지를 사용할 프로젝트의 데이터베이스를 캐싱하기 위한 용도임.
@@ -20,6 +20,8 @@ namespace OcDialogue
          * 이렇게 하는 이유는, 패키지를 업데이트 할 때마다 패키지 디렉토리 전체가 초기화되기 때문에 기껏 만들어놓은 데이터베이스가 날아가기 때문임.
          * 물론 업데이트 이후에 다시 여기에 드래그 앤 드롭으로 자신의 데이터베이스를 올려놔야함.
          */
+        public override AddressableData Parent => null;
+        public override string Address => "DB Manager";
         public const string AssetPath = "DB Manager";
         
         public static DBManager Instance => _instance;
@@ -30,13 +32,14 @@ namespace OcDialogue
         public ItemDatabase ItemDatabase;
         public QuestDatabase QuestDatabase;
         public NPCDatabase NpcDatabase;
-        // TODO : Enemy Database.
+        public EnemyDatabase EnemyDatabase;
 
         [RuntimeInitializeOnLoadMethod]
         static void RuntimeInit()
         {
             _instance = Resources.Load<DBManager>(AssetPath);
         }
+
 #if UNITY_EDITOR
         /// <summary> Editor Only. </summary>
         [InitializeOnLoadMethod]

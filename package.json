@@ -6,7 +6,7 @@
   "unity": "2020.3",
   "dependencies": {
     "com.unity.addressables" : "1.16.19",
-    "com.olivecrow.ocutility" : "1.1.10",
+    "com.olivecrow.ocutility" : "1.1.11",
     "com.unity.timeline": "1.5.6"
   },
   "samples":[
