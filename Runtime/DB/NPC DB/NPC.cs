@@ -1,13 +1,15 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
+using OcDialogue.DB;
+using OcUtility;
 using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEngine;
 
-namespace OcDialogue
+namespace OcDialogue.DB
 {
-    public class NPC : ComparableData
+    public class NPC : OcData, IDataRowUser
     {
         public enum Gender
         {
@@ -15,105 +17,107 @@ namespace OcDialogue
             Male,
             Female
         }
-
-        public override string Key => NPCName;
-
-        [InfoBox("NPC의 Hp, Balance등의 요소는 직접 프리팹에서 편집 할 것")]
-        [HorizontalGroup("1")]
-        public string NPCName;
-        [ValueDropdown("GetCategory"), HorizontalGroup("1"), LabelWidth(100)]
-        public string Category;
-
+        public override string Address => $"{Category}/{name}";
+        public DataRowContainer DataRowContainer => dataRowContainer;
+        [ValueDropdown("GetCategory")][PropertyOrder(-2)]public string Category;
+        [ShowInInspector, PropertyOrder(-1)][DelayedProperty]
+        public string Name
+        {
+            get => name;
+            set
+            {
+                name = value;
+                AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(this), name);
+            }
+        }
         [HorizontalGroup("2")]public Gender gender;
 
         /// <summary> Dialogue Editor 등에서 한 눈에 알아보기 쉽도록 지정하는 고유색. </summary>
         [HorizontalGroup("2"), HideLabel, ColorUsage(false)]
         public Color color;
+        [TextArea]
+        public string Description;
+        public DataRowContainer dataRowContainer;
         
-        /// <summary> 게임 내의 도감에서 보여지는 설명 </summary>
-        [Multiline] public string description;
-
-        [HideLabel, BoxGroup, PropertyOrder(10)]public DataRowContainer DataRowContainer;
-
-        [BoxGroup("Runtime")] [ShowInInspector]public bool IsEncounter { get; set; }
-        [BoxGroup("Runtime")] [ShowInInspector]public Vector3 Position { get; set; }
-
-        public NPC GetCopy()
-        {
-            var npc = CreateInstance<NPC>();
-            npc.NPCName = NPCName;
-            npc.name = name;
-            npc.Category = Category;
-            npc.gender = gender;
-            npc.color = color;
-            npc.description = description;
-            var dataRowCopy = DataRowContainer.GetAllCopies();
-            npc.DataRowContainer = new DataRowContainer(npc, dataRowCopy);
-
-            return npc;
-        }
-        
-        public override bool IsTrue(CompareFactor factor, Operator op, object value1)
-        {
-            if (factor != CompareFactor.NpcEncounter) return false;
-
-            return op switch
-            {
-                Operator.Equal => IsEncounter == (bool) value1,
-                Operator.NotEqual => IsEncounter != (bool) value1,
-                _ => false
-            };
-        }
-
 #if UNITY_EDITOR
+        
+        public RuntimeValue EditorPreset => _editorPreset;
+        [SerializeField]
+        [DisableIf("@UnityEditor.EditorApplication.isPlaying")]
+        [BoxGroup("Debug")]
+        [HorizontalGroup("Debug/1")]
+        RuntimeValue _editorPreset;
+#endif
+        [ShowInInspector]
+        [HorizontalGroup("Debug/1")]
+        [EnableIf("@UnityEngine.Application.isPlaying")]
+        public RuntimeValue Runtime
+        {
+            get => _runtime;
+            set => _runtime = value;
+        }
+        RuntimeValue _runtime;
+        
+        
+        public void GenerateRuntimeData()
+        {
+            _runtime = new RuntimeValue();
+        }
+
+        public bool IsTrue(CheckFactor.Operator op, bool isEncountered)
+        {
+            switch (op)
+            {
+                case CheckFactor.Operator.Equal:
+#if UNITY_EDITOR
+                    if (!EditorApplication.isPlaying) return _editorPreset.IsEncountered == isEncountered;     
+#endif
+                    return _runtime.IsEncountered == isEncountered;
+                case CheckFactor.Operator.NotEqual:
+#if UNITY_EDITOR
+                    if (!EditorApplication.isPlaying) return _editorPreset.IsEncountered != isEncountered;     
+#endif
+                    return _runtime.IsEncountered != isEncountered;
+            }
+
+            return false;
+        }
+
+        public void SetEncountered(bool encountered)
+        {
+            _runtime.IsEncountered = encountered;
+        }
+        
+        
+        [Serializable]
+        public struct RuntimeValue
+        {
+            public bool IsEncountered;
+        }
+#if UNITY_EDITOR
+        void Reset()
+        {
+            if (DataRowContainer == null) dataRowContainer = new DataRowContainer();
+            DataRowContainer.Parent = this;
+        }
+
+        public void Resolve()
+        {
+            if(DataRowContainer.Parent != this) Printer.Print($"[NPC]{name}) DataRowContainer의 Parent를 재설정");
+            DataRowContainer.Parent = this;
+            DataRowContainer.MatchParent();
+        }
+
         ValueDropdownList<string> GetCategory()
         {
             var list = new ValueDropdownList<string>();
-            foreach (var s in NPCDatabase.Instance.Category)
+            foreach (var category in NPCDB.Instance.Category)
             {
-                list.Add(s);
+                list.Add(category);
             }
 
             return list;
         }
-        
-        void MatchName()
-        {
-            var path = AssetDatabase.GetAssetPath(this);
-            AssetDatabase.RenameAsset(path, NPCName);
-            EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssets();
-        }
-        
-        void Reset()
-        {
-            if(DataRowContainer != null) DataRowContainer.owner = this;
-        }
-
-        void OnValidate()
-        {
-            DataRowContainer.CheckNames();
-        }
-
-        [Button, HorizontalGroup("Row"), PropertyOrder(9), GUIColor(0,1,1)]
-        void AddData()
-        {
-            DataRowContainer.owner = this;
-            DataRowContainer.AddData(DBType.NPC, DataStorageType.Embeded);
-        }
-        
-        [Button, HorizontalGroup("Row"), PropertyOrder(9), GUIColor(1,0,0)]
-        void DeleteData(string k)
-        {
-            DataRowContainer.DeleteRow(k, DataStorageType.Embeded);
-        }
-
-        [Button, HorizontalGroup("Row"), PropertyOrder(9)]
-        void MatchNames()
-        {
-            DataRowContainer.MatchDataRowNames();
-        }
-
 #endif
     }
 }

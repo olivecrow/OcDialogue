@@ -1,26 +1,15 @@
-using System.Collections;
-using System.Collections.Generic;
-
-#if UNITY_EDITOR
+using System;
+using OcUtility;
+using Sirenix.OdinInspector;
 using UnityEditor;
-#endif
-
 using UnityEngine;
 
-namespace OcDialogue
+namespace OcDialogue.DB
 {
-    [CreateAssetMenu(fileName = "DB Manager", menuName = "Oc Dialogue/DB/DB Manager")]
-    public class DBManager : AddressableData
+    [CreateAssetMenu(fileName = "DB Manager", menuName = "Oc Dialogue/DB/DB Manager V2", order = 0)]
+    public class DBManager : OcData
     {
-        /*
-         * 이 에셋은 실제 이 패키지를 사용할 프로젝트의 데이터베이스를 캐싱하기 위한 용도임.
-         * 이 에셋은 무조건 Assets/Resources에 생성해아함.
-         *
-         * 각각에 데이터베이스 필드에 자신이 런타임에 사용하는 데이터베이스를 올려놓으면 됨.
-         * 이렇게 하는 이유는, 패키지를 업데이트 할 때마다 패키지 디렉토리 전체가 초기화되기 때문에 기껏 만들어놓은 데이터베이스가 날아가기 때문임.
-         * 물론 업데이트 이후에 다시 여기에 드래그 앤 드롭으로 자신의 데이터베이스를 올려놔야함.
-         */
-        public override AddressableData Parent => null;
+        public override OcData Parent => null;
         public override string Address => "DB Manager";
         public const string AssetPath = "DB Manager";
         
@@ -28,26 +17,30 @@ namespace OcDialogue
         static DBManager _instance;
 
         public DialogueAsset DialogueAsset;
-        public GameProcessDatabase GameProcessDatabase;
+        public GameProcessDB GameProcessDB;
         public ItemDatabase ItemDatabase;
-        public QuestDatabase QuestDatabase;
-        public NPCDatabase NpcDatabase;
-        public EnemyDatabase EnemyDatabase;
-
-        [RuntimeInitializeOnLoadMethod]
-        static void RuntimeInit()
-        {
-            _instance = Resources.Load<DBManager>(AssetPath);
-        }
-
+        public QuestDB QuestDatabase;
+        public NPCDB NpcDatabase;
+        public EnemyDB EnemyDatabase;
 #if UNITY_EDITOR
         /// <summary> Editor Only. </summary>
-        [InitializeOnLoadMethod]
+        [Button][InitializeOnLoadMethod]
         static void EditorInit()
         {
             _instance = Resources.Load<DBManager>(AssetPath);
         }
-        
 #endif
+        
+        [RuntimeInitializeOnLoadMethod]
+        static void RuntimeInit()
+        {
+            _instance = Resources.Load<DBManager>(AssetPath);
+            
+            Printer.Print($"[DB Manager V2] RuntimeInit : 모든 데이터 초기화");
+            _instance.GameProcessDB.Load();
+            _instance.QuestDatabase.Load();
+            _instance.NpcDatabase.Load();
+            _instance.EnemyDatabase.Load();
+        }
     }
 }

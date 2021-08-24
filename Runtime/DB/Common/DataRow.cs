@@ -1,89 +1,158 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using OcUtility;
 using Sirenix.OdinInspector;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
-using Object = UnityEngine.Object;
 
-namespace OcDialogue
+namespace OcDialogue.DB
 {
-    public class DataRow : ComparableData
+    public class DataRow : OcData
     {
-        public enum Type
-        {
-            Boolean,
-            Int,
-            Float,
-            String,
-        }
+        public override string Address => name;
 
-        [HideInInspector]public DBType ownerDB;
-        public override string Key => key;
-        [GUIColor("e_keyColor")][TableColumnWidth(150, Resizable = false)]public string key;
-        [TableColumnWidth(100, Resizable = false)]public Type type;
-        [ShowIf("type", Type.Boolean), VerticalGroup("Value"), HideLabel, TableColumnWidth(100, Resizable = false)][ExplicitToggle]public bool boolValue;
-        [ShowIf("type", Type.Int),     VerticalGroup("Value"), HideLabel, TableColumnWidth(100, Resizable = false)]public int intValue;
-        [ShowIf("type", Type.Float),   VerticalGroup("Value"), HideLabel, TableColumnWidth(100, Resizable = false)]public float floatValue;
-        [ShowIf("type", Type.String),  VerticalGroup("Value"), HideLabel, TableColumnWidth(100, Resizable = false)]public string stringValue;
-
-        public object TargetValue
+        [ShowInInspector]
+        [DisableIf("@UnityEditor.EditorApplication.isPlaying")]
+        [PropertyOrder(1)]
+        [TableColumnWidth(80, false)]
+        public DataRowType Type
         {
-            get
+            get => _type;
+            set
             {
-                return type switch
+                var isNew = _type != value;
+                _type = value;
+                if (isNew)
                 {
-                    Type.Boolean => boolValue,
-                    Type.Int => intValue,
-                    Type.Float => floatValue,
-                    Type.String => stringValue,
-                    _ => 0
-                };
+                    _initialValue.Type = Type;
+                    _editorPresetValue.Type = Type;
+                }
             }
         }
-        
-        /// <summary> Editor Only. </summary>
-        public string description;
-
-        public DataRow GetCopy()
+        public PrimitiveValue InitialValue => _initialValue;
+        [ShowInInspector]
+        [ShowIf("@UnityEngine.Application.isPlaying")]
+        [TableColumnWidth(110, false)]
+        [PropertyOrder(9)]
+        public PrimitiveValue RuntimeValue
         {
-            var row = CreateInstance<DataRow>();
-            row.ownerDB = ownerDB;
-            row.key = key;
-            row.type = type;
-            row.boolValue = boolValue;
-            row.intValue = intValue;
-            row.floatValue = floatValue;
-            row.stringValue = stringValue;
-            row.name = key;
-            
-            return row;
+            get => _runtimeValue;
+            set => _runtimeValue = value;
         }
-        
-        public bool IsTrue(Operator op, object value)
+#if UNITY_EDITOR
+        [ShowInInspector, TableColumnWidth(150, false), PropertyOrder(-1)]
+        public string Name
         {
-            return IsTrue(type.ToCompareFactor(), op, value);
-        }
-        
-        public override bool IsTrue(CompareFactor factor, Operator op, object value)
-        {
-            return factor switch
+            get => name;
+            set
             {
-                CompareFactor.Float => floatValue.IsTrue(op, (float)value),
-                CompareFactor.Int => intValue.IsTrue(op, (int)value),
-                CompareFactor.String => stringValue.IsTrue(op, (string)value),
-                CompareFactor.Boolean => boolValue.IsTrue(op, (bool)value),
+                name = value;
+                EditorUtility.SetDirty(this);
+                AssetDatabase.SaveAssets();
+            }
+        }
+
+        public PrimitiveValue EditorPresetValue => _editorPresetValue;
+
+        [PropertyOrder(8)]
+        [SerializeField]
+        [DisableIf("@UnityEditor.EditorApplication.isPlaying")]
+        [TableColumnWidth(110, false)]
+        PrimitiveValue _editorPresetValue;
+
+        [PropertyOrder(10)] public string description;
+#endif
+
+        [HideInInspector][SerializeField]
+        DataRowType _type;
+
+        [SerializeField] [DisableIf("@UnityEditor.EditorApplication.isPlaying")] [TableColumnWidth(110, false)]
+        [PropertyOrder(2)]
+        PrimitiveValue _initialValue;
+
+        PrimitiveValue _runtimeValue;
+
+        public void GenerateRuntimeData()
+        {
+            RuntimeValue = new PrimitiveValue()
+            {
+                Type = Type,
+                BoolValue = InitialValue.BoolValue,
+                IntValue = InitialValue.IntValue,
+                FloatValue = InitialValue.FloatValue,
+                StringValue = InitialValue.StringValue,
+            };
+        }
+
+        /// <summary> 런타임 bool 값을 변경함. </summary>
+        public void SetValue(bool value)
+        {
+            _runtimeValue.BoolValue = value;
+        }
+
+        /// <summary> 런타임 int 값을 변경함. </summary>
+        public void SetValue(int value)
+        {
+            _runtimeValue.IntValue = value;
+        }
+
+        /// <summary> 런타임 float 값을 변경함. </summary>
+        public void SetValue(float value)
+        {
+            _runtimeValue.FloatValue = value;
+        }
+
+        /// <summary> 런타임 string 값을 변경함. </summary>
+        public void SetValue(string value)
+        {
+            _runtimeValue.StringValue = value;
+        }
+
+        public bool IsTrue(CheckFactor.Operator op, object value)
+        {
+#if UNITY_EDITOR
+            if (!EditorApplication.isPlaying)
+            {
+                return Type switch
+                {
+                    DataRowType.Bool => _editorPresetValue.BoolValue.IsTrue(op, (bool) value),
+                    DataRowType.Int => _editorPresetValue.IntValue.IsTrue(op, (int) value),
+                    DataRowType.Float => _editorPresetValue.FloatValue.IsTrue(op, (float) value),
+                    DataRowType.String => _editorPresetValue.StringValue.IsTrue(op, (string) value),
+                    _ => false
+                };
+            }
+#endif
+            return Type switch
+            {
+                DataRowType.Bool => _runtimeValue.BoolValue.IsTrue(op, (bool) value),
+                DataRowType.Int => _runtimeValue.IntValue.IsTrue(op, (int) value),
+                DataRowType.Float => _runtimeValue.FloatValue.IsTrue(op, (float) value),
+                DataRowType.String => _runtimeValue.StringValue.IsTrue(op, (string) value),
                 _ => false
             };
         }
-        
+
 #if UNITY_EDITOR
-        Color e_keyColor = Color.white;
-        /// <summary> Editor Only. 이름과 키값을 매칭해서 맞지 않으면 guiColor를 바꿈. </summary>
-        public void CheckName()
+        public void EditorPresetToDefault()
         {
-            if (name != key) e_keyColor = Color.magenta;
-            else e_keyColor = Color.white;
+            _editorPresetValue.BoolValue = _initialValue.BoolValue;
+            _editorPresetValue.IntValue = _initialValue.IntValue;
+            _editorPresetValue.FloatValue = _initialValue.FloatValue;
+            _editorPresetValue.StringValue = _initialValue.StringValue;
         }
 #endif
+    }
+
+    public enum DataRowType
+    {
+        Bool,
+        Int,
+        Float,
+        String
     }
 }

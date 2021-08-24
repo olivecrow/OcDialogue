@@ -17,67 +17,103 @@ namespace OcDialogue
     public static class OcDataUtility
     {
         /// <summary> ComparableData의 데이터 검사 메서드 </summary>
-        public static bool IsTrue(this bool source, Operator op, bool value)
+        public static bool IsTrue(this bool source, CheckFactor.Operator op, bool value)
         {
             return op switch
             {
-                Operator.Equal    => source == value,
-                Operator.NotEqual => source != value,
+                CheckFactor.Operator.Equal    => source == value,
+                CheckFactor.Operator.NotEqual => source != value,
                 _ => false
             };
         }
         /// <summary> ComparableData의 데이터 검사 메서드 </summary>
-        public static bool IsTrue(this int source, Operator op, int value)
+        public static bool IsTrue(this int source, CheckFactor.Operator op, int value)
         {
             return op switch
             {
-                Operator.Equal        => source == value,
-                Operator.NotEqual     => source != value,
-                Operator.Greater      => source >  value,
-                Operator.GreaterEqual => source >= value,
-                Operator.Less         => source <  value,
-                Operator.LessEqual    => source <= value,
+                CheckFactor.Operator.Equal        => source == value,
+                CheckFactor.Operator.NotEqual     => source != value,
+                CheckFactor.Operator.Greater      => source >  value,
+                CheckFactor.Operator.GreaterEqual => source >= value,
+                CheckFactor.Operator.Less         => source <  value,
+                CheckFactor.Operator.LessEqual    => source <= value,
                 _ => false
             };
         }
         /// <summary> ComparableData의 데이터 검사 메서드 </summary>
-        public static bool IsTrue(this float source, Operator op, float value)
+        public static bool IsTrue(this float source, CheckFactor.Operator op, float value)
         {
             return op switch
             {
-                Operator.Equal        => Math.Abs(value - source) < 0.0001f,
-                Operator.NotEqual     => Math.Abs(value - source) > 0.0001f,
-                Operator.Greater      => source >  value,
-                Operator.GreaterEqual => source >= value,
-                Operator.Less         => source <  value,
-                Operator.LessEqual    => source <= value,
+                CheckFactor.Operator.Equal        => Math.Abs(value - source) < 0.0001f,
+                CheckFactor.Operator.NotEqual     => Math.Abs(value - source) > 0.0001f,
+                CheckFactor.Operator.Greater      => source >  value,
+                CheckFactor.Operator.GreaterEqual => source >= value,
+                CheckFactor.Operator.Less         => source <  value,
+                CheckFactor.Operator.LessEqual    => source <= value,
                 _ => false
             };
         }
         /// <summary> ComparableData의 데이터 검사 메서드 </summary>
-        public static bool IsTrue(this string source, Operator op, string value)
+        public static bool IsTrue(this string source, CheckFactor.Operator op, string value)
         {
             return op switch
             {
-                Operator.Equal    => source == value,
-                Operator.NotEqual => source != value,
+                CheckFactor.Operator.Equal    => source == value,
+                CheckFactor.Operator.NotEqual => source != value,
                 _ => false
             };
         }
 
         /// <summary> DataRow의 Type인 기본타입에서 비교용 enum인 CompareFactor에 대응돠는 값을 반환함. </summary>
-        public static CompareFactor ToCompareFactor(this DataRow.Type type)
-        {
-            return type switch
-            {
-                DataRow.Type.Boolean => CompareFactor.Boolean,
-                DataRow.Type.Int => CompareFactor.Int,
-                DataRow.Type.Float => CompareFactor.Float,
-                DataRow.Type.String => CompareFactor.String,
-                _ => CompareFactor.Boolean
-            };
-        }
+        // public static CompareFactor ToCompareFactor(this DataRow.Type type)
+        // {
+        //     return type switch
+        //     {
+        //         DataRow.Type.Boolean => CompareFactor.Boolean,
+        //         DataRow.Type.Int => CompareFactor.Int,
+        //         DataRow.Type.Float => CompareFactor.Float,
+        //         DataRow.Type.String => CompareFactor.String,
+        //         _ => CompareFactor.Boolean
+        //     };
+        // }
 
+        public static int CalcSetterOperator(this int source, DataSetter.Operator op, int targetValue)
+        {
+            switch (op)
+            {
+                case DataSetter.Operator.Set:
+                    return targetValue;
+                case DataSetter.Operator.Add:
+                    return source + targetValue;
+                case DataSetter.Operator.Multiply:
+                    return source * targetValue;
+                case DataSetter.Operator.Divide:
+                    if (targetValue != 0) return source / targetValue;
+                    Printer.Print("[OcDataUtility] CalcSetterOperator) 0으로 나눌 수 없음. 0을 반환함", LogType.Error);
+                    return 0;
+            }
+            return targetValue;
+        }
+        
+        public static float CalcSetterOperator(this float source, DataSetter.Operator op, float targetValue)
+        {
+            switch (op)
+            {
+                case DataSetter.Operator.Set:
+                    return targetValue;
+                case DataSetter.Operator.Add:
+                    return source + targetValue;
+                case DataSetter.Operator.Multiply:
+                    return source * targetValue;
+                case DataSetter.Operator.Divide:
+                    if (targetValue != 0) return source / targetValue;
+                    Printer.Print("[OcDataUtility] CalcSetterOperator) 0으로 나눌 수 없음. 0을 반환함", LogType.Error);
+                    return 0;
+            }
+            return targetValue;
+        }
+        
 #if UNITY_EDITOR
         /// <summary> Selection을 재설정해서 현재 인스펙터를 다시 그림. </summary>
         public static void Repaint()
@@ -123,16 +159,16 @@ namespace OcDialogue
         }
 
         /// <summary> 비교 연산자를 문자열로 출력함. (==, !=, >= 등) </summary>
-        public static string ToOperationString(this Operator op)
+        public static string ToOperationString(this CheckFactor.Operator op)
         {
             switch (op)
             {
-                case Operator.Equal: return "==";
-                case Operator.NotEqual: return "!=";
-                case Operator.Greater: return ">";
-                case Operator.GreaterEqual: return ">=";
-                case Operator.Less: return "<";
-                case Operator.LessEqual: return "<=";
+                case CheckFactor.Operator.Equal: return "==";
+                case CheckFactor.Operator.NotEqual: return "!=";
+                case CheckFactor.Operator.Greater: return ">";
+                case CheckFactor.Operator.GreaterEqual: return ">=";
+                case CheckFactor.Operator.Less: return "<";
+                case CheckFactor.Operator.LessEqual: return "<=";
             }
 
             return "?";
@@ -156,13 +192,13 @@ namespace OcDialogue
             return folderPath;
         }
 
-        public static void FindMissingDataRows(AddressableData asset, DataRowContainerV2 container)
+        public static void FindMissingDataRows(OcData asset, DataRowContainer container)
         {
-            var missingList = new List<DataRowV2>();
+            var missingList = new List<DataRow>();
             var allAssets = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(asset));
             foreach (var a in allAssets)
             {
-                if (a is DataRowV2 dataRow && !container.DataRows.Contains(dataRow))
+                if (a is DataRow dataRow && !container.DataRows.Contains(dataRow))
                 {
                     missingList.Add(dataRow);
                 }

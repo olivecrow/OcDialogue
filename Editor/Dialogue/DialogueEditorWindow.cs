@@ -16,7 +16,7 @@ using UnityEngine.UIElements;
 
 namespace OcDialogue.Editor
 {
-    public class DialogueEditorWindow : EditorWindow, ICategoryUser
+    public class DialogueEditorWindow : EditorWindow
     {
         public static DialogueEditorWindow Instance => _instance;
         static DialogueEditorWindow _instance;
@@ -47,24 +47,13 @@ namespace OcDialogue.Editor
         {
             _lastViewConversation = new Dictionary<string, int>();
         }
-        [MenuItem("Tools/다이얼로그 에디터")]
+        [MenuItem("Window/OcDialogue/다이얼로그 에디터")]
         public static void Open()
         {
             DialogueEditorWindow wnd = GetWindow<DialogueEditorWindow>(false, "다이얼로그 에디터", true);
             wnd.minSize = new Vector2(720, 480);
         }
         
-        [MenuItem("Tools/다이얼로그 에디터 닫기")]
-        public static void CloseWindow()
-        {
-            if(_instance != null) _instance.Close();
-            else
-            {
-                DialogueEditorWindow wnd = GetWindow<DialogueEditorWindow>();
-                
-                wnd.Close();
-            }
-        }
         void OnEnable()
         {
             if(_instance != null) _instance.Close();

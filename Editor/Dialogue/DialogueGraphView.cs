@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using OcDialogue.DB;
+using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
@@ -69,10 +71,8 @@ namespace OcDialogue.Editor
 
             if (change.edgesToCreate != null)
             {
-                Debug.Log("[GraphView] Edge Created !!!!!!!");
                 foreach (var edge in change.edgesToCreate)
                 {
-                    Debug.Log("[GraphView] Edge Created");
                     var linkData = CreateLinkDataFromEdge(edge);
                     Conversation.AddLinkData(linkData);
                 }
@@ -97,6 +97,7 @@ namespace OcDialogue.Editor
                         Conversation.RemoveLinkData(temp.@from, temp.to);
                     }
                 }
+                Conversation.UpdateLinkedBalloonList();
             }
             AssetDatabase.SaveAssets();
             return change;
@@ -113,29 +114,21 @@ namespace OcDialogue.Editor
             }
             if(selected != null) evt.menu.RemoveItemAt(0);
 
-            evt.menu.AppendAction( "Add Dialogue", a =>
+            evt.menu.AppendAction( "Add Dialogue", a => 
             {
                 if(selected != null) CreateLinkedNode(selected, Balloon.Type.Dialogue);
                 else
                 {
-                    var newBalloon = Conversation.AddBalloon(Balloon.Type.Dialogue);
-                    CreateNode(newBalloon, _lastMousePosition);
-                    
-                    EditorUtility.SetDirty(newBalloon);
-                    AssetDatabase.SaveAssets();
+                    CreateBalloonAndNode(Balloon.Type.Dialogue, _lastMousePosition);
                 }
             });
-            evt.menu.AppendAction("Add Choice", a =>
+            evt.menu.AppendAction("Add Choice", a => 
                 {
                     Debug.Log($"Add Choice : selected == null ? {selected == null}");
                     if (selected != null) CreateLinkedNode(selected, Balloon.Type.Choice);
                     else
                     {
-                        var newBalloon = Conversation.AddBalloon(Balloon.Type.Choice);
-                        CreateNode(newBalloon, _lastMousePosition);
-                        
-                        EditorUtility.SetDirty(newBalloon);
-                        AssetDatabase.SaveAssets();
+                        CreateBalloonAndNode(Balloon.Type.Choice, _lastMousePosition);
                     }
                 },
                 a =>
@@ -144,7 +137,16 @@ namespace OcDialogue.Editor
                     else
                         return selected.Balloon.type == Balloon.Type.Dialogue
                             ? DropdownMenuAction.Status.Normal
-                            : DropdownMenuAction.Status.Disabled;
+                            : DropdownMenuAction.Status.Disabled; 
+                });
+            evt.menu.AppendAction("Add Action", a => 
+                {
+                    Debug.Log($"Add Action : selected == null ? {selected == null}");
+                    if (selected != null) CreateLinkedNode(selected, Balloon.Type.Action);
+                    else
+                    {
+                        CreateBalloonAndNode(Balloon.Type.Action, _lastMousePosition);
+                    }
                 });
             evt.menu.AppendSeparator();
             if (selected == null)
@@ -170,6 +172,10 @@ namespace OcDialogue.Editor
                 {
                     DeleteSelection();
                 });
+                
+                
+                evt.menu.AppendSeparator();
+                evt.menu.AppendAction("Add Quest State Nodes", CreateQuestStateNodes);
             }
             
         }
@@ -209,6 +215,17 @@ namespace OcDialogue.Editor
             {
                 DrawEdge(linkData);
             }
+        }
+
+        DialogueNode CreateBalloonAndNode(Balloon.Type type, Vector2 position)
+        {
+            var newBalloon = Conversation.AddBalloon(type);
+            var node = CreateNode(newBalloon, position);
+                    
+            EditorUtility.SetDirty(newBalloon);
+            AssetDatabase.SaveAssets();
+
+            return node;
         }
         
         /// <summary> Balloon 하나에 대응되는 노드 하나를 그림. </summary>
@@ -344,5 +361,96 @@ namespace OcDialogue.Editor
             if (evt.originalMousePosition != Vector2.zero) 
                 _lastMousePosition = (evt.originalMousePosition - (Vector2) viewTransform.position) / viewTransform.scale.x + new Vector2(0, -DefaultNodeSize.y * 0.2f);
         }
+
+        public void CreateQuestStateNodes(DropdownMenuAction action)
+        {
+            var selected = selection[0] as DialogueNode;
+            if(selected == null) return;
+
+            var selector = DataSelectWindow.Open(null);
+            selector.OnDataSelected += data =>
+            {
+                if(!(data is Quest)) return;
+
+                var sourceRect = selected.GetPosition();
+                
+                var beforeQuestNode = CreateLinkedNode(selected, Balloon.Type.Dialogue);
+                beforeQuestNode.Balloon.useChecker = true;
+                beforeQuestNode.Balloon.checker = new DataChecker();
+                beforeQuestNode.Balloon.checker.factors = new[] { new CheckFactor() };
+                beforeQuestNode.Balloon.checker.factors[0].SetTargetData(data);
+                beforeQuestNode.RefreshIcons();
+                beforeQuestNode.Balloon.text = "퀘스트 수락 전";
+                
+                var acceptQuestNode = CreateBalloonAndNode(Balloon.Type.Dialogue, 
+                    sourceRect.position + new Vector2(sourceRect.width * 2 + 200f, sourceRect.position.y - sourceRect.height));
+                {
+                    var edge = beforeQuestNode.OutputPort.ConnectTo(acceptQuestNode.InputPort);
+                    var linkData = CreateLinkDataFromEdge(edge);
+                    Conversation.AddLinkData(linkData);
+                    AddElement(edge);
+                }
+                acceptQuestNode.Balloon.useSetter = true;
+                acceptQuestNode.Balloon.setters = new[] { new DataSetter() };
+                acceptQuestNode.Balloon.setters[0].SetTargetData(data);
+                acceptQuestNode.Balloon.setters[0].QuestStateValue = QuestState.WorkingOn;
+                acceptQuestNode.RefreshIcons();
+                acceptQuestNode.Balloon.text = "퀘스트 수락";
+
+                var workingOnQuestNode = CreateLinkedNode(selected, Balloon.Type.Dialogue);
+                workingOnQuestNode.Balloon.useChecker = true;
+                workingOnQuestNode.Balloon.checker = new DataChecker();
+                workingOnQuestNode.Balloon.checker.factors = new[] { new CheckFactor(), new CheckFactor() };
+                workingOnQuestNode.Balloon.checker.factors[0].SetTargetData(data);
+                workingOnQuestNode.Balloon.checker.factors[0].QuestStateValue = QuestState.WorkingOn;
+
+                workingOnQuestNode.Balloon.checker.factors[1].SetTargetData(data);
+                workingOnQuestNode.Balloon.checker.factors[1].detail = DataChecker.QUEST_CLEARAVAILABILITY;
+                workingOnQuestNode.Balloon.checker.factors[1].BoolValue = false;
+                workingOnQuestNode.RefreshIcons();
+                workingOnQuestNode.Balloon.text = "퀘스트 진행중.";
+
+                var clearableQuestNode = CreateLinkedNode(selected, Balloon.Type.Dialogue);
+                clearableQuestNode.Balloon.useChecker = true;
+                clearableQuestNode.Balloon.checker = new DataChecker();
+                clearableQuestNode.Balloon.checker.factors = new[] { new CheckFactor(), new CheckFactor() };
+                clearableQuestNode.Balloon.checker.factors[0].SetTargetData(data);
+                clearableQuestNode.Balloon.checker.factors[0].QuestStateValue = QuestState.WorkingOn;
+
+                clearableQuestNode.Balloon.checker.factors[1].SetTargetData(data);
+                clearableQuestNode.Balloon.checker.factors[1].detail = DataChecker.QUEST_CLEARAVAILABILITY;
+                clearableQuestNode.Balloon.checker.factors[1].BoolValue = true;
+                clearableQuestNode.RefreshIcons();
+                clearableQuestNode.Balloon.text = "퀘스트 진행중. 클리어 가능.";
+                
+                
+                var clearQuestNode = CreateBalloonAndNode(Balloon.Type.Dialogue, 
+                    sourceRect.position + new Vector2(sourceRect.width * 2 + 200f, sourceRect.position.y + sourceRect.height));
+                {
+                    var edge = clearableQuestNode.OutputPort.ConnectTo(clearQuestNode.InputPort);
+                    var linkData = CreateLinkDataFromEdge(edge);
+                    Conversation.AddLinkData(linkData);
+                    AddElement(edge);
+                }
+                clearQuestNode.Balloon.useSetter = true;
+                clearQuestNode.Balloon.setters = new[] { new DataSetter() };
+                clearQuestNode.Balloon.setters[0].SetTargetData(data);
+                clearQuestNode.Balloon.setters[0].QuestStateValue = QuestState.Done;
+                clearQuestNode.RefreshIcons();
+                clearQuestNode.Balloon.text = "퀘스트 완료";
+                
+
+                var finishQuestNode = CreateLinkedNode(selected, Balloon.Type.Dialogue);
+                finishQuestNode.Balloon.useChecker = true;
+                finishQuestNode.Balloon.checker = new DataChecker();
+                finishQuestNode.Balloon.checker.factors = new[] { new CheckFactor() };
+                finishQuestNode.Balloon.checker.factors[0].SetTargetData(data);
+                finishQuestNode.Balloon.checker.factors[0].QuestStateValue = QuestState.Done;
+                finishQuestNode.RefreshIcons();
+                finishQuestNode.Balloon.text = "퀘스트 완료 후";
+
+            };
+        }
+
     }
 }

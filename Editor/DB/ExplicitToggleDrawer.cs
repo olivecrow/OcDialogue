@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using OcUtility;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.OdinInspector.Editor.Drawers;
@@ -16,9 +17,9 @@ namespace OcDialogue.Editor
         protected override void DrawPropertyLayout(GUIContent label)
         {
             var value = ValueEntry.SmartValue;
-            // var valueText = value ? 
-            //     $"<color=#79ff4d>{Attribute.trueLabel}</color>" : $"<color=#ff4d4d>{Attribute.falseLabel}</color>";
-            var valueText = value ? Attribute.trueLabel : Attribute.falseLabel;
+            var valueText = value ? 
+                Attribute.trueLabel.ToRichText(Color.green) : Attribute.falseLabel.ToRichText(Color.red);
+            // var valueText = value ? Attribute.trueLabel : Attribute.falseLabel;
             var guiStyle = new GUIStyle(GUI.skin.button) {richText = true, alignment = TextAnchor.MiddleCenter};
 
             var rect = EditorGUILayout.GetControlRect();
@@ -26,13 +27,12 @@ namespace OcDialogue.Editor
             if (label != null) rect = EditorGUI.PrefixLabel(rect, label);
             
             GUIHelper.PushLabelWidth(rect.width);
-            GUIHelper.PushContentColor(value ? Color.green : Color.red);
+            GUIHelper.PopLabelWidth();
+            
             if (GUI.Button(rect, valueText, guiStyle))
             {
                 value = !value;
             }
-            GUIHelper.PopContentColor();
-            GUIHelper.PopLabelWidth();
 
             ValueEntry.SmartValue = value;
         }

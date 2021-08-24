@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using OcDialogue.DB;
 using Sirenix.OdinInspector;
 
 #if UNITY_EDITOR
@@ -14,7 +15,7 @@ namespace OcDialogue
     public class DialogueAsset : ScriptableObject
     {
         public static DialogueAsset Instance => DBManager.Instance.DialogueAsset;
-
+        public string DefaultDialogueUISceneName = "Dialogue UI";
         public string[] Categories;
         public List<Conversation> Conversations;
 

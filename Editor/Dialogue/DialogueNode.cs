@@ -49,6 +49,10 @@ namespace OcDialogue.Editor
                     InputPort = GeneratePort(Direction.Input);
                     inputContainer.Add(InputPort);
                     break;
+                case Balloon.Type.Action:
+                    InputPort = GeneratePort(Direction.Input);
+                    inputContainer.Add(InputPort);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -124,7 +128,7 @@ namespace OcDialogue.Editor
                     titleContainer.style.backgroundColor = new Color(0.8f, 0.5f, 0f);
                     break;
                 case Balloon.Type.Dialogue:
-                    title = Balloon.actor == null ? "No Actor" : Balloon.actor.NPCName;
+                    title = Balloon.actor == null ? "No Actor" : Balloon.actor.name;
                     var color = Balloon.actor == null ? new Color(0.2f, 0.6f, 0.7f) : Balloon.actor.color;
                     color.a = 1;
                     titleContainer.style.backgroundColor =  color;
@@ -132,6 +136,10 @@ namespace OcDialogue.Editor
                 case Balloon.Type.Choice:
                     title = "Choice";
                     titleContainer.style.backgroundColor =  new Color(0f, 0f, 1f);
+                    break;
+                case Balloon.Type.Action:
+                    title = "Action";
+                    titleContainer.style.backgroundColor =  new Color(1f, 1f, 0f);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

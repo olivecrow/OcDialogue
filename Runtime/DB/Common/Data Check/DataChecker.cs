@@ -3,28 +3,99 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using OcUtility;
-#if UNITY_EDITOR
-using OcDialogue.Editor;
-#endif
-using Sirenix.OdinInspector;
-using UnityEngine;
 using OcDialogue.DB;
+using OcUtility;
+using Sirenix.OdinInspector;
+using UnityEditor;
+using UnityEngine;
 
-namespace OcDialogue
+namespace OcDialogue.DB
 {
     [Serializable]
     public class DataChecker
     {
-        /*
-         * targetRow는 데이터 베이스의 초기화값을 가르키고, 실제 값을 판단할 때는 오버라이드 된 값으로 판단해야함.
-         */
-        
         public CheckFactor[] factors;
-        [InfoBox("바인딩이 없음. 모든 Factor에 대해 And 연산을 적용함.", InfoMessageType.Warning, VisibleIf = "@bindings != null && bindings.Count == 0")]
-        [InfoBox("@expression")]
-        [HorizontalGroup("Binding", Width = 550)]public List<Binding> bindings;
+        public List<Binding> bindings;
 
+        public const string QUEST_STATE = "Quest State";
+        public const string QUEST_CLEARAVAILABILITY = "Quest Clear Availability";
+        public const string NPC_ENCOUNTERED = "NPC Encountered";
+        public const string ENEMY_KILLCOUNT = "Enemy KillCount";
+        public bool IsTrue()
+        {
+            if (factors == null || factors.Length == 0) return true;
+            if (bindings == null || bindings.Count == 0)
+            {
+                return factors.All(x => x.IsTrue());
+            }
+
+            var groups = CreateCheckGroups();
+
+            return groups[groups.Count - 1].IsTrue();
+        }
+
+#if UNITY_EDITOR
+        [InfoBox("@e_bindingErrMsg", InfoMessageType.Error, nameof(HasUnusedCheckables))]
+        [HorizontalGroup("binding")] [ShowInInspector] [HideLabel] [TextArea(1,3)][ReadOnly]
+        public string e_bindingExpression;
+        string e_bindingErrMsg;
+        [VerticalGroup("binding/btn")][Button("바인딩 윈도우")]
+        void OpenBindingWindow()
+        {
+            var window = CheckableBindingWindow.Open();
+            window.SetChecker(this);
+        }
+
+        [VerticalGroup("binding/btn")]
+        [Button("결과 출력")]
+        void PrintResult()
+        {
+            var result = IsTrue() ? "True".ToRichText(Color.green) : "False".ToRichText(Color.red);
+            var prefix = Application.isPlaying
+                ? "(Runtime)".ToRichText(Color.cyan) 
+                : "(Editor)".ToRichText(Color.yellow);
+            Printer.Print($"[DataChecker] {prefix} {ToExpression().ToRichText(Color.cyan)} => {result}");
+        }
+
+        bool HasUnusedCheckables()
+        {
+            if (bindings == null || bindings.Count == 0) return false;
+            var maxIndex = factors.Length + bindings.Count - 1;
+            var indices = new List<int>();
+            for (int i = 0; i < maxIndex; i++)
+            {
+                indices.Add(i);
+            }
+
+            foreach (var binding in bindings)
+            {
+                foreach (var checkable in binding.checkables)
+                {
+                    if (indices.Contains(checkable)) indices.Remove(checkable);
+                }
+            }
+
+            if (indices.Count > 0)
+            {
+                var sb = new StringBuilder();
+                for (int i = 0; i < indices.Count; i++)
+                {
+                    sb.Append(indices[i]);
+                    if(i < indices.Count - 1)sb.Append(", ");
+                }
+
+                e_bindingErrMsg = $"바인딩에 포함되지 않은 요소가 있음 | index : {sb}";
+                return true;
+            }
+
+            return false;
+        }
+
+        public void UpdateExpression()
+        {
+            e_bindingExpression = ToExpression();
+        }
+        
         public static List<CheckGroup> CreateCheckGroups(List<CheckFactor> factors, List<Binding> bindings)
         {
             for (int i = 0; i < factors.Count; i++)
@@ -55,54 +126,20 @@ namespace OcDialogue
             return CreateCheckGroups(factors.ToList(), bindings);
         }
 
-        public bool IsTrue()
+        public string ToExpression()
         {
             if (bindings == null || bindings.Count == 0)
             {
-                return factors.All(x => x.IsTrue());
+                return "바인딩 없음. 모든 Factor에 And 연산을 적용함.";
             }
 
             var groups = CreateCheckGroups();
-
-            return groups[groups.Count - 1].IsTrue();
+            return groups[groups.Count - 1].ToExpression();
         }
 
-        public string ToExpression(bool useRichText = false)
+        public bool IsWarningOn()
         {
-            if (bindings == null || bindings.Count == 0)
-            {
-                var sb = new StringBuilder();
-                for (int i = 0; i < factors.Length; i++)
-                {
-                    var factorText = factors[i].ToExpression(useRichText);
-                    sb.Append(factorText);
-                    if (i < factors.Length - 1) sb.Append($" {Condition.And.ToConditionString()} ");
-                }
-
-                return sb.ToString();
-            }
-
-            var groups = CreateCheckGroups();
-            return groups[groups.Count - 1].ToExpression(useRichText);
-        }
-
-#if UNITY_EDITOR
-        
-        string expression;
-        
-        [VerticalGroup("Binding/Button"), Button("바인딩 윈도우 열기")]
-        void OpenBindWindow()
-        {
-            // var window = CheckableBindingWindow.Open();
-            // window.SetChecker(this);
-        }  
-        
-        [VerticalGroup("Binding/Button"), Button( "결과 출력")]
-        void Check()
-        {
-            var prefix = Application.isPlaying ? "런타임)  ".ToRichText(Color.green) : "에디터)  ".ToRichText(Color.yellow);
-            var isTrueText = IsTrue() ? "True".ToRichText(Color.green) : "False".ToRichText(Color.red);
-            expression = $"{prefix}{ToExpression(true)} => {isTrueText}";
+            return factors.Any(x => x.Data == null) || !string.IsNullOrWhiteSpace(e_bindingErrMsg);
         }
 #endif
     }

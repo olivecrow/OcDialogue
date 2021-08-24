@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using OcDialogue.DB;
 using Sirenix.OdinInspector;
 
 #if UNITY_EDITOR
@@ -69,6 +70,12 @@ namespace OcDialogue
                     balloon.GUID = Guid.NewGuid().ToString();
                     balloon.text = "New Choice";
                     break;
+                case Balloon.Type.Action:
+                    balloon = CreateInstance<Balloon>();
+                    balloon.type = Balloon.Type.Action;
+                    balloon.GUID = Guid.NewGuid().ToString();
+                    balloon.text = "New Action";
+                    break;
                 default: goto case Balloon.Type.Dialogue;
             }
             balloon.name = balloon.GUID;
@@ -129,9 +136,9 @@ namespace OcDialogue
         ValueDropdownList<NPC> GetNPCList()
         {
             var list = new ValueDropdownList<NPC>();
-            foreach (var npc in NPCDatabase.Instance.NPCs)
+            foreach (var npc in NPCDB.Instance.NPCs)
             {
-                list.Add(npc.NPCName, npc);
+                list.Add(npc.name, npc);
             }
         
             return list;
@@ -154,7 +161,7 @@ namespace OcDialogue
         }
 
         [BoxGroup("유틸리티 메서드"), Button("모든 말풍선의 LinkBalloons 리스트 업데이트")]
-        void UpdateLinkedBalloonList()
+        public void UpdateLinkedBalloonList()
         {
             foreach (var balloon in Balloons)
             {

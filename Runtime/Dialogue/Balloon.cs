@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using OcDialogue.DB;
 using OcUtility;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
@@ -20,6 +21,7 @@ namespace OcDialogue
             Entry,
             Dialogue,
             Choice,
+            Action
         }
 
         [ReadOnly] public string GUID;
@@ -28,6 +30,8 @@ namespace OcDialogue
         [ShowIf("type", Type.Dialogue)] [ValueDropdown("GetNPCList")]
         public NPC actor;
 
+        [InfoBox("타입이 Action일땐 텍스트가 참고용 설명으로만 쓰이고 대화에서 나타나지 않음\n오로지 Checker, Setter, Event, Image용도로만 쓰임", 
+            VisibleIf = "@type == Balloon.Type.Action")]
         [HideIf("type", Type.Entry), TextArea]
         public string text;
 
@@ -35,16 +39,12 @@ namespace OcDialogue
         public Vector2 position
         {
             get => _position;
-            set
-            {
-                var isNew = _position != value;
-                _position = value;
-                if(isNew) Debug.Log($"[Balloon] Change Position : {value}");
-            }
+            set => _position = value;
         }
         public Vector2 _position;
 
-        [ValueDropdown("GetBalloonText")]public List<Balloon> linkedBalloons;
+        [ValueDropdown("GetBalloonText")]
+        public List<Balloon> linkedBalloons;
         
         [HideIf("type", Type.Entry)] public bool useChecker;
 
@@ -59,20 +59,27 @@ namespace OcDialogue
         public DataSetter[] setters;
 
         public bool useEvent;
+        
         [ShowIf("useEvent")] [InfoBox("Signal 에셋이 필요함.", InfoMessageType.Warning, "@useEvent && signal == null")]
         [ValueDropdown("GetSignalAssetList")]
-        [Indent()]public SignalAsset signal;
+        [Indent()]
+        public SignalAsset signal;
         
         [InfoBox("이미지를 사용하지 않으면 참조를 해제하셈", InfoMessageType.Warning, "@!useImage && displayTargetImage != null")]
         [InlineButton("ReleaseUnusedImage", "참조 해제", ShowIf = "@!useImage && displayTargetImage != null")]
         public bool useImage;
+        
         [Indent()]
         [InfoBox("이미지 사이즈가 이상함", InfoMessageType.Warning, "IsImageSizeMismatching")]
-        [ShowIf("useImage")] public ImageViewerSize imageViewerSize;
+        [ShowIf("useImage")] 
+        public ImageViewerSize imageViewerSize;
+        
         [Indent()]
         [InfoBox("이미지가 없음", InfoMessageType.Error, "@displayTargetImage == null")]
         [InlineButton("QueryImageFromPreviousBalloon", "앞에꺼 사용")]
-        [ShowIf("useImage")] public Texture2D displayTargetImage;
+        [ShowIf("useImage")] 
+        public Texture2D displayTargetImage;
+        
         [Indent()][ShowIf("useImage")] 
         public Vector2 imageSizeOverride;
 
@@ -81,9 +88,9 @@ namespace OcDialogue
         ValueDropdownList<NPC> GetNPCList()
         {
             var list = new ValueDropdownList<NPC>();
-            foreach (var npc in NPCDatabase.Instance.NPCs)
+            foreach (var npc in NPCDB.Instance.NPCs)
             {
-                list.Add(npc.NPCName, npc);
+                list.Add(npc.name, npc);
             }
         
             return list;
@@ -152,7 +159,7 @@ namespace OcDialogue
                 if(checker.factors.Length == 0) return true;
                 foreach (var factor in checker.factors)
                 {
-                    if (factor.DataSelector.targetData == null) return true;
+                    if (factor.Data == null) return true;
                 }
             }
             if (useSetter)
@@ -160,7 +167,7 @@ namespace OcDialogue
                 if(setters == null || setters.Length == 0) return true;
                 foreach (var setter in setters)
                 {
-                    if (setter.DataSelector.targetData == null) return true;
+                    if (setter.Data == null) return true;
                 }
             }
             if (useEvent)

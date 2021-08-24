@@ -1,18 +1,32 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using OcDialogue.DB;
+using OcUtility;
 using Sirenix.OdinInspector;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 
-namespace OcDialogue
+namespace OcDialogue.DB
 {
-    public class Enemy : ComparableData
+    public class Enemy : OcData, IDataRowUser
     {
-        public override string Key { get; }
+        public override string Address => $"{Category}/{name}";
+        public DataRowContainer DataRowContainer => dataRowContainer;
         [InfoBox("몬스터가 여러개의 Damager를 가지는 경우, 여기에 적힌 값을 기본으로 두고, 각 Damager에 배율을 정해서 곱해서 사용할 것.")]
+        [ValueDropdown("GetCategory")][PropertyOrder(-2)]
         public string Category;
-        public string key;
+        [ShowInInspector, PropertyOrder(-1)][DelayedProperty]
+        public string Name
+        {
+            get => name;
+            set
+            {
+                name = value;
+                AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(this), name);
+            }
+        }
         [InlineButton(nameof(CalcStatsFromLevelAndWeight), "스탯 반영")]public EnemyLevel EnemyLevel;
         public float Weight;
         [HorizontalGroup("BattleStat")]public BattleStat AttackStat;
@@ -21,63 +35,67 @@ namespace OcDialogue
         public float Balance;
         public float Stability;
         public ItemDropInfo[] DropInfo;
-
-        [BoxGroup("Runtime")] [ShowInInspector] public int KillCount { get; set; }
-        [BoxGroup("DataRow")]public DataRowContainer DataRowContainer;
-
-        public Enemy GetCopy()
+        [BoxGroup("DataRow")]public DataRowContainer dataRowContainer;
+#if UNITY_EDITOR
+        
+        public RuntimeValue EditorPreset => _editorPreset;
+        [SerializeField]
+        [DisableIf("@UnityEditor.EditorApplication.isPlaying")]
+        [BoxGroup("Debug")]
+        [HorizontalGroup("Debug/1")]
+        RuntimeValue _editorPreset;
+#endif
+        [ShowInInspector]
+        [HorizontalGroup("Debug/1")]
+        [EnableIf("@UnityEngine.Application.isPlaying")]
+        public RuntimeValue Runtime
         {
-            var copy = CreateInstance<Enemy>();
-            copy.Category = Category;
-            copy.key = key;
-            copy.name = name;
-            copy.Weight = Weight;
-            copy.AttackStat = AttackStat;
-            copy.DefenseStat = DefenseStat;
-            copy.HP = HP;
-            copy.Balance = Balance;
-            copy.Stability = Stability;
-            var dropInfo = new List<ItemDropInfo>();
-            foreach (var info in DropInfo)
-            {
-                dropInfo.Add(info);
-            }
-            copy.DropInfo = dropInfo.ToArray();
+            get => _runtime;
+            set => _runtime = value;
+        }
+        RuntimeValue _runtime;
 
-            copy.DataRowContainer = new DataRowContainer(copy, DataRowContainer.GetAllCopies());
-            
-            return copy;
+
+        [Serializable]
+        public struct RuntimeValue
+        {
+            [Tooltip("이번 회차의 킬 카운트")]
+            [LabelWidth(120)]public int KillCount;
+            [Tooltip("모든 회차의 킬 카운트")]
+            [LabelWidth(120)]public int TotalKillCount;
+        }
+
+        public void GenerateRuntimeData()
+        {
+            _runtime = new RuntimeValue();
+            dataRowContainer.GenerateRuntimeData();
+        }
+
+        public void SetKillCount(int killCount)
+        {
+            _runtime.KillCount = killCount;
+        }
+
+        public void AddKillCount()
+        {
+            _runtime.TotalKillCount++;
+            _runtime.KillCount++;
         }
         
-        public override bool IsTrue(CompareFactor factor, Operator op, object value1)
-        {
-            switch (factor)
-            {
-                case CompareFactor.EnemyKillCount:
-                    return op switch
-                    {
-                        Operator.Equal => KillCount == (int) value1,
-                        Operator.NotEqual => KillCount != (int) value1,
-                        Operator.Greater => KillCount > (int) value1,
-                        Operator.GreaterEqual => KillCount >= (int) value1,
-                        Operator.Less => KillCount < (int) value1,
-                        Operator.LessEqual => KillCount <= (int) value1,
-                        _ => false
-                    };
-                default: return false;
-            }
-        }
-
+        
 #if UNITY_EDITOR
         
         void Reset()
         {
-            if(DataRowContainer != null) DataRowContainer.owner = this;
+            if (DataRowContainer == null) dataRowContainer = new DataRowContainer();
+            DataRowContainer.Parent = this;
         }
 
-        void OnValidate()
+        public void Resolve()
         {
-            DataRowContainer.CheckNames();
+            if(DataRowContainer.Parent != this) Printer.Print($"[Quest]{name}) DataRowContainer의 Parent를 재설정");
+            DataRowContainer.Parent = this;
+            DataRowContainer.MatchParent();
         }
         
         void CalcStatsFromLevelAndWeight()
@@ -165,23 +183,16 @@ namespace OcDialogue
                     break;
             }
         }
-        [Button, HorizontalGroup("DataRow/Row"), PropertyOrder(9), GUIColor(0,1,1)]
-        void AddData()
-        {
-            DataRowContainer.owner = this;
-            DataRowContainer.AddData(DBType.Enemy, DataStorageType.Embeded);
-        }
         
-        [Button, HorizontalGroup("DataRow/Row"), PropertyOrder(9), GUIColor(1,0,0)]
-        void DeleteData(string k)
+        ValueDropdownList<string> GetCategory()
         {
-            DataRowContainer.DeleteRow(k, DataStorageType.Embeded);
-        }
+            var list = new ValueDropdownList<string>();
+            foreach (var category in EnemyDB.Instance.Category)
+            {
+                list.Add(category);
+            }
 
-        [Button, HorizontalGroup("DataRow/Row"), PropertyOrder(9)]
-        void MatchNames()
-        {
-            DataRowContainer.MatchDataRowNames();
+            return list;
         }
 #endif
     }

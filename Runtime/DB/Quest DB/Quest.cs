@@ -1,184 +1,156 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
+using OcDialogue.DB;
 using OcUtility;
 using Sirenix.OdinInspector;
-
-#if UNITY_EDITOR
 using UnityEditor;
-#endif
 using UnityEngine;
 
 namespace OcDialogue
 {
-    public class Quest : ComparableData
+    public enum QuestState
     {
-        public enum State
+        None,
+        WorkingOn,
+        Done
+    }
+    public class Quest : OcData, IDataRowUser
+    {
+        public override string Address => $"{Category}/{name}";
+        public DataRowContainer DataRowContainer => dataRowContainer;
+        [ValueDropdown("GetCategory")][PropertyOrder(-2)]public string Category;
+        [ShowInInspector, PropertyOrder(-1)][DelayedProperty]
+        public string Name
         {
-            None,
-            WorkingOn,
-            Finished
-        }
-
-        public override string Key => key;
-        [InlineButton("MatchName", ShowIf = "@key != name"), HorizontalGroup("Key"), LabelWidth(100)]public string key;
-        [HorizontalGroup("Key"), ValueDropdown("GetCategory"), LabelWidth(100)]public string Category;
-        [Multiline(5), LabelWidth(100)]public string description;
-        public List<ComparableData> References;
-        [BoxGroup("Data"), HideLabel]public DataRowContainer DataRowContainer;
-        [GUIColor(1f, 2f, 1f)]
-        [InfoBox("클리어 여부 체크로 자기 자신을 넣을 수 없음", InfoMessageType.Error, "IsClearConditionWarningOn")]
-        [InlineButton("QueryMyDataRow", "DataRow 반영")][BoxGroup("클리어 조건"), HideLabel]
-        public DataChecker checker;
-        public State QuestState
-        {
-            get => _questState;
+            get => name;
             set
             {
-                var isNew = _questState != value;
-                _questState = value;
-                if(isNew)
-                {
-                    OnStateChanged?.Invoke(value);
-                    Printer.Print($"[Quest] {key} 퀘스트 State 변경 => {value}");
-                }
+                name = value;
+                AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(this), name);
             }
         }
+        [TextArea]
+        public string Description;
 
-        Quest __original;
-        State _questState;
-        public event Action<State> OnStateChanged; 
+        public OcData[] References;
 
-        public Quest GetCopy()
+        public DataRowContainer dataRowContainer;
+        [LabelText("클리어 조건")][InlineButton("QueryMyDataRow", "데이터 가져오기")]
+        public DataChecker Checker;
+      
+#if UNITY_EDITOR
+        
+        public RuntimeValue EditorPreset => _editorPreset;
+        [SerializeField]
+        [DisableIf("@UnityEditor.EditorApplication.isPlaying")]
+        [BoxGroup("Debug")]
+        [HorizontalGroup("Debug/1")]
+        RuntimeValue _editorPreset;
+#endif
+        [ShowInInspector]
+        [HorizontalGroup("Debug/1")]
+        [EnableIf("@UnityEngine.Application.isPlaying")]
+        public RuntimeValue Runtime
         {
-            var quest = CreateInstance<Quest>();
-            quest.__original = this;
-            quest.name = key;
-            quest.key = key;
-            quest.Category = Category;
-            quest.description = description;
-
-            quest.References = References;
-            var rows = DataRowContainer.GetAllCopies();
-            quest.DataRowContainer = new DataRowContainer(quest, rows);
-
-            return quest;
+            get => _runtime;
+            set => _runtime = value;
         }
-        /// <summary>현재 퀘스트의 State가 전달된 값과 비교했을때 맞는지 판단함. QuestState와 QuestClearAvailability 외에는 제대로 작동하지 않음</summary>
-        public override bool IsTrue(CompareFactor factor, Operator op, object value1)
+        RuntimeValue _runtime;
+
+        public void GenerateRuntimeData()
         {
-            switch (factor)
+            _runtime = new RuntimeValue();
+            DataRowContainer.GenerateRuntimeData();
+        }
+
+
+        public bool IsAbleToClear(CheckFactor.Operator op, QuestState state)
+        {
+            switch (op)
             {
-                case CompareFactor.QuestState:
-                    return op switch
-                    {
-                        Operator.Equal => QuestState == (State) value1,
-                        Operator.NotEqual => QuestState != (State) value1,
-                        _ => false
-                    };
-                case CompareFactor.QuestClearAvailability:
-                    return op switch
-                    {
-                        Operator.Equal => IsAbleToClear() == (bool) value1,
-                        Operator.NotEqual => IsAbleToClear() != (bool) value1,
-                        _ => false
-                    };
-                default: return false;
+                case CheckFactor.Operator.Equal:
+#if UNITY_EDITOR
+                    if (!EditorApplication.isPlaying) return _editorPreset.QuestState == state;     
+#endif
+                    return _runtime.QuestState == state;
+                case CheckFactor.Operator.NotEqual:
+#if UNITY_EDITOR
+                    if (!EditorApplication.isPlaying) return _editorPreset.QuestState != state;     
+#endif
+                    return _runtime.QuestState != state;
             }
+
+            return false;
         }
 
-        /// <summary> 현재 퀘스트의 클리어 조건들이 전부 가능한 상태인지 확인함. 클리어가 가능하면 true를 반환함.
-        /// 퀘스트 상태가 WorkingOn이 아니면 항상 false를 반환함. 오리지날 데이터는 항상 false를 반환함.</summary>
-        public bool IsAbleToClear()
+        public bool IsAbleToClear(CheckFactor.Operator op, bool isAbleToClear)
         {
-            if (__original == null) return false;
-            return QuestState == State.WorkingOn && __original.checker.IsTrue();
+            switch (op)
+            {
+                case CheckFactor.Operator.Equal: return Checker.IsTrue() == isAbleToClear;
+                case CheckFactor.Operator.NotEqual: return Checker.IsTrue() != isAbleToClear;
+            }
+
+            return false;
         }
+
+        public void SetState(QuestState targetState)
+        {
+            _runtime.QuestState = targetState;
+        }
+
+        
         
 #if UNITY_EDITOR
         void Reset()
         {
-            if(DataRowContainer == null) return;
-            DataRowContainer.owner = this;
+            if (DataRowContainer == null) dataRowContainer = new DataRowContainer();
+            DataRowContainer.Parent = this;
         }
 
-        void OnValidate()
+        public void Resolve()
         {
-            DataRowContainer.CheckNames();
+            if(DataRowContainer.Parent != this) Printer.Print($"[Quest]{name}) DataRowContainer의 Parent를 재설정");
+            DataRowContainer.Parent = this;
+            DataRowContainer.MatchParent();
         }
 
         ValueDropdownList<string> GetCategory()
         {
             var list = new ValueDropdownList<string>();
-            foreach (var s in QuestDatabase.Instance.Category)
+            foreach (var category in QuestDB.Instance.Category)
             {
-                list.Add(s);
+                list.Add(category);
             }
 
             return list;
         }
-        void MatchName()
-        {
-            var path = AssetDatabase.GetAssetPath(this);
-            AssetDatabase.RenameAsset(path, key);
-            EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssets();
-        }
-
-        [Button, HorizontalGroup("Data/btn"), PropertyOrder(9), GUIColor(0,1,1)]
-        void AddData()
-        {
-            DataRowContainer.owner = this;
-            DataRowContainer.AddData(DBType.Quest, DataStorageType.Embeded);
-        }
         
-        [Button, HorizontalGroup("Data/btn"), PropertyOrder(9), GUIColor(1,0,0)]
-        void DeleteData(string k)
-        {
-            DataRowContainer.DeleteRow(k, DataStorageType.Embeded);
-        }
-
-        [Button, HorizontalGroup("Data/btn"), PropertyOrder(9)]
-        void MatchNames()
-        {
-            DataRowContainer.MatchDataRowNames();
-        }
-
         void QueryMyDataRow()
         {
+            if(!EditorUtility.DisplayDialog("데이터 가져오기", "이 작업은 현재의 Checker를 덮어씌웁니다. 계속 진행하시겠습니까?"
+                , "진행", "취소"))
+                return;
             Undo.RecordObject(this, "Query My DataRow");
             var factorList = new List<CheckFactor>();
-            foreach (var dataRow in DataRowContainer.dataRows)
+            foreach (var dataRow in DataRowContainer.DataRows)
             {
                 var factor = new CheckFactor();
-                var selector = factor.DataSelector = new DataSelector();
-                selector.targetData = dataRow;
-                selector.DBType = DBType.Quest;
-                selector.path = $"QuestDatabase/{Category}/{key}";
-
-                factor.Index = DataRowContainer.dataRows.IndexOf(dataRow);
+                factor.Data = dataRow;
+                factor.UpdateAddress();
                 factorList.Add(factor);
             }
 
-            checker.factors = factorList.ToArray();
-        }
-
-        bool IsClearConditionWarningOn()
-        {
-            if (checker == null) return false;
-            if (checker.factors == null) return false;
-            foreach (var checkerFactor in checker.factors)
-            {
-                if (checkerFactor.DataSelector.targetData == this)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            Checker.factors = factorList.ToArray();
+            Checker.UpdateExpression();
         }
 #endif
 
+        [Serializable]
+        public struct RuntimeValue
+        {
+            [LabelWidth(110)]public QuestState QuestState;
+        }
     }
 }
