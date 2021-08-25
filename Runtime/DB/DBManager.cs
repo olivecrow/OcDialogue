@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace OcDialogue.DB
 {
-    [CreateAssetMenu(fileName = "DB Manager", menuName = "Oc Dialogue/DB/DB Manager V2", order = 0)]
+    [CreateAssetMenu(fileName = "DB Manager", menuName = "Oc Dialogue/DB/DB Manager", order = 0)]
     public class DBManager : OcData
     {
         public override OcData Parent => null;

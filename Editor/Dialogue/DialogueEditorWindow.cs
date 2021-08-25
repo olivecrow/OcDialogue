@@ -2,14 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using OcUtility;
-using Sirenix.OdinInspector;
-using Sirenix.OdinInspector.Editor;
-using Sirenix.OdinInspector.Editor.Drawers;
-using Sirenix.Utilities.Editor;
 using UnityEditor;
-using UnityEditor.EditorTools;
-using UnityEditor.Graphs;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -26,7 +19,11 @@ namespace OcDialogue.Editor
         public List<ToolbarToggle> CategoryToggles;
         
         public Toolbar ConversationSelectToolbar;
+#if UNITY_2021_2_OR_NEWER
         public DropdownField ConversationField;
+#else
+        public PopupField<string> ConversationField;
+#endif
         public Button AddConversationButton;
         public Button RemoveConversationButton;
         
@@ -47,7 +44,7 @@ namespace OcDialogue.Editor
         {
             _lastViewConversation = new Dictionary<string, int>();
         }
-        [MenuItem("Window/OcDialogue/다이얼로그 에디터")]
+        [MenuItem("OcDialogue/다이얼로그 에디터")]
         public static void Open()
         {
             DialogueEditorWindow wnd = GetWindow<DialogueEditorWindow>(false, "다이얼로그 에디터", true);
@@ -158,7 +155,12 @@ namespace OcDialogue.Editor
             ConversationSelectToolbar = new Toolbar();
             rootVisualElement.Add(ConversationSelectToolbar);
 
+#if UNITY_2021_2_OR_NEWER
             ConversationField = new DropdownField(
+#else
+            ConversationField = new PopupField<string>(
+                
+#endif
                 "Conversation",
                 Asset.Conversations.Where(x => x.Category == _currentCategory).Select(x => x.key).ToList(),
                 index, s =>
@@ -179,6 +181,7 @@ namespace OcDialogue.Editor
                     OnConversationChanged();
                     return Conversation == null ? null : Conversation.key;
                 });
+            
 
             if (Asset.Conversations.Find(x => x.Category == _currentCategory) == null)
             {

@@ -29,7 +29,7 @@ namespace OcDialogue.Editor
         string _itemSubType;
         string _category;
         bool _isCategoryEditMode;
-        [MenuItem("Window/OcDialogue/DB 에디터")]
+        [MenuItem("OcDialogue/DB 에디터")]
         static void Open()
         {
             var wnd = GetWindow<DatabaseEditorWindow>("DB 에디터", true, typeof(SceneView));

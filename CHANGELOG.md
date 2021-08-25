@@ -1,6 +1,15 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+## [1.0.1]
+### Added
+- DatabaseEditorWindow에 2021.2 미만 호환성 추가 (ConversationField)
+
+### Fixed
+- README 업데이트
+- 에디터 윈도우 메뉴를 메뉴바 최상위로 옮김.
+  - Window/OcDialogue/DatabaseEditorWindow => OcDialogue/DatabaseEditorWindow
+
 ## [1.0.0]
 
 ### Added
