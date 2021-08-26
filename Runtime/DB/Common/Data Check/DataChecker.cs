@@ -31,7 +31,7 @@ namespace OcDialogue.DB
 
             var groups = CreateCheckGroups();
 
-            return groups[^1].IsTrue();
+            return groups[groups.Count - 1].IsTrue();
         }
 
         public static List<CheckGroup> CreateCheckGroups(List<CheckFactor> factors, List<Binding> bindings)
