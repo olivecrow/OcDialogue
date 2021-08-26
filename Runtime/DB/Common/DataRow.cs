@@ -29,7 +29,9 @@ namespace OcDialogue.DB
                 if (isNew)
                 {
                     _initialValue.Type = Type;
-                    _editorPresetValue.Type = Type;
+#if UNITY_EDITOR
+                    _editorPresetValue.Type = Type;              
+#endif
                 }
             }
         }

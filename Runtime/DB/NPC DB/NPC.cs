@@ -1,10 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using OcDialogue.DB;
 using OcUtility;
 using Sirenix.OdinInspector;
+
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace OcDialogue.DB
@@ -27,7 +29,9 @@ namespace OcDialogue.DB
             set
             {
                 name = value;
-                AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(this), name);
+#if UNITY_EDITOR
+                AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(this), name);          
+#endif
             }
         }
         [HorizontalGroup("2")]public Gender gender;

@@ -6,9 +6,9 @@ using System.Text;
 using OcUtility;
 #if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 using UnityEngine.UIElements;
-#endif
 using OcDialogue.DB;
 using Random = UnityEngine.Random;
 

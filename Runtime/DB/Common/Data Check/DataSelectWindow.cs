@@ -1,21 +1,13 @@
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using OcDialogue.DB;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
-using UnityEditor;
 using UnityEngine;
 
 namespace OcDialogue.DB
 {
-    public interface IOcDataSelectable
-    {
-        OcData Data { get; }
-        string Detail { get; }
-        void UpdateAddress();
-        void SetTargetData(OcData data);
-    }
     public class DataSelectWindow : OdinEditorWindow
     {
         public IOcDataSelectable DataSelectable;
@@ -168,17 +160,6 @@ namespace OcDialogue.DB
         }
     }
 
-    public interface IStandardDB
-    {
-        string[] CategoryRef { get; }
-        IEnumerable<OcData> AllData { get; }
-    }
-
-    public interface IDataRowUser
-    {
-        DataRowContainer DataRowContainer { get; }
-    }
-    
     [Serializable]
     public class StandardDataSelector
     {
@@ -238,3 +219,4 @@ namespace OcDialogue.DB
         }
     }
 }
+#endif

@@ -1,6 +1,11 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+## [1.0.2] - 2021-08-27
+### Fixed
+- 빌드 오류 해결
+- OcUtility 의존성 버전 1.1.12로 상향
+
 ## [1.0.1]
 ### Added
 - DatabaseEditorWindow에 2021.2 미만 호환성 추가 (ConversationField)

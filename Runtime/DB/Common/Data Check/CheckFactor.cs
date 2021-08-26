@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using OcUtility;
 using Sirenix.OdinInspector;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace OcDialogue.DB
@@ -13,7 +15,9 @@ namespace OcDialogue.DB
     {
         public int Index { get;}
         public bool IsTrue();
-        public string ToExpression(bool useRichText);
+#if UNITY_EDITOR
+        public string ToExpression(bool useRichText);  
+#endif
     }
     [Serializable]
     public class CheckFactor : IOcDataSelectable, ICheckable
@@ -51,31 +55,31 @@ namespace OcDialogue.DB
 
         /// <summary> TargetData내에서도 판단의 분류가 나뉘는 경우, 여기에 해당하는 값을 입력해서 그걸 기준으로 어떤 변수를 판단할지 정함. </summary>
         [HorizontalGroup("2")] [HideLabel] [HideIf("@string.IsNullOrWhiteSpace(Detail)")]
-        [ValueDropdown(nameof(GetDetail))] [GUIColor(1f,1f,1f)]
+        [ValueDropdown("GetDetail")] [GUIColor(1f,1f,1f)]
         public string detail;
         
         [HorizontalGroup("2")] [HideLabel] [HideIf("@TargetData == null")][GUIColor(1.2f, 1.2f, 1f)]
-        [ValueDropdown(nameof(GetOperator))] 
+        [ValueDropdown("GetOperator")] 
         public Operator op;
 
         [GUIColor(1f,1f,1f)]
-        [HorizontalGroup("2"), HideLabel] [ShowIf(nameof(GetDataType), DataRowType.Bool)] [ExplicitToggle()]
+        [HorizontalGroup("2"), HideLabel] [ShowIf("GetDataType", DataRowType.Bool)] [ExplicitToggle()]
         public bool BoolValue;
 
         [GUIColor(1f,1f,1f)]
-        [HorizontalGroup("2"), HideLabel] [ShowIf(nameof(GetDataType), DataRowType.Int)]
+        [HorizontalGroup("2"), HideLabel] [ShowIf("GetDataType", DataRowType.Int)]
         public int IntValue;
 
         [GUIColor(1f,1f,1f)]
-        [HorizontalGroup("2"), HideLabel] [ShowIf(nameof(GetDataType), DataRowType.Float)]
+        [HorizontalGroup("2"), HideLabel] [ShowIf("GetDataType", DataRowType.Float)]
         public float FloatValue;
 
         [GUIColor(1f,1f,1f)]
-        [HorizontalGroup("2"), HideLabel] [ShowIf(nameof(GetDataType), DataRowType.String)]
+        [HorizontalGroup("2"), HideLabel] [ShowIf("GetDataType", DataRowType.String)]
         public string StringValue;
 
         [GUIColor(1f,1f,1f)]
-        [HorizontalGroup("2"), HideLabel] [ShowIf(nameof(GetDataType), typeof(QuestState))]
+        [HorizontalGroup("2"), HideLabel] [ShowIf("GetDataType", typeof(QuestState))]
         public QuestState QuestStateValue;
 
         public string Detail

@@ -4,7 +4,10 @@ using System.Collections.Generic;
 using OcDialogue.DB;
 using OcUtility;
 using Sirenix.OdinInspector;
+
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace OcDialogue
@@ -27,7 +30,9 @@ namespace OcDialogue
             set
             {
                 name = value;
-                AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(this), name);
+#if UNITY_EDITOR
+                AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(this), name);          
+#endif
             }
         }
         [TextArea]

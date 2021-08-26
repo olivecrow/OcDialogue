@@ -24,38 +24,38 @@ namespace OcDialogue.DB
         [InfoBox("데이터가 비어있음", InfoMessageType.Error, VisibleIf = "@TargetData == null")]
         [HorizontalGroup("1")]
         [GUIColor(1f,1f,1.2f)]
-        [InlineButton(nameof(OpenSelectWindow), " 선택 ")]
+        [InlineButton("OpenSelectWindow", " 선택 ")]
         [LabelText("@e_address")]
         [LabelWidth(180)]
         [SerializeField] OcData TargetData;
         
         /// <summary> TargetData내에서도 판단의 분류가 나뉘는 경우, 여기에 해당하는 값을 입력해서 그걸 기준으로 어떤 변수를 판단할지 정함. </summary>
         [HorizontalGroup("1", MaxWidth = 200)] [HideLabel] [HideIf("@string.IsNullOrWhiteSpace(Detail)")]
-        [ValueDropdown(nameof(GetDetail))] [GUIColor(1f,1f,1f)]
+        [ValueDropdown("GetDetail")] [GUIColor(1f,1f,1f)]
         public string detail;
         
         [LabelText("@e_Label"), LabelWidth(250)][GUIColor(1,1,1,2f)]
-        [HideLabel][ValueDropdown(nameof(GetOperator))][HorizontalGroup("2", MinWidth = 400)] 
+        [HideLabel][ValueDropdown("GetOperator")][HorizontalGroup("2", MinWidth = 400)] 
         public Operator op;
 
         [GUIColor(1f,1f,1f)]
-        [HorizontalGroup("2"), HideLabel] [ShowIf(nameof(GetDataType), DataRowType.Bool)] [ExplicitToggle()]
+        [HorizontalGroup("2"), HideLabel] [ShowIf("GetDataType", DataRowType.Bool)] [ExplicitToggle()]
         public bool BoolValue;
         
         [GUIColor(1f,1f,1f)]
-        [HorizontalGroup("2"), HideLabel] [ShowIf(nameof(GetDataType), DataRowType.Int)]
+        [HorizontalGroup("2"), HideLabel] [ShowIf("GetDataType", DataRowType.Int)]
         public int IntValue;
         
         [GUIColor(1f,1f,1f)]
-        [HorizontalGroup("2"), HideLabel] [ShowIf(nameof(GetDataType), DataRowType.Float)]
+        [HorizontalGroup("2"), HideLabel] [ShowIf("GetDataType", DataRowType.Float)]
         public float FloatValue;
         
         [GUIColor(1f,1f,1f)]
-        [HorizontalGroup("2"), HideLabel] [ShowIf(nameof(GetDataType), DataRowType.String)]
+        [HorizontalGroup("2"), HideLabel] [ShowIf("GetDataType", DataRowType.String)]
         public string StringValue;
         
         [GUIColor(1f,1f,1f)]
-        [HorizontalGroup("2"), HideLabel] [ShowIf(nameof(GetDataType), typeof(QuestState))]
+        [HorizontalGroup("2"), HideLabel] [ShowIf("GetDataType", typeof(QuestState))]
         public QuestState QuestStateValue;
 
         /// <summary> Setter를 실행함. </summary>

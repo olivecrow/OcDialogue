@@ -24,10 +24,12 @@ namespace OcDialogue.DB
             set
             {
                 name = value;
-                AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(this), name);
+#if UNITY_EDITOR
+                AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(this), name);          
+#endif
             }
         }
-        [InlineButton(nameof(CalcStatsFromLevelAndWeight), "스탯 반영")]public EnemyLevel EnemyLevel;
+        [InlineButton("CalcStatsFromLevelAndWeight", "스탯 반영")]public EnemyLevel EnemyLevel;
         public float Weight;
         [HorizontalGroup("BattleStat")]public BattleStat AttackStat;
         [HorizontalGroup("BattleStat")]public BattleStat DefenseStat;

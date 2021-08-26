@@ -31,9 +31,39 @@ namespace OcDialogue.DB
 
             var groups = CreateCheckGroups();
 
-            return groups[groups.Count - 1].IsTrue();
+            return groups[^1].IsTrue();
         }
 
+        public static List<CheckGroup> CreateCheckGroups(List<CheckFactor> factors, List<Binding> bindings)
+        {
+            for (int i = 0; i < factors.Count; i++)
+            {
+                factors[i].Index = i;
+            }
+            var groups = new List<CheckGroup>();
+            var allCheckables = new List<ICheckable>();
+            allCheckables.AddRange(factors);
+            for (int i = 0; i < bindings.Count; i++)
+            {
+                bindings[i].Index = factors.Count + i;
+                var group = new CheckGroup(bindings[i]);
+                groups.Add(group);
+                allCheckables.Add(group);
+            }
+
+            for (int i = 0; i < groups.Count; i++)
+            {
+                groups[i].SetCheckables(allCheckables);
+            }
+
+            return groups;
+        }
+
+        public List<CheckGroup> CreateCheckGroups()
+        {
+            return CreateCheckGroups(factors.ToList(), bindings);
+        }
+        
 #if UNITY_EDITOR
         [InfoBox("@e_bindingErrMsg", InfoMessageType.Error, nameof(HasUnusedCheckables))]
         [HorizontalGroup("binding")] [ShowInInspector] [HideLabel] [TextArea(1,3)][ReadOnly]
@@ -95,36 +125,6 @@ namespace OcDialogue.DB
         {
             e_bindingExpression = ToExpression();
         }
-        
-        public static List<CheckGroup> CreateCheckGroups(List<CheckFactor> factors, List<Binding> bindings)
-        {
-            for (int i = 0; i < factors.Count; i++)
-            {
-                factors[i].Index = i;
-            }
-            var groups = new List<CheckGroup>();
-            var allCheckables = new List<ICheckable>();
-            allCheckables.AddRange(factors);
-            for (int i = 0; i < bindings.Count; i++)
-            {
-                bindings[i].Index = factors.Count + i;
-                var group = new CheckGroup(bindings[i]);
-                groups.Add(group);
-                allCheckables.Add(group);
-            }
-
-            for (int i = 0; i < groups.Count; i++)
-            {
-                groups[i].SetCheckables(allCheckables);
-            }
-
-            return groups;
-        }
-
-        public List<CheckGroup> CreateCheckGroups()
-        {
-            return CreateCheckGroups(factors.ToList(), bindings);
-        }
 
         public string ToExpression()
         {
@@ -139,6 +139,7 @@ namespace OcDialogue.DB
 
         public bool IsWarningOn()
         {
+            if (factors == null) return false;
             return factors.Any(x => x.Data == null) || !string.IsNullOrWhiteSpace(e_bindingErrMsg);
         }
 #endif
