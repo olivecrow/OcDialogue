@@ -45,7 +45,7 @@ namespace OcDialogue.DB
         [HideInInspector]public int index;
         
         [GUIColor(1f,1f,1f)]
-        [InfoBox("데이터가 비어있음", InfoMessageType.Error, VisibleIf = "@TargetData == null")]
+        [InfoBox("@e_message", InfoMessageType.Error, VisibleIf = "@TargetData == null")]
         [HorizontalGroup("1")]
         [InlineButton("PrintResult", "결과 출력")]
         [InlineButton("OpenSelectWindow", " 선택 ")]
@@ -162,7 +162,9 @@ namespace OcDialogue.DB
 
 #if UNITY_EDITOR
         [HideInInspector] public string e_address;
-
+        [HideInInspector] public string e_message => 
+            string.IsNullOrWhiteSpace(e_cachedDataAddress) ? "데이터가 비어있음" : $"데이터가 비어있음 | 캐싱된 Address : {e_cachedDataAddress}";
+        [SerializeField, HideInInspector] string e_cachedDataAddress;
         public void SetTargetData(OcData data)
         {
             TargetData = data;
@@ -180,6 +182,32 @@ namespace OcDialogue.DB
                 case Enemy enemy:
                     detail = DataChecker.ENEMY_KILLCOUNT;
                     break;
+            }
+
+            e_cachedDataAddress = data.TotalAddress;
+        }
+
+        public void SetTargetValue(object value)
+        {
+            switch (value)
+            {
+                case bool b:
+                    BoolValue = b;
+                    break;
+                case int i:
+                    IntValue = i;
+                    break;
+                case float f:
+                    FloatValue = f;
+                    break;
+                case string s:
+                    StringValue = s;
+                    break;
+                case QuestState qs:
+                    QuestStateValue = qs;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
         

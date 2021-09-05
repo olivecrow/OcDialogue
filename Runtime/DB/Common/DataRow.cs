@@ -21,16 +21,19 @@ namespace OcDialogue.DB
         [TableColumnWidth(80, false)]
         public DataRowType Type
         {
-            get => _type;
+            get => _initialValue.Type;
             set
             {
-                var isNew = _type != value;
-                _type = value;
+#if !UNITY_EDITOR
+                if(Application.isPlaying) return;            
+#endif
+                var isNew = _initialValue.Type != value;
+                _initialValue.Type = value;
                 if (isNew)
                 {
-                    _initialValue.Type = Type;
 #if UNITY_EDITOR
-                    _editorPresetValue.Type = Type;              
+                    _editorPresetValue.Type = Type;
+                    _runtimeValue.Type = Type;
 #endif
                 }
             }
@@ -68,9 +71,32 @@ namespace OcDialogue.DB
 
         [PropertyOrder(10)] public string description;
 #endif
+        public object TargetValue
+        {
+            get
+            {
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                {
+                    return Type switch
+                    {
+                        DataRowType.Bool => _initialValue.BoolValue,
+                        DataRowType.Int => _initialValue.IntValue,
+                        DataRowType.Float => _initialValue.FloatValue,
+                        DataRowType.String => _initialValue.StringValue,
+                    };              
+                }
+#endif
+                return Type switch
+                {
+                    DataRowType.Bool => _runtimeValue.BoolValue,
+                    DataRowType.Int => _runtimeValue.IntValue,
+                    DataRowType.Float => _runtimeValue.FloatValue,
+                    DataRowType.String => _runtimeValue.StringValue,
+                };
+            }
+        }
 
-        [HideInInspector][SerializeField]
-        DataRowType _type;
 
         [SerializeField] [DisableIf("@UnityEditor.EditorApplication.isPlaying")] [TableColumnWidth(110, false)]
         [PropertyOrder(2)]
@@ -88,6 +114,30 @@ namespace OcDialogue.DB
                 FloatValue = InitialValue.FloatValue,
                 StringValue = InitialValue.StringValue,
             };
+        }
+
+        public void SetTypeAndValue(DataRowType type, object value)
+        {
+            Type = type;
+            switch (type)
+            {
+                case DataRowType.Bool:
+                    if(!(value is bool b)) return;
+                    SetValue(b);
+                    break;
+                case DataRowType.Int:
+                    if(!(value is int i)) return;
+                    SetValue(i);
+                    break;
+                case DataRowType.Float:
+                    if(!(value is float f)) return;
+                    SetValue(f);
+                    break;
+                case DataRowType.String:
+                    if(!(value is string s)) return;
+                    SetValue(s);
+                    break;
+            }
         }
 
         /// <summary> 런타임 bool 값을 변경함. </summary>

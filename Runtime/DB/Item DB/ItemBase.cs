@@ -5,23 +5,25 @@ using OcUtility;
 using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 namespace OcDialogue
 {
     public abstract class ItemBase : OcData
     {
-        public override string Address => itemName;
+        public override string Address => $"{type}/{SubTypeString}/{itemName}";
 
         [BoxGroup("ReadOnly")][ReadOnly]public int GUID;
         [BoxGroup("ReadOnly")][ReadOnly]public ItemType type;
         public string itemName;
+        public AssetReferenceSprite IconReference;
         public bool isStackable;
         /// <summary> Editor Only. </summary>
         public abstract string SubTypeString { get; }
 #if UNITY_EDITOR
-        // TODO : 인게임 아이콘은 Addressable을 사용해서 구현할것.
-        [PropertyOrder(-10)]public Texture editorIcon;
+        [BoxGroup("ReadOnly")][PreviewField(ObjectFieldAlignment.Left)][ShowInInspector] public Object IconPreview => IconReference.editorAsset;
         /// <summary> Editor Only. 각 아이템 타입에 맞는 SubType을 할당함. </summary>
         public abstract void SetSubTypeFromString(string subtypeName);
         /// <summary> Editor Only. 데이터베이스 편집기에서 보여주는 참조된 아이템 설명. </summary>
@@ -29,7 +31,7 @@ namespace OcDialogue
         public string descriptionRefPreview => descriptionReference == null ? "No Reference" : descriptionReference.description;
 #endif
         [ShowIf("isStackable")]public int maxStackCount = 999;
-        [ShowInInspector]public int CurrentStack { get; protected set; }
+        [BoxGroup("Runtime")][ShowInInspector]public int CurrentStack { get; protected set; }
         /// <summary> 원본이 인벤토리에 들어가는 것을 막기위한 값. 새 카피를 생성해서 인벤토리에 넣을 때, 이 부분을 true로 바꿔야함. </summary>
         public bool IsCopy { get; set; }
         /// <summary> 독자적인 설명을 가질지, 참조할지 여부. </summary>
@@ -41,6 +43,7 @@ namespace OcDialogue
         /// <summary> 아이템 개수를 늘림. 1~maxCount의 개수로 제한되며, 오버될 경우, onStackOverflow가 호출됨. stackable아이템이 아니거나 count가 1보다 작은 경우 작동하지 않음. </summary>
         public void AddStack(int count, Action onStackOverflow = null)
         {
+            if(!IsCopy) return;
             if(!isStackable) return;
             if(count < 1) return;
             CurrentStack += count;
@@ -51,6 +54,7 @@ namespace OcDialogue
         /// <summary> 아이템 개수를 제거함. 개수가 0 이하가 되는 경우, onEmpty가 호출됨. stackable아이템이 아니거나 count가 1보다 작은 경우 작동하지 않음. </summary>
         public void RemoveStack(int count, Action onEmpty = null)
         {
+            if(!IsCopy) return;
             if(!isStackable) return;
             if(count < 1) return;
             CurrentStack -= count;

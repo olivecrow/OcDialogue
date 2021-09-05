@@ -26,7 +26,6 @@ namespace OcDialogue
             var preset = new ItemPreset()
             {
                 item = item,
-                icon = item.editorIcon,
                 type = item.type,
                 
             };
@@ -110,7 +109,7 @@ namespace OcDialogue
 
             void ApplyIcon()
             {
-                icon = item.editorIcon;
+                icon = item.IconPreview;
                 _cachedIcon = icon;
             }
 
@@ -120,9 +119,6 @@ namespace OcDialogue
                 {
                     item = icon as ItemBase;
                 }
-                
-                
-                icon = item.editorIcon;
 
                 type = item.type;
                 switch (type)

@@ -80,7 +80,7 @@ namespace OcDialogue
         [ShowIf("useImage")] 
         public Texture2D displayTargetImage;
         
-        [Indent()][ShowIf("useImage")] 
+        [Indent()][ShowIf("@useImage && imageViewerSize == ImageViewerSize.FloatingSize")] 
         public Vector2 imageSizeOverride;
 
 #if UNITY_EDITOR
@@ -149,7 +149,7 @@ namespace OcDialogue
             displayTargetImage = null;
             Debug.Log($"[Balloon] 이미지 참조 해제 | balloon : {GUID} \n text : {text}");
         }
-
+        
         /// <summary> Editor Only. </summary>
         public bool IsWarningOn()
         {

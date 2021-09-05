@@ -63,5 +63,40 @@ namespace OcDialogue
             PhysicalMultiply(multiplier.Strike, multiplier.Slice, multiplier.Thrust);
             ElementalMultiply(multiplier.Fire, multiplier.Ice, multiplier.Lightening, multiplier.Dark);
         }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        public bool Equals(BattleStat other)
+        {
+            return Strike.Equals(other.Strike) && Slice.Equals(other.Slice) && Thrust.Equals(other.Thrust) &&
+                   Fire.Equals(other.Fire) && Ice.Equals(other.Ice) && Lightening.Equals(other.Lightening) &&
+                   Dark.Equals(other.Dark);
+        }
+        
+        public static bool operator ==(BattleStat a, BattleStat b)
+        {
+            return a.Equals(b);
+        }
+
+        public static bool operator !=(BattleStat a, BattleStat b)
+        {
+            return !(a == b);
+        }
+
+        public static BattleStat operator * (BattleStat a, float mult)
+        {
+            a.Multiply(mult);
+            return a;
+        }
+
+        public override string ToString()
+        {
+            return
+                $"Strike : {Strike} | Slice : {Slice} | Thrust : {Thrust} || Sum : {PhysicalSum} | Avg : {PhysicalAvg}\n" +
+                $"Fire : {Fire} | Ice : {Ice} | Lightening : {Lightening} | Dark : {Dark} || Sum : {ElementalSum} | Avg : {ElementalAvg}\n";
+        }
     }
 }

@@ -211,6 +211,19 @@ namespace OcDialogue
                 LinkData.Remove(linkData);
             }
         }
+
+        [BoxGroup("유틸리티 메서드"), Button("GUID로 Balloon선택")]
+        void SelectBalloonFromGUID(string guid)
+        {
+            var balloon = Balloons.Find(x => x.GUID == guid);
+            if (balloon == null)
+            {
+                Debug.Log($"[{guid}] 해당 GUID를 가진 Balloon이 없음");
+                return;
+            }
+
+            Selection.activeObject = balloon;
+        }
 #endif
     }
 }

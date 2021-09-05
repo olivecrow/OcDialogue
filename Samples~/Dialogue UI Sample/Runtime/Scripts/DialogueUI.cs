@@ -222,8 +222,20 @@ namespace OcDialogue.Samples
                             floatingImage.texture = Balloon.displayTargetImage;
                             floatingImageRoot.gameObject.SetActive(true);
                             
-                            floatingImageRoot.offsetMin = -new Vector2(floatingImage.texture.width * 0.5f, floatingImage.texture.height * 0.5f);
-                            floatingImageRoot.offsetMax = new Vector2(floatingImage.texture.width * 0.5f, floatingImage.texture.height * 0.5f);
+                            if(Balloon.imageSizeOverride.sqrMagnitude < 1)
+                            {
+                                floatingImageRoot.offsetMin = -new Vector2(floatingImage.texture.width * 0.5f,
+                                    floatingImage.texture.height * 0.5f);
+                                floatingImageRoot.offsetMax = new Vector2(floatingImage.texture.width * 0.5f,
+                                    floatingImage.texture.height * 0.5f);
+                            }
+                            else
+                            {
+                                floatingImageRoot.offsetMin = -new Vector2(Balloon.imageSizeOverride.x * 0.5f,
+                                    floatingImage.texture.height * 0.5f);
+                                floatingImageRoot.offsetMax = new Vector2(Balloon.imageSizeOverride.y * 0.5f,
+                                    floatingImage.texture.height * 0.5f);
+                            }
                             break;
                         default: goto case ImageViewerSize.FloatingSize;
                     }

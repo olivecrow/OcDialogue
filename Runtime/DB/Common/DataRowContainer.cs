@@ -63,7 +63,7 @@ namespace OcDialogue.DB
         {
             AddData();
         }
-        
+
         public DataRow AddData()
         {
             AssetDatabase.SaveAssets();

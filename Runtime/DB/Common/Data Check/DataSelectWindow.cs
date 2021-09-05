@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
+using UnityEditor;
 using UnityEngine;
 
 namespace OcDialogue.DB
@@ -94,6 +95,7 @@ namespace OcDialogue.DB
             DataSelectable?.SetTargetData(targetData);
             DataSelectable?.UpdateAddress();
             OnDataSelected?.Invoke(targetData);
+            // if(Selection.activeObject != null) EditorUtility.SetDirty(Selection.activeObject);
             Close();
         }
     }

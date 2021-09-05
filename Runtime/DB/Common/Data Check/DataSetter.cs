@@ -151,6 +151,28 @@ namespace OcDialogue.DB
             DataSelectWindow.Open(this);
         }
 
+        public void SetTargetValue(object value)
+        {
+            switch (value)
+            {
+                case bool b:
+                    BoolValue = b;
+                    break;
+                case int i:
+                    IntValue = i;
+                    break;
+                case float f:
+                    FloatValue = f;
+                    break;
+                case string s:
+                    StringValue = s;
+                    break;
+                case QuestState qs:
+                    QuestStateValue = qs;
+                    break;
+            }
+        }
+
         /// <summary> Editor Only. </summary>
         public void SetTargetData(OcData data)
         {

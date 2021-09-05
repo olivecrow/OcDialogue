@@ -72,6 +72,20 @@ namespace OcDialogue
             EditorUtility.SetDirty(this);
             AssetDatabase.SaveAssets();
         }
+        
+        [BoxGroup("유틸리티 메서드"), Button("GUID로 Balloon선택")]
+        void SelectBalloonFromGUID(string guid)
+        {
+            foreach (var conversation in Conversations)
+            {
+                var balloon = conversation.Balloons.Find(x => x.GUID == guid);
+                if (balloon == null) continue;
+
+                Selection.activeObject = balloon;
+                return;
+            }
+            Debug.Log($"[{guid}] 해당 GUID를 가진 Balloon이 없음");
+        }
 #endif
         
     }

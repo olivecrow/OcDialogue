@@ -106,8 +106,7 @@ namespace OcDialogue
             _items.Add(item);
         }
 
-        /// <summary> 인벤토리의 아이템 제거. 원본이든 카피든 상관 없이 동일한 GUID를 가지는 아이템을 개수만큼 제거함. 파라미터 아이템의 CurrentStack은 고려하지 않음.
-        /// stackable이 아닌 아이템의 경우, 항상 1개만 제거됨. </summary>
+        /// <summary> 인벤토리의 아이템 제거. 원본이든 카피든 상관 없이 동일한 GUID를 가지는 아이템을 개수만큼 제거함. 파라미터 아이템의 CurrentStack은 고려하지 않음. </summary>
         public void RemoveItem(ItemBase item, int count = 1)
         {
             if (count <= 0)
@@ -127,7 +126,12 @@ namespace OcDialogue
             }
             else
             {
-                RemoveSingleItem(exist);
+                for (int i = 0; i < count; i++)
+                {
+                    RemoveSingleItem(exist);
+                    exist = _items.Find(x => x.GUID == item.GUID);
+                    if(exist == null) break;
+                }
             }
             OnInventoryChanged?.Invoke();
             OnItemRemoved?.Invoke(exist, count);

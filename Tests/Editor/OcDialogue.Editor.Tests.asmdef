@@ -1,12 +1,16 @@
 {
-    "name": "OcDialogue.Runtime.Test",
-    "rootNamespace": "OcDialogue.Runtime.Test",
+    "name": "OcDialogue.Editor.Tests",
+    "rootNamespace": "OcDialogue",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "olivecrow.ocdialogue.Runtime"
+        "olivecrow.ocdialogue.Runtime",
+        "Unity.Addressables",
+        "Unity.Timeline"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,

@@ -12,6 +12,7 @@ namespace OcDialogue.Editor
     [CustomEditor(typeof(Balloon))]
     public class BalloonInspector : OdinEditor
     {
+        DialogueNode _node;
         Balloon _target;
         protected override void OnEnable()
         {
@@ -21,24 +22,21 @@ namespace OcDialogue.Editor
 
         public override void OnInspectorGUI()
         {
-            EditorGUI.BeginChangeCheck();
             base.OnInspectorGUI();
-            if (EditorGUI.EndChangeCheck())
+            if (_node == null) _node = FindNode();
+            if (_node != null)
             {
-                if(DialogueEditorWindow.Instance == null) return;
-                if(DialogueEditorWindow.Instance.GraphView == null) return;
-                var selections = DialogueEditorWindow.Instance.GraphView.selection; 
-                if(selections.Count == 0) return;
-                foreach (var selection in selections)
-                {
-                    if (selection is DialogueNode node)
-                    {
-                        // TextField는 노드 내에서 바인딩으로 연결함.
-                        node.RefreshTitle();
-                        node.RefreshIcons();
-                    }
-                }
+                // TextField는 노드 내에서 바인딩으로 연결함.
+                _node.RefreshTitle();
+                _node.RefreshIcons();
             }
+        }
+
+        DialogueNode FindNode()
+        {
+            if(DialogueEditorWindow.Instance == null) return null;
+            if(DialogueEditorWindow.Instance.GraphView == null) return null;
+            return DialogueEditorWindow.Instance.GraphView.Nodes.Find(x => x.Balloon.GUID == _target.GUID);
         }
     }
 }

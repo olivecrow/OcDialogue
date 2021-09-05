@@ -112,7 +112,7 @@ namespace OcDialogue.Editor
                         new Color(2f, 1.5f, 0.5f), 
                         (int) _itemType, Enum.GetNames(typeof(ItemType)),
                         25,
-                        new []{icon("GenericItem Icon"), icon("WeaponItem Icon"), icon("ArmorItem Icon"), icon("AccessoryItem Icon"), icon("ImportantItem Icon")});
+                        new []{icon("GenericItem Icon"), icon("ArmorItem Icon"), icon("WeaponItem Icon"), icon("AccessoryItem Icon"), icon("ImportantItem Icon")});
                     var subTypeNames = Enum.GetNames(ItemDatabase.GetSubType(_itemType));
                     var selectedIdx = subTypeNames.ToList().IndexOf(_itemSubType);
                     var idx = drawEnumToolbar(new Color(2f, 1.8f, 1f), selectedIdx, Enum.GetNames(ItemDatabase.GetSubType(_itemType)), 20);
@@ -218,7 +218,7 @@ namespace OcDialogue.Editor
 
                     SirenixEditorGUI.BeginHorizontalToolbar();
                     {
-                        NPC selectedNPC = MenuTree.Selection?.SelectedValue as NPC;
+                        NPC selectedNPC = MenuTree?.Selection?.SelectedValue as NPC;
                         if (SirenixEditorGUI.ToolbarButton("Create"))
                         {
                             var item = NPCDB.Instance.AddNPC(_category);
@@ -317,7 +317,7 @@ namespace OcDialogue.Editor
                     foreach (var item in ItemDatabase.Instance.Items)
                     {
                         if (item.type == _itemType && item.SubTypeString == _itemSubType)
-                            tree.Add(item.itemName, item, item.editorIcon);
+                            tree.Add(item.itemName, item, item.IconPreview as Texture);
                     }
                     break;
                 case DBType.Quest:

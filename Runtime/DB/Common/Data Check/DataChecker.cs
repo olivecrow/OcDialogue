@@ -87,7 +87,7 @@ namespace OcDialogue.DB
             Printer.Print($"[DataChecker] {prefix} {ToExpression().ToRichText(Color.cyan)} => {result}");
         }
 
-        bool HasUnusedCheckables()
+        public bool HasUnusedCheckables()
         {
             if (bindings == null || bindings.Count == 0) return false;
             var maxIndex = factors.Length + bindings.Count - 1;
