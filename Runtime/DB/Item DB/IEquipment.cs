@@ -12,7 +12,7 @@ namespace OcDialogue
         int MaxDurability { get; }
         float CurrentDurability { get; set; }
         float Weight { get; }
-        bool Equipped { get; set; }
+        bool IsEquipped { get; set; }
         AssetReference Avatar { get; }
         ItemBase ItemBase { get; }
     }

@@ -153,6 +153,7 @@ namespace OcDialogue.Editor
 
         public void RefreshIcons()
         {
+            if(Balloon.type == Balloon.Type.Entry) return;
             CheckerIcon.SetVisible(Balloon.useChecker);
             SetterIcon.SetVisible(Balloon.useSetter);
             EventIcon.SetVisible(Balloon.useEvent);

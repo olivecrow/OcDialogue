@@ -14,9 +14,34 @@ using Random = UnityEngine.Random;
 namespace OcDialogue
 {
     [CreateAssetMenu(fileName = "Item Database", menuName = "Oc Dialogue/DB/Item Database")]
-    public class ItemDatabase : ScriptableObject
+    public class ItemDatabase : OcData
     {
+        public override string Address => "ItemDatabase";
         public static ItemDatabase Instance => DBManager.Instance.ItemDatabase;
+        
+        public List<ItemBase> Items;
+
+        public ItemBase FindItem(int guid)
+        {
+            return Items.Find(x => x.GUID == guid);
+        }
+        public static Type GetSubType(ItemType type)
+        {
+            var t = type switch
+            {
+                ItemType.Generic => typeof(GenericType),
+                ItemType.Armor => typeof(ArmorType),
+                ItemType.Weapon => typeof(WeaponType),
+                ItemType.Important => typeof(ImportantItemType),
+                ItemType.Accessory => typeof(AccessoryType),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+            return t;
+        }
+        
+        
+        
+        
 #if UNITY_EDITOR
         [HideInInspector]public InventoryEditorPreset editorPreset;
         
@@ -57,21 +82,6 @@ namespace OcDialogue
             AssetDatabase.SaveAssets();
         }
 #endif
-        public List<ItemBase> Items;
 
-        public static Type GetSubType(ItemType type)
-        {
-            var t = type switch
-            {
-                ItemType.Generic => typeof(GenericType),
-                ItemType.Armor => typeof(ArmorType),
-                ItemType.Weapon => typeof(WeaponType),
-                ItemType.Important => typeof(ImportantItemType),
-                ItemType.Accessory => typeof(AccessoryType),
-                _ => throw new ArgumentOutOfRangeException()
-            };
-            return t;
-        }
-        
     }
 }

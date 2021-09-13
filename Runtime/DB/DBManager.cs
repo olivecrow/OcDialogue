@@ -15,6 +15,10 @@ namespace OcDialogue.DB
         
         public static DBManager Instance => _instance;
         static DBManager _instance;
+        
+        public static event Action OnRuntimeInitilized;
+        public static bool RuntimeInitialized => _runtimeInitialized;
+        static bool _runtimeInitialized;
 
         public DialogueAsset DialogueAsset;
         public GameProcessDB GameProcessDB;
@@ -22,6 +26,8 @@ namespace OcDialogue.DB
         public QuestDB QuestDatabase;
         public NPCDB NpcDatabase;
         public EnemyDB EnemyDatabase;
+        public bool SaveOnChanged = true;
+        
 #if UNITY_EDITOR
         /// <summary> Editor Only. </summary>
         [Button][InitializeOnLoadMethod]
@@ -37,10 +43,18 @@ namespace OcDialogue.DB
             _instance = Resources.Load<DBManager>(AssetPath);
             
             Printer.Print($"[DB Manager V2] RuntimeInit : 모든 데이터 초기화");
-            _instance.GameProcessDB.Load();
-            _instance.QuestDatabase.Load();
-            _instance.NpcDatabase.Load();
-            _instance.EnemyDatabase.Load();
+            _instance.GameProcessDB.Init();
+            _instance.QuestDatabase.Init();
+            _instance.NpcDatabase.Init();
+            _instance.EnemyDatabase.Init();
+
+            _runtimeInitialized = true;
+            OnRuntimeInitilized?.Invoke();
+        }
+
+        void OnDestroy()
+        {
+            _runtimeInitialized = false;
         }
     }
 }

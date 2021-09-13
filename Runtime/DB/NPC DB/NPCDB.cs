@@ -17,12 +17,39 @@ namespace OcDialogue.DB
         public static NPCDB Instance => DBManager.Instance.NpcDatabase;
         [HideInInspector]public string[] Category;
         public List<NPC> NPCs;
+        public event Action OnRuntimeValueChanged;
 
-        public void Load()
+        public void Init()
         {
-            foreach (var npC in NPCs)
+            foreach (var npc in NPCs)
             {
-                npC.GenerateRuntimeData();
+                npc.GenerateRuntimeData();
+                npc.OnRuntimeValueChanged += npc1 => OnRuntimeValueChanged?.Invoke();
+            }
+        }
+
+        public List<CommonSaveData> GetSaveData()
+        {
+            var list = new List<CommonSaveData>();
+            foreach (var npc in NPCs)
+            {
+                list.Add(npc.GetSaveData());
+            }
+
+            return list;
+        }
+
+        public void Overwrite(IEnumerable<CommonSaveData> data)
+        {
+            foreach (var npc in NPCs)
+            {
+                var targetData = data.FirstOrDefault(x => x.Key == npc.Name);
+                if (targetData == null)
+                {
+                    Debug.LogError($"해당 키값의 CommonSaveData가 없음 | key : {npc.Name}");
+                    return;
+                }
+                npc.Load(targetData);
             }
         }
 

@@ -48,6 +48,7 @@ namespace OcDialogue.DB
             get => _runtimeValue;
             set => _runtimeValue = value;
         }
+        public event Action<DataRow> OnRuntimeValueChanged;
 #if UNITY_EDITOR
         [ShowInInspector, TableColumnWidth(150, false), PropertyOrder(-1)]
         public string Name
@@ -106,6 +107,7 @@ namespace OcDialogue.DB
 
         public void GenerateRuntimeData()
         {
+            OnRuntimeValueChanged = null;
             RuntimeValue = new PrimitiveValue()
             {
                 Type = Type,
@@ -141,27 +143,35 @@ namespace OcDialogue.DB
         }
 
         /// <summary> 런타임 bool 값을 변경함. </summary>
-        public void SetValue(bool value)
+        public void SetValue(bool value, bool withoutNotify = false)
         {
+            var isNew = _runtimeValue.BoolValue != value;
             _runtimeValue.BoolValue = value;
+            if(!withoutNotify && isNew) OnRuntimeValueChanged?.Invoke(this);
         }
 
         /// <summary> 런타임 int 값을 변경함. </summary>
-        public void SetValue(int value)
+        public void SetValue(int value, bool withoutNotify = false)
         {
+            var isNew = _runtimeValue.IntValue != value;
             _runtimeValue.IntValue = value;
+            if(!withoutNotify && isNew) OnRuntimeValueChanged?.Invoke(this);
         }
 
         /// <summary> 런타임 float 값을 변경함. </summary>
-        public void SetValue(float value)
+        public void SetValue(float value, bool withoutNotify = false)
         {
+            var isNew = Math.Abs(_runtimeValue.FloatValue - value) > 0.0005f;
             _runtimeValue.FloatValue = value;
+            if(!withoutNotify && isNew) OnRuntimeValueChanged?.Invoke(this);
         }
 
         /// <summary> 런타임 string 값을 변경함. </summary>
-        public void SetValue(string value)
+        public void SetValue(string value, bool withoutNotify = false)
         {
+            var isNew = _runtimeValue.StringValue != value;
             _runtimeValue.StringValue = value;
+            if(!withoutNotify && isNew) OnRuntimeValueChanged?.Invoke(this);
         }
 
         public bool IsTrue(CheckFactor.Operator op, object value)
@@ -190,12 +200,31 @@ namespace OcDialogue.DB
         }
 
 #if UNITY_EDITOR
+        public void LoadFromEditorPreset()
+        {
+            RuntimeValue = new PrimitiveValue()
+            {
+                Type = Type,
+                BoolValue = _editorPresetValue.BoolValue,
+                IntValue = _editorPresetValue.IntValue,
+                FloatValue = _editorPresetValue.FloatValue,
+                StringValue = _editorPresetValue.StringValue,
+            };
+        }
         public void EditorPresetToDefault()
         {
-            _editorPresetValue.BoolValue = _initialValue.BoolValue;
-            _editorPresetValue.IntValue = _initialValue.IntValue;
-            _editorPresetValue.FloatValue = _initialValue.FloatValue;
+            _editorPresetValue.BoolValue   = _initialValue.BoolValue;
+            _editorPresetValue.IntValue    = _initialValue.IntValue;
+            _editorPresetValue.FloatValue  = _initialValue.FloatValue;
             _editorPresetValue.StringValue = _initialValue.StringValue;
+        }
+
+        public void RuntimeValueToEditorPresetValue()
+        {
+            _runtimeValue.BoolValue   = _editorPresetValue.BoolValue;
+            _runtimeValue.IntValue    = _editorPresetValue.IntValue;
+            _runtimeValue.FloatValue  = _editorPresetValue.FloatValue;
+            _runtimeValue.StringValue = _editorPresetValue.StringValue;
         }
 #endif
     }

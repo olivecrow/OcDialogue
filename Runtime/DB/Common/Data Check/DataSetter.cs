@@ -122,15 +122,6 @@ namespace OcDialogue.DB
                     }
                     break;
                 case Enemy enemy:
-                    switch (detail)
-                    {
-                        case DataChecker.ENEMY_KILLCOUNT:
-                            enemy.SetKillCount(IntValue);
-                            break;
-                        default:
-                            Printer.Print($"[DataSetter] Enemy 대한 Detail 설정이 안 되어있음 | Detail : {detail}", LogType.Error);
-                            break;
-                    }
                     break;
             }
         }

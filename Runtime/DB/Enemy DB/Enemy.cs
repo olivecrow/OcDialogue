@@ -29,6 +29,8 @@ namespace OcDialogue.DB
 #endif
             }
         }
+
+        [TextArea]public string Description;
         [InlineButton("CalcStatsFromLevelAndWeight", "스탯 반영")]public EnemyLevel EnemyLevel;
         public float Weight;
         [HorizontalGroup("BattleStat")]public BattleStat AttackStat;
@@ -38,6 +40,7 @@ namespace OcDialogue.DB
         public float Stability;
         public ItemDropInfo[] DropInfo;
         [BoxGroup("DataRow")]public DataRowContainer dataRowContainer;
+        public event Action<Enemy> OnRuntimeValueChanged;
 #if UNITY_EDITOR
         
         public RuntimeValue EditorPreset => _editorPreset;
@@ -47,6 +50,10 @@ namespace OcDialogue.DB
         [HorizontalGroup("Debug/1")]
         RuntimeValue _editorPreset;
 #endif
+
+        public const string saveDataKey_KillCount = "KillCount";
+        public const string saveDataKey_TotalKillCount = "TotalKillCount";
+        
         [ShowInInspector]
         [HorizontalGroup("Debug/1")]
         [EnableIf("@UnityEngine.Application.isPlaying")]
@@ -71,17 +78,45 @@ namespace OcDialogue.DB
         {
             _runtime = new RuntimeValue();
             dataRowContainer.GenerateRuntimeData();
-        }
-
-        public void SetKillCount(int killCount)
-        {
-            _runtime.KillCount = killCount;
+            dataRowContainer.OnRuntimeValueChanged += row => OnRuntimeValueChanged?.Invoke(this);
         }
 
         public void AddKillCount()
         {
             _runtime.TotalKillCount++;
             _runtime.KillCount++;
+            OnRuntimeValueChanged?.Invoke(this);
+        }
+        
+        public CommonSaveData GetSaveData()
+        {
+            var data = new CommonSaveData
+            {
+                Key = Name,
+                DataRowContainerDict = dataRowContainer.GetSaveData(),
+                Data = new Dictionary<string, string>
+                {
+                    [saveDataKey_KillCount] = _runtime.KillCount.ToString(),
+                    [saveDataKey_TotalKillCount] = _runtime.TotalKillCount.ToString()
+                }
+            };
+            return data;
+        }
+
+        public void Load(CommonSaveData data)
+        {
+            dataRowContainer.Overwrite(data.DataRowContainerDict);
+            if (data.Data.ContainsKey(saveDataKey_KillCount) &&
+                int.TryParse(data.Data[saveDataKey_KillCount], out var killCount))
+            {
+                _runtime.KillCount = killCount;
+            }
+            
+            if (data.Data.ContainsKey(saveDataKey_TotalKillCount) &&
+                int.TryParse(data.Data[saveDataKey_TotalKillCount], out var totalKillCount))
+            {
+                _runtime.KillCount = totalKillCount;
+            }
         }
         
         

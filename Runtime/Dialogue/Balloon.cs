@@ -84,6 +84,7 @@ namespace OcDialogue
         public Vector2 imageSizeOverride;
 
 #if UNITY_EDITOR
+        public string description;
         /// <summary> actor필드에서 NPC이름을 드롭다운으로 보여주기위한 리스트를 반환함. (Odin Inspector용) </summary>
         ValueDropdownList<NPC> GetNPCList()
         {

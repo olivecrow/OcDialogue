@@ -153,6 +153,64 @@ namespace OcDialogue
             _items.Remove(item);
         }
 
+        public List<ItemSaveData> GetSaveData()
+        {
+            var list = new List<ItemSaveData>();
+            foreach (var itemBase in _items)
+            {
+                list.Add(new ItemSaveData(itemBase));
+            }
+
+            return list;
+        }
+        
+        public void Overwrite(IEnumerable<ItemSaveData> data)
+        {
+            _items = new List<ItemBase>();
+            foreach (var itemSaveData in data)
+            {
+                var copy = ItemDatabase.Instance.FindItem(itemSaveData.GUID).GetCopy();
+                if (copy == null)
+                {
+                    Debug.LogError($"아이템 데이터베이스에서 해당 아이템을 찾을 수 없음 | {itemSaveData.itemName}");
+                }
+                copy.AddStack(itemSaveData.count);
+                if (copy is IEquipment equipment)
+                {
+                    equipment.CurrentUpgrade = itemSaveData.upgrade;
+                    equipment.CurrentDurability = itemSaveData.durability;
+                    equipment.IsEquipped = itemSaveData.isEquipped;
+                }
+                AddNewItem(copy);
+            }
+        }
+
+#if DEBUG
+        public static void AddItemToPlayerInventory(string itemName, int count)
+        {
+            if (_playerInventory == null)
+            {
+                Debug.LogWarning("플레이어 인벤토리가 없음");
+                return;
+            }
+            var item = ItemDatabase.Instance.Items.Find(x => x.itemName == itemName);
+            if(item == null) return;
+            _playerInventory.AddItem(item, count);
+        }
+
+        public static void AddItemToPlayerInventory(int guid, int count)
+        {
+            if (_playerInventory == null)
+            {
+                Debug.LogWarning("플레이어 인벤토리가 없음");
+                return;
+            }
+
+            var item = ItemDatabase.Instance.FindItem(guid);
+            if(item == null) return;
+            _playerInventory.AddItem(item, count);
+        }
+#endif
 
 #if UNITY_EDITOR
         static void ReleaseEvent()

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,15 +16,39 @@ namespace OcDialogue.DB
         public static EnemyDB Instance => DBManager.Instance.EnemyDatabase;
         [HideInInspector]public string[] Category;
         public List<Enemy> Enemies;
-
-        public void Load()
+        public event Action OnRuntimeValueChanged;
+        public void Init()
         {
             foreach (var enemy in Enemies)
             {
                 enemy.GenerateRuntimeData();
+                enemy.OnRuntimeValueChanged += enemy1 => OnRuntimeValueChanged?.Invoke();
             }
         }
-        
+        public List<CommonSaveData> GetSaveData()
+        {
+            var list = new List<CommonSaveData>();
+            foreach (var enemy in Enemies)
+            {
+                list.Add(enemy.GetSaveData());
+            }
+
+            return list;
+        }
+
+        public void Overwrite(IEnumerable<CommonSaveData> data)
+        {
+            foreach (var enemy in Enemies)
+            {
+                var targetData = data.FirstOrDefault(x => x.Key == enemy.Name);
+                if (targetData == null)
+                {
+                    Debug.LogError($"해당 키값의 CommonSaveData가 없음 | key : {enemy.Name}");
+                    continue;
+                }
+                enemy.Load(targetData);
+            }
+        }
         
 #if UNITY_EDITOR
         void Reset()

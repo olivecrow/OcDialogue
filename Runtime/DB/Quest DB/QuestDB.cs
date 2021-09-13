@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,14 +15,41 @@ namespace OcDialogue.DB
         public IEnumerable<OcData> AllData => Quests;
         public override string Address => "QuestDB";
         public static QuestDB Instance => DBManager.Instance.QuestDatabase;
-        [HideInInspector]public string[] Category;
+        public string[] Category;
         public List<Quest> Quests;
+        public event Action OnRuntimeValueChanged;
 
-        public void Load()
+        public void Init()
         {
             foreach (var quest in Quests)
             {
                 quest.GenerateRuntimeData();
+                quest.OnRuntimeValueChanged += q => OnRuntimeValueChanged?.Invoke();
+            }
+        }
+
+        public List<CommonSaveData> GetSaveData()
+        {
+            var list = new List<CommonSaveData>();
+            foreach (var quest in Quests)
+            {
+                list.Add(quest.GetSaveData());
+            }
+
+            return list;
+        }
+
+        public void Overwrite(IEnumerable<CommonSaveData> data)
+        {
+            foreach (var quest in Quests)
+            {
+                var targetData = data.FirstOrDefault(x => x.Key == quest.Name);
+                if (targetData == null)
+                {
+                    Debug.LogError($"해당 키값의 CommonSaveData가 없음 | key : {quest.Name}");
+                    continue;
+                }
+                quest.Load(targetData);
             }
         }
 
@@ -76,9 +104,27 @@ namespace OcDialogue.DB
                 quest.SetParent(this);
                 quest.Resolve();
             }
-            
+
+            Quests = Quests.OrderBy(x => x.e_order + x.Name).ToList();
             
             AssetDatabase.SaveAssets();
+        }
+
+        [Button]
+        public void ReplaceCategory(string before, string after)
+        {
+            if (!Category.Contains(after))
+            {
+                Debug.LogWarning($"after로 설정된 카테고리({after})가 현재 카테고리 목록에 없음");
+                return;
+            }
+            foreach (var quest in Quests)
+            {
+                if(quest.Category != before) continue;
+
+                quest.Category = after;
+                Debug.Log($"[{quest.name}] 카테고리 변경 : {before} => {quest.Category}");
+            }
         }
 #endif
     }

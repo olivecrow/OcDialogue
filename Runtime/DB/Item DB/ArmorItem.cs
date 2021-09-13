@@ -22,7 +22,7 @@ namespace OcDialogue
         public int MaxDurability => maxDurability;
         public float CurrentDurability { get; set; }
         public float Weight => weight;
-        public bool Equipped { get; set; }
+        public bool IsEquipped { get; set; }
 
         public int maxDurability = 100;
         [InlineButton("CalcDefenseFromWeight", "무게로 방어력 계산")][InlineButton("MoreDefense", "▶")][InlineButton("LessDefense", "◀")]

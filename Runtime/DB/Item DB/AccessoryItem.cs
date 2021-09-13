@@ -31,7 +31,7 @@ namespace OcDialogue
         }
 
         public float Weight => weight;
-        public bool Equipped { get; set; }
+        public bool IsEquipped { get; set; }
         public float weight = 0.5f;
 #if UNITY_EDITOR
         public override void SetSubTypeFromString(string subtypeName)

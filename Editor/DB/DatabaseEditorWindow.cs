@@ -29,11 +29,24 @@ namespace OcDialogue.Editor
         string _itemSubType;
         string _category;
         bool _isCategoryEditMode;
+
+        UnityEditor.Editor _questDbEditor;
+        UnityEditor.Editor _npcEditor;
+        UnityEditor.Editor _enemyEditor;
+        
         [MenuItem("OcDialogue/DB 에디터")]
         static void Open()
         {
             var wnd = GetWindow<DatabaseEditorWindow>("DB 에디터", true, typeof(SceneView));
             wnd.minSize = new Vector2(720, 480);
+        }
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            _questDbEditor = UnityEditor.Editor.CreateEditor(QuestDB.Instance);
+            _npcEditor = UnityEditor.Editor.CreateEditor(NPCDB.Instance);
+            _enemyEditor = UnityEditor.Editor.CreateEditor(EnemyDB.Instance);
         }
 
         protected override void OnBeginDrawEditors()
@@ -74,8 +87,12 @@ namespace OcDialogue.Editor
                 if (_isCategoryEditMode)
                 {
                     GUI.enabled = true;
+                    EditorGUI.BeginChangeCheck();
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("Category"));
-                    serializedObject.ApplyModifiedProperties();
+                    if(EditorGUI.EndChangeCheck())
+                    {
+                        serializedObject.ApplyModifiedProperties();
+                    }
                     if (SirenixEditorGUI.ToolbarButton("Done")) _isCategoryEditMode = false;
                     GUI.enabled = false;
                 }
@@ -180,7 +197,7 @@ namespace OcDialogue.Editor
                         nullDBWarning();
                         return;
                     }
-                    drawCategory(new Color(1f, 1.3f, 2f), QuestDB.Instance.Category, UnityEditor.Editor.CreateEditor(QuestDB.Instance).serializedObject);
+                    drawCategory(new Color(1f, 1.3f, 2f), QuestDB.Instance.Category, _questDbEditor.serializedObject);
                     
                     SirenixEditorGUI.BeginHorizontalToolbar();
                     {
@@ -203,6 +220,7 @@ namespace OcDialogue.Editor
                         if (SirenixEditorGUI.ToolbarButton("Resolve"))
                         {
                             QuestDB.Instance.Resolve();
+                            rebuildRequest = true;
                         }
                     }
                     SirenixEditorGUI.EndHorizontalToolbar();
@@ -214,7 +232,7 @@ namespace OcDialogue.Editor
                         nullDBWarning();
                         return;
                     }
-                    drawCategory(new Color(1.5f, 1f, 1.6f), NPCDB.Instance.Category, UnityEditor.Editor.CreateEditor(NPCDB.Instance).serializedObject);
+                    drawCategory(new Color(1.5f, 1f, 1.6f), NPCDB.Instance.Category, _npcEditor.serializedObject);
 
                     SirenixEditorGUI.BeginHorizontalToolbar();
                     {
@@ -250,7 +268,7 @@ namespace OcDialogue.Editor
                         nullDBWarning();
                         return;
                     }
-                    drawCategory(new Color(1.8f, 1f, 1.4f), EnemyDB.Instance.Category, UnityEditor.Editor.CreateEditor(EnemyDB.Instance).serializedObject);
+                    drawCategory(new Color(1.8f, 1f, 1.4f), EnemyDB.Instance.Category, _enemyEditor.serializedObject);
 
                     SirenixEditorGUI.BeginHorizontalToolbar();
                 {

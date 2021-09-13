@@ -31,13 +31,14 @@ namespace OcDialogue
             {
                 name = value;
 #if UNITY_EDITOR
-                AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(this), name);          
+                AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(this), name);
 #endif
             }
         }
         [TextArea]
         public string Description;
 
+        public Quest ParentQuest;
         public OcData[] References;
 
         public DataRowContainer dataRowContainer;
@@ -45,7 +46,7 @@ namespace OcDialogue
         public DataChecker Checker;
       
 #if UNITY_EDITOR
-        
+        [PropertyOrder(-3)]public int e_order;
         public RuntimeValue EditorPreset => _editorPreset;
         [SerializeField]
         [DisableIf("@UnityEditor.EditorApplication.isPlaying")]
@@ -53,6 +54,9 @@ namespace OcDialogue
         [HorizontalGroup("Debug/1")]
         RuntimeValue _editorPreset;
 #endif
+        public event Action<Quest> OnRuntimeValueChanged;
+
+        public const string saveDataKey_questState = "QuestState";
         [ShowInInspector]
         [HorizontalGroup("Debug/1")]
         [EnableIf("@UnityEngine.Application.isPlaying")]
@@ -66,7 +70,8 @@ namespace OcDialogue
         public void GenerateRuntimeData()
         {
             _runtime = new RuntimeValue();
-            DataRowContainer.GenerateRuntimeData();
+            dataRowContainer.GenerateRuntimeData();
+            dataRowContainer.OnRuntimeValueChanged += row => OnRuntimeValueChanged?.Invoke(this);
         }
 
 
@@ -100,12 +105,36 @@ namespace OcDialogue
             return false;
         }
 
-        public void SetState(QuestState targetState)
+        public void SetState(QuestState targetState, bool withoutNotify = false)
         {
+            var isNew = _runtime.QuestState != targetState;
             _runtime.QuestState = targetState;
+            if(!withoutNotify && isNew) OnRuntimeValueChanged?.Invoke(this);
         }
 
-        
+        public CommonSaveData GetSaveData()
+        {
+            var data = new CommonSaveData
+            {
+                Key = Name,
+                DataRowContainerDict = dataRowContainer.GetSaveData(),
+                Data = new Dictionary<string, string>
+                {
+                    [saveDataKey_questState] = _runtime.QuestState.ToString()
+                }
+            };
+            return data;
+        }
+
+        public void Load(CommonSaveData data)
+        {
+            dataRowContainer.Overwrite(data.DataRowContainerDict);
+            if (data.Data.ContainsKey(saveDataKey_questState) &&
+                Enum.TryParse(data.Data[saveDataKey_questState], out QuestState state))
+            {
+                SetState(state, true);   
+            }
+        }
         
 #if UNITY_EDITOR
         void Reset()

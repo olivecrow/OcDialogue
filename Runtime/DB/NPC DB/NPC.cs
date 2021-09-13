@@ -42,7 +42,7 @@ namespace OcDialogue.DB
         [TextArea]
         public string Description;
         public DataRowContainer dataRowContainer;
-        
+        public event Action<NPC> OnRuntimeValueChanged;
 #if UNITY_EDITOR
         
         public RuntimeValue EditorPreset => _editorPreset;
@@ -52,6 +52,8 @@ namespace OcDialogue.DB
         [HorizontalGroup("Debug/1")]
         RuntimeValue _editorPreset;
 #endif
+        public const string saveDataKey_isEncountered = "IsEncountered";
+        
         [ShowInInspector]
         [HorizontalGroup("Debug/1")]
         [EnableIf("@UnityEngine.Application.isPlaying")]
@@ -66,6 +68,8 @@ namespace OcDialogue.DB
         public void GenerateRuntimeData()
         {
             _runtime = new RuntimeValue();
+            dataRowContainer.GenerateRuntimeData();
+            dataRowContainer.OnRuntimeValueChanged += row => OnRuntimeValueChanged?.Invoke(this);
         }
 
         public bool IsTrue(CheckFactor.Operator op, bool isEncountered)
@@ -87,9 +91,35 @@ namespace OcDialogue.DB
             return false;
         }
 
-        public void SetEncountered(bool encountered)
+        public void SetEncountered(bool encountered, bool withoutNotify = false)
         {
+            var isNew = _runtime.IsEncountered != encountered;
             _runtime.IsEncountered = encountered;
+            if(!withoutNotify && isNew) OnRuntimeValueChanged?.Invoke(this);
+        }
+        
+        public CommonSaveData GetSaveData()
+        {
+            var data = new CommonSaveData
+            {
+                Key = Name,
+                DataRowContainerDict = dataRowContainer.GetSaveData(),
+                Data = new Dictionary<string, string>
+                {
+                    [saveDataKey_isEncountered] = _runtime.IsEncountered.ToString()
+                }
+            };
+            return data;
+        }
+
+        public void Load(CommonSaveData data)
+        {
+            dataRowContainer.Overwrite(data.DataRowContainerDict);
+            if (data.Data.ContainsKey(saveDataKey_isEncountered) &&
+                bool.TryParse(data.Data[saveDataKey_isEncountered], out var isEncountered))
+            {
+                SetEncountered(isEncountered, true);   
+            }
         }
         
         
