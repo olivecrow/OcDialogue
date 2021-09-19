@@ -2,8 +2,10 @@
 모든 변경사항을 이 곳에 기록함.
 
 ### TODO
-- 트랜스폼 데이터, 커스텀 값 등의 인게임 데이터를 GameProcessDB에 저장하고 로드하게 하기
+- DynamicData 잘 작동하는지 보물상자같은 간단한 오브젝트 만들어서 확인해보기
 - 빌드된 게임에서도 콘솔 상으로 런타임 데이터를 수정할 수 있게 하기
+- Localization으로 번역 잘 되나 확인해보기
+- DataCheckEventTrigger에 OnEnable, Awake등의 이벤트 추가하기
 
 ## [1.2.0] - 2021-09-13
 ### Added
