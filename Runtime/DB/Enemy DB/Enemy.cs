@@ -87,7 +87,20 @@ namespace OcDialogue.DB
             _runtime.KillCount++;
             OnRuntimeValueChanged?.Invoke(this);
         }
-        
+
+#if DEBUG
+        /// <summary>
+        /// TotalKillCount와 KillCount를 동시에 설정함. 디버그 목적이 아니면 쓰지 말 것.
+        /// </summary>
+        /// <param name="value"></param>
+        public void SetKillCount(int value)
+        {
+            _runtime.TotalKillCount = value;
+            _runtime.KillCount = value;
+            OnRuntimeValueChanged?.Invoke(this);
+        }
+#endif
+
         public CommonSaveData GetSaveData()
         {
             var data = new CommonSaveData

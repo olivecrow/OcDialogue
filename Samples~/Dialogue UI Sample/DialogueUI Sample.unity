@@ -97,8 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000002, guid: 7a250cd05c144754898bac3891af1ece,
-    type: 2}
+  m_LightingDataAsset: {fileID: 112000002, guid: 7a250cd05c144754898bac3891af1ece, type: 2}
   m_LightingSettings: {fileID: 0}
 --- !u!196 &4
 NavMeshSettings:
@@ -153,7 +152,6 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1412256665}
   m_Father: {fileID: 2123892081}
@@ -255,7 +253,6 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 292537582}
   m_Father: {fileID: 1003114758}
@@ -368,7 +365,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
-  TMP: {fileID: 0}
+  TMP: {fileID: 292537583}
 --- !u!1 &175188317
 GameObject:
   m_ObjectHideFlags: 0
@@ -397,7 +394,6 @@ RectTransform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1749722886}
   m_RootOrder: 0
@@ -470,7 +466,6 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 112729033}
   m_RootOrder: 0
@@ -503,8 +498,7 @@ MonoBehaviour:
   m_text: Choice
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fbc67749b6e9d58469bc83c792d51945, type: 2}
-  m_sharedMaterial: {fileID: 4725579889042724406, guid: fbc67749b6e9d58469bc83c792d51945,
-    type: 2}
+  m_sharedMaterial: {fileID: 4725579889042724406, guid: fbc67749b6e9d58469bc83c792d51945, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -590,7 +584,7 @@ GameObject:
   - component: {fileID: 313808421}
   - component: {fileID: 313808420}
   m_Layer: 5
-  m_Name: Image - Next Icon
+  m_Name: Image - Complete Icon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -606,7 +600,6 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1412256665}
   m_RootOrder: 2
@@ -665,6 +658,7 @@ GameObject:
   - component: {fileID: 717020262}
   - component: {fileID: 717020264}
   - component: {fileID: 717020263}
+  - component: {fileID: 717020265}
   m_Layer: 5
   m_Name: Text - Subtitle
   m_TagString: Untagged
@@ -682,7 +676,6 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1412256665}
   m_RootOrder: 0
@@ -720,8 +713,7 @@ MonoBehaviour:
     If you have long text, split it with 2 sentence.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fbc67749b6e9d58469bc83c792d51945, type: 2}
-  m_sharedMaterial: {fileID: 4725579889042724406, guid: fbc67749b6e9d58469bc83c792d51945,
-    type: 2}
+  m_sharedMaterial: {fileID: 4725579889042724406, guid: fbc67749b6e9d58469bc83c792d51945, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -795,6 +787,45 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 717020261}
   m_CullTransparentMesh: 1
+--- !u!114 &717020265
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 717020261}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56eb0353ae6e5124bb35b17aff880f16, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_StringReference:
+    m_TableReference:
+      m_TableCollectionName: 
+    m_TableEntryReference:
+      m_KeyId: 0
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  m_FormatArguments: []
+  m_UpdateString:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 717020263}
+        m_TargetAssemblyTypeName: TMPro.TMP_Text, Unity.TextMeshPro
+        m_MethodName: set_text
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  references:
+    version: 1
 --- !u!1 &1003114757
 GameObject:
   m_ObjectHideFlags: 0
@@ -825,7 +856,6 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 112729033}
   m_Father: {fileID: 2123892081}
@@ -951,7 +981,6 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1884793873}
   m_RootOrder: 0
@@ -1025,7 +1054,6 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 717020262}
   - {fileID: 1973912194}
@@ -1133,7 +1161,6 @@ RectTransform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 175188318}
   m_Father: {fileID: 1884793873}
@@ -1195,7 +1222,6 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1365825640}
   - {fileID: 1749722886}
@@ -1296,7 +1322,6 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1412256665}
   m_RootOrder: 1
@@ -1329,8 +1354,7 @@ MonoBehaviour:
   m_text: Name
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fbc67749b6e9d58469bc83c792d51945, type: 2}
-  m_sharedMaterial: {fileID: 4725579889042724406, guid: fbc67749b6e9d58469bc83c792d51945,
-    type: 2}
+  m_sharedMaterial: {fileID: 4725579889042724406, guid: fbc67749b6e9d58469bc83c792d51945, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1508,7 +1532,6 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0, y: 0, z: 0}
-  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1884793873}
   - {fileID: 93635682}
@@ -1534,19 +1557,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   canvasGroup: {fileID: 2123892076}
-  nameField: {fileID: 0}
-  textField: {fileID: 0}
-  choiceArea: {fileID: 0}
-  choiceButtonTemplate: {fileID: 0}
-  nextIcon: {fileID: 0}
-  TypeWriteSpeed: 50
-  ChoiceWaitTime: 0.25
-  DoubleClickBlockTime: 0.15
+  LocalizedStringTable:
+    m_TableReference:
+      m_TableCollectionName: GUID:f5f2627a12b7d4833bce513ef5b5ca2b
+  AutoDialogue: 0
+  IntervalBetweenDisplay: 0.7
+  DisplayTimePerCharacter: 0.2
+  nameField: {fileID: 1973912195}
+  textField: {fileID: 717020263}
+  SubtitleCompleteIcon: {fileID: 313808420}
   HideName: 0
+  SubtitleDisplayStyle: 1
+  TypeWriteSpeed: 50
   TextFadeInTime: 0.7
   TextFadeOutTime: 0.95
-  CutsceneSubtitleInterval: 0.7
-  CutsceneTextSpeed: 0.2
-  fullSizeImage: {fileID: 0}
-  floatingImage: {fileID: 0}
-  floatingImageRoot: {fileID: 0}
+  DoubleClickBlockTime: 0.15
+  choiceArea: {fileID: 1003114757}
+  choiceButtonTemplate: {fileID: 112729038}
+  ChoiceWaitTime: 0.25
+  fullSizeImage: {fileID: 1365825641}
+  floatingImage: {fileID: 175188319}
+  floatingImageRoot: {fileID: 1749722886}

@@ -94,7 +94,15 @@ namespace OcDialogue.DB
             return dict;
         }
 
+        public bool HasKey(string key)
+        {
+            return DataRows.Any(x => x.Name == key);
+        }
 
+        public DataRow Get(string key)
+        {
+            return DataRows.FirstOrDefault(x => x.Name == key);
+        }
         
         #if UNITY_EDITOR
 
@@ -114,10 +122,17 @@ namespace OcDialogue.DB
 
         public DataRow AddData()
         {
+            var key = OcDataUtility.CalculateDataName("New DataRow", DataRows.Select(x => x.name));
+
+            return AddData(key);
+        }
+
+        public DataRow AddData(string key)
+        {
             AssetDatabase.SaveAssets();
             var row = ScriptableObject.CreateInstance<DataRow>();
             row.SetParent(Parent);
-            row.name = OcDataUtility.CalculateDataName("New DataRow", DataRows.Select(x => x.name));
+            row.name = key;
             DataRows.Add(row);
             OcDataUtility.Repaint();
 

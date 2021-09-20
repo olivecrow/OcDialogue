@@ -97,6 +97,11 @@ namespace OcDialogue.DB
             _runtime.IsEncountered = encountered;
             if(!withoutNotify && isNew) OnRuntimeValueChanged?.Invoke(this);
         }
+
+        public void SetCharacter(INPCCharacter character)
+        {
+            _runtime.Character = character;
+        }
         
         public CommonSaveData GetSaveData()
         {
@@ -127,6 +132,7 @@ namespace OcDialogue.DB
         public struct RuntimeValue
         {
             public bool IsEncountered;
+            public INPCCharacter Character;
         }
 #if UNITY_EDITOR
         void Reset()

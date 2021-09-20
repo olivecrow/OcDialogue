@@ -9,6 +9,9 @@ namespace OcDialogue
     public class GameProcessSaveData
     {
         public Dictionary<string, string> DataRowContainerDict;
-        public List<DynamicData> DynamicDataList;
+        public TransformData PlayerTransform;
+        public float PlayerHP;
+        public DateTime GameTime;
+        public TimeSpan PlayTime;
     }
 }

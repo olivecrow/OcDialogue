@@ -25,6 +25,11 @@ namespace OcDialogue
         {
             return Items.Find(x => x.GUID == guid);
         }
+
+        public ItemBase FindItem(string itemName)
+        {
+            return Items.Find(x => x.itemName == itemName);
+        }
         public static Type GetSubType(ItemType type)
         {
             var t = type switch

@@ -57,6 +57,7 @@ namespace OcDialogue.Editor
             var writer = File.CreateText(Path.Combine(folderPath, $"{fileName}.csv"));
             writer.WriteLine(sb);
             writer.Close();
+            Debug.Log($"CSV Export 완료 | Path : {folderPath} | FileName : {fileName} | 항목 개수 : {Data.Count}");
         }
         
     }

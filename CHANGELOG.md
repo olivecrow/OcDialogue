@@ -1,11 +1,25 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
-### TODO
-- DynamicData 잘 작동하는지 보물상자같은 간단한 오브젝트 만들어서 확인해보기
-- 빌드된 게임에서도 콘솔 상으로 런타임 데이터를 수정할 수 있게 하기
-- Localization으로 번역 잘 되나 확인해보기
-- DataCheckEventTrigger에 OnEnable, Awake등의 이벤트 추가하기
+## [1.3.0] - 2021-09-21
+### Added
+- 각종 게임데이터의 저장을 위한 DynamicDataUser 추가
+  - 이미 열었던 보물상자, 문, 획득한 필드 아이템 등에 MonoBehaviour로서 추가하고 GameProcessDB에 데이터를 연결해서 사용.
+  
+- Debugging Essentials와 통합해주기 위한 Debugging Essentials Integration 샘플 추가
+  - 샘플을 임포트하면 Debugging Essentials의 콘솔에서 DB를 런타임에 수정할 수 있는 메서드를 사용할 수 있음
+
+- Export Wizard에 번역용 템플릿 Export 추가
+- DialogueUI Sample의 DataCheckEventTrigger에 OnAwake, TriggerEnter등의 타이밍을 정할 수 있도록 변수를 추가함.
+
+### Fixed
+- Export Wizard에서 NPCDB와 EnemyDB가 잘못 출력되던 문제 해결
+- Dialogue를 CSV로 추출할때 Choice Balloon에서 키의 개수가 맞지 않던 문제 해결
+- DialogueUI Sample의 DialogueUI 작동방식 변경
+  - Cutscene모드와 Default 모드로 나누던 것을 하나로 합침. 
+  - 그 대신, 그 안에 있는 설정을 각각 나눠서 씬 별로 작동할 수 있게 함.
+  - 컷씬용 UI와 일반 대화용 UI, 나레이션용 UI 등을 나눠서 작업할 것.
+  - ENABLE_LOCALIZATION 전처리기 추가함. Localization 패키지가 활성화된 경우, 텍스트를 대사가 아니라 Balloon의 주소로 표시함.
 
 ## [1.2.0] - 2021-09-13
 ### Added

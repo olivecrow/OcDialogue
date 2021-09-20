@@ -23,7 +23,6 @@ namespace OcDialogue
             Choice,
             Action
         }
-
         [ReadOnly] public string GUID;
         [ReadOnly] public Type type;
 

@@ -7,6 +7,7 @@ using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Localization.Settings;
 
 namespace OcDialogue.Editor
 {
@@ -17,7 +18,8 @@ namespace OcDialogue.Editor
             Dialogue,
             ItemDB,
             QuestDB,
-            NPCDB
+            NPCDB,
+            EnemyDB
         }
 
         [EnumToggleButtons]public ExportType type;
@@ -79,11 +81,24 @@ namespace OcDialogue.Editor
                     ExportQuestDB();
                     break;
                 case ExportType.NPCDB:
+                    ExportNPCDB();
+                    break;
+                case ExportType.EnemyDB:
                     ExportEnemyDB();
                     break;
-                default:
-                    throw new ArgumentOutOfRangeException();
             }
+        }
+
+        [Button("번역용 CSV 테이블 Export")]
+        void ExportLocalizationTemplate()
+        {
+            var keys = new List<string>();
+            keys.Add("Key");
+            keys.Add("Id");
+            keys.AddRange(LocalizationSettings.AvailableLocales.Locales.Select(x => x.Identifier.ToString()));
+            var writer = new CSVWriter(keys.ToArray());
+
+            writer.Save(folderPath, $"{fileNamePrefix}_Localization Template");
         }
 
 
@@ -141,7 +156,7 @@ namespace OcDialogue.Editor
                         return;
                     case Balloon.Type.Dialogue:
                         writer.Add(
-                            $"{conversation.Category}/{conversation.key}",
+                            $"{conversation.Category}/{conversation.key}/{balloon.GUID}",
                             balloon.GUID,
                             balloon.actor == null ? "" : balloon.actor.Name,
                             balloon.text,
@@ -151,6 +166,7 @@ namespace OcDialogue.Editor
                     case Balloon.Type.Choice:
                         writer.Add(
                             $"{conversation.Category}/{conversation.key}/{balloon.GUID}",
+                            balloon.GUID,
                             choiceType_actorName,
                             balloon.text,
                             balloon.description + getAutoComment(balloon)
@@ -280,6 +296,8 @@ namespace OcDialogue.Editor
 
         #endregion
 
+        #region CommonDB
+
         void ExportQuestDB()
         {
             if (QuestDB.Instance == null)
@@ -346,5 +364,8 @@ namespace OcDialogue.Editor
             
             writer.Save(folderPath, $"{fileNamePrefix}_{type}");
         }
+
+        #endregion
+        
     }
 }

@@ -148,7 +148,7 @@ namespace OcDialogue
         }
 
         /// <summary> 아이템을 개수에 상관 없이 삭제함. </summary>
-        void RemoveSingleItem(ItemBase item)
+        public void RemoveSingleItem(ItemBase item)
         {
             _items.Remove(item);
         }

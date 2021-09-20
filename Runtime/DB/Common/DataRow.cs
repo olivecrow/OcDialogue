@@ -199,6 +199,11 @@ namespace OcDialogue.DB
             };
         }
 
+        public override string ToString()
+        {
+            return $"{name} | {Type} | {TargetValue}";
+        }
+
 #if UNITY_EDITOR
         public void LoadFromEditorPreset()
         {
