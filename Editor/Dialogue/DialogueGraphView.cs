@@ -348,12 +348,7 @@ namespace OcDialogue.Editor
             }
             return base.DeleteSelection();
         }
-
-        public override void ClearSelection()
-        {
-            base.ClearSelection();
-            if(selection.Count == 0) Selection.activeObject = Conversation;
-        }
+        
 
         public override void HandleEvent(EventBase evt)
         {

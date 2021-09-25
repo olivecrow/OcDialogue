@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using OcDialogue.DB;
+using OcUtility;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
@@ -10,26 +11,26 @@ namespace OcDialogue
 {
     public class DynamicDataUser : MonoBehaviour
     {
-        [PropertyOrder(-10)]public DataRow DataRow;
+        [DisableInPrefabs][PropertyOrder(-10)]public DataRow DataRow;
 
 #if UNITY_EDITOR
         [PropertyOrder(-9)][ShowInInspector][ShowIf("@DataRow != null"), HideLabel, HorizontalGroup("row")][DelayedProperty]public string Key
         {
-            get => DataRow.Name;
+            get => DataRow == null ? "" : DataRow.Name;
             set => DataRow.Name = value;
         }
         [PropertyOrder(-8)][ShowInInspector][ShowIf("@DataRow != null"), HideLabel, HorizontalGroup("row")]public DataRowType Type
         {
-            get => DataRow.Type;
+            get => DataRow == null ? DataRowType.Bool : DataRow.Type;
             set => DataRow.Type = value;
         }
         [PropertyOrder(-7)][ShowInInspector][ShowIf("@DataRow != null"), HideLabel, HorizontalGroup("row")]public PrimitiveValue Value
         {
-            get => DataRow.InitialValue;
+            get => DataRow == null ? new PrimitiveValue() : DataRow.RuntimeValue;
         }
         [PropertyOrder(-6)][ShowInInspector][ShowIf("@DataRow != null"), HideLabel][SuffixLabel("description", true)]public string Description
         {
-            get => DataRow.description;
+            get => DataRow == null ? "" : DataRow.description;
             set => DataRow.description = value;
         }
 #endif
@@ -42,8 +43,16 @@ namespace OcDialogue
         [TitleGroup("On Value Changed")][ShowIf(nameof(Type), DataRowType.Int)]   public UnityEvent<int> OnValueChanged_Int;
         [TitleGroup("On Value Changed")][ShowIf(nameof(Type), DataRowType.Float)] public UnityEvent<float> OnValueChanged_Float;
         [TitleGroup("On Value Changed")][ShowIf(nameof(Type), DataRowType.String)]public UnityEvent<string> OnValueChanged_String;
-        void OnEnable()
+
+
+        void Start()
         {
+            if (DataRow == null)
+            {
+                Printer.Print($"[DynamicDataUser] DataRow가 없음 : {name}");
+                return;
+            }
+            
             DataRow.OnRuntimeValueChanged += row =>
             {
                 switch (row.Type)
@@ -62,10 +71,7 @@ namespace OcDialogue
                         break;
                 }
             };
-        }
-
-        void Start()
-        {
+            
             switch (DataRow.Type)
             {
                 case DataRowType.Bool:

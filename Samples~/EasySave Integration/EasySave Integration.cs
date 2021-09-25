@@ -27,7 +27,7 @@ namespace OcDialogue.Samples
             Debug.Log($"Load GameProcessDB | key : {presetName + GameProcessDB.Instance.Address}");
             if (!ES3.KeyExists(presetName + GameProcessDB.Instance.Address)) return;
             Debug.Log("Overwrite");
-            var saveData = ES3.Load<Dictionary<string, string>>(presetName + GameProcessDB.Instance.Address);
+            var saveData = ES3.Load<GameProcessSaveData>(presetName + GameProcessDB.Instance.Address);
             GameProcessDB.Instance.Overwrite(saveData);
         }
 
