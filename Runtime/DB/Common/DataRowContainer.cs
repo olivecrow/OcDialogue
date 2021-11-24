@@ -12,8 +12,11 @@ namespace OcDialogue.DB
     [Serializable]
     public class DataRowContainer
     {
+#if UNITY_EDITOR
         [InlineButton(nameof(RuntimeValuesToPreset), "런타임 값을 프리셋으로")]
-        [InlineButton(nameof(EditorPresetToDefault), "프리셋 초기화")]public OcData Parent;
+        [InlineButton(nameof(EditorPresetToDefault), "프리셋 초기화")]
+#endif
+        public OcData Parent;
         [TableList(IsReadOnly = true)]public List<DataRow> DataRows;
         public event Action<DataRow> OnRuntimeValueChanged; 
         public void GenerateRuntimeData()

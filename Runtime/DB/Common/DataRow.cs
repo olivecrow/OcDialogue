@@ -49,7 +49,6 @@ namespace OcDialogue.DB
             set => _runtimeValue = value;
         }
         public event Action<DataRow> OnRuntimeValueChanged;
-#if UNITY_EDITOR
         [ShowInInspector, TableColumnWidth(150, false), PropertyOrder(-1)]
         public string Name
         {
@@ -57,11 +56,13 @@ namespace OcDialogue.DB
             set
             {
                 name = value;
+#if UNITY_EDITOR
                 EditorUtility.SetDirty(this);
-                AssetDatabase.SaveAssets();
+                AssetDatabase.SaveAssets();          
+#endif
             }
         }
-
+#if UNITY_EDITOR
         public PrimitiveValue EditorPresetValue => _editorPresetValue;
 
         [PropertyOrder(8)]
@@ -94,6 +95,7 @@ namespace OcDialogue.DB
                     DataRowType.Int => _runtimeValue.IntValue,
                     DataRowType.Float => _runtimeValue.FloatValue,
                     DataRowType.String => _runtimeValue.StringValue,
+                    _ => _runtimeValue.BoolValue
                 };
             }
         }
