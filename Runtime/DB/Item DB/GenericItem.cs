@@ -6,9 +6,11 @@ using UnityEngine;
 
 namespace OcDialogue
 {
-    public class GenericItem : ItemBase
+    public class GenericItem : ItemBase, IUsableItem
     {
-        [ReadOnly, BoxGroup("ReadOnly")] public GenericType subtype;
+        public override ItemType type => ItemType.Generic;
+        public virtual GenericType subtype { get; protected set; }
+        public virtual bool IsUsableItem => isUsable;
         public override string SubTypeString => subtype.ToString();
         /// <summary> 사용할 수 있는 아이템인지 여부. 현재 상태가 아니라 아이템의 특성을 말하는 것. </summary>
         public bool isUsable;
@@ -26,14 +28,14 @@ namespace OcDialogue
             copy.isUsable = isUsable;
         }
         
-        public bool IsNowUsable()
+        public virtual bool IsNowUsable()
         {
             if (!isUsable) return false;
             //TODO
             if (isStackable && CurrentStack <= 0) return false;
             return true;
         }
-        public bool Use(Action onEmpty = null)
+        public virtual bool Use(Action onEmpty = null)
         {
             if(!IsNowUsable()) return false;
             if (isStackable) CurrentStack--;

@@ -8,7 +8,8 @@ namespace OcDialogue
 {
     public class ImportantItem : ItemBase
     {
-        [ReadOnly, BoxGroup("ReadOnly")] public ImportantItemType subtype;
+        public override ItemType type => ItemType.Important;
+        public virtual ImportantItemType subtype { get; protected set; }
         public override string SubTypeString => subtype.ToString();
 
         protected override ItemBase CreateInstance()

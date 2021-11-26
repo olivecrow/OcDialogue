@@ -63,7 +63,6 @@ namespace OcDialogue
             };
 
             asset.GUID = OcDataUtility.CalcItemGUID();
-            asset.type = type;
             asset.SetSubTypeFromString(subType);
 
             asset.name = OcDataUtility.CalculateDataName($"New {subType}", Items.Select(x => x.itemName));

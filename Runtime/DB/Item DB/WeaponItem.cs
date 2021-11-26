@@ -9,13 +9,14 @@ namespace OcDialogue
 {
     public class WeaponItem : ItemBase, IEquipment
     {
-        [ReadOnly, BoxGroup("ReadOnly")] public WeaponType subtype;
+        public override ItemType type => ItemType.Weapon;
+        public virtual WeaponType subtype { get; protected set; }
         public override string SubTypeString => subtype.ToString();
-        public int MaxUpgrade => 10;
-        public int CurrentUpgrade { get; set; }
-        public int MaxDurability => maxDurability;
-        public float CurrentDurability { get; set; }
-        public float Weight => weight;
+        public virtual int MaxUpgrade => 10;
+        public virtual int CurrentUpgrade { get; set; }
+        public virtual int MaxDurability => maxDurability;
+        public virtual float CurrentDurability { get; set; }
+        public virtual float Weight => weight;
         public bool IsEquipped { get; set; }
 
         public int maxDurability = 100;

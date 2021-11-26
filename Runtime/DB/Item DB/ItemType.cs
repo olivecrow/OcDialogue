@@ -16,7 +16,8 @@ namespace OcDialogue
     public enum GenericType
     {
         Material,
-        Consumable
+        Consumable,
+        Ammo
     }
 
     public enum ArmorType
@@ -29,18 +30,32 @@ namespace OcDialogue
 
     public enum WeaponType
     {
-        OneHandSword,
-        TwoHandSword
+        OneHandSword = 1,
+        Axe = 2,
+        Hammer = 3,
+        Staff = 3,
+        Dagger = 4,
+        Spear = 5,
+        Rapier = 6,
+        
+        TwoHandSword = 100,
+        TwoHandAxe = 101,
+        TwoHandHammer = 102,
+        Scythe = 103,
+        Hallberd = 104,
+        Bow = 105
     }
 
     public enum AccessoryType
     {
-        Amulet
+        Amulet,
+        Other
     }
 
     public enum ImportantItemType
     {
         Key,
-        Book
+        Book,
+        Other
     }
 }

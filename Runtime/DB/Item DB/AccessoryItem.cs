@@ -9,28 +9,29 @@ namespace OcDialogue
 {
     public class AccessoryItem : ItemBase, IEquipment
     {
-        [ReadOnly, BoxGroup("ReadOnly")] public AccessoryType subtype;
+        public override ItemType type => ItemType.Accessory;
+        public virtual AccessoryType subtype { get; protected set; }
         public override string SubTypeString => subtype.ToString();
         public AssetReference Avatar => null;
         public ItemBase ItemBase => this;
 
         public int MaxUpgrade => 0;
 
-        public int CurrentUpgrade
+        public virtual int CurrentUpgrade
         {
             get => 0;
             set => value = 0;
         }
 
-        public int MaxDurability => 100;
+        public virtual int MaxDurability => 100;
 
-        public float CurrentDurability
+        public virtual float CurrentDurability
         {
             get => 100;
             set => value = 100;
         }
 
-        public float Weight => weight;
+        public virtual float Weight => weight;
         public bool IsEquipped { get; set; }
         public float weight = 0.5f;
 #if UNITY_EDITOR

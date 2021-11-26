@@ -10,7 +10,8 @@ namespace OcDialogue
 {
     public class ArmorItem : ItemBase, IEquipment
     {
-        [BoxGroup("ReadOnly"), ReadOnly] public ArmorType subtype;
+        public override ItemType type => ItemType.Armor;
+        public virtual ArmorType subtype { get; protected set; }
         public override string SubTypeString => subtype.ToString();
 
 #if UNITY_EDITOR
@@ -18,10 +19,10 @@ namespace OcDialogue
         public MaterialForEditor material;
 #endif
         public int MaxUpgrade => 3;
-        public int CurrentUpgrade { get; set; }
-        public int MaxDurability => maxDurability;
-        public float CurrentDurability { get; set; }
-        public float Weight => weight;
+        public virtual int CurrentUpgrade { get; set; }
+        public virtual int MaxDurability => maxDurability;
+        public virtual float CurrentDurability { get; set; }
+        public virtual float Weight => weight;
         public bool IsEquipped { get; set; }
 
         public int maxDurability = 100;

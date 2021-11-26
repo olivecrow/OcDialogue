@@ -16,7 +16,7 @@ namespace OcDialogue
         public override string Address => $"{type}/{SubTypeString}/{itemName}";
 
         [BoxGroup("ReadOnly")][ReadOnly]public int GUID;
-        [BoxGroup("ReadOnly")][ReadOnly]public ItemType type;
+        [BoxGroup("ReadOnly")][ReadOnly]public virtual ItemType type { get; protected set; }
         public string itemName;
         public AssetReferenceSprite IconReference;
         public bool isStackable;
