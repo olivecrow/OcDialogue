@@ -31,7 +31,7 @@ namespace OcDialogue
         public string descriptionRefPreview => descriptionReference == null ? "No Reference" : descriptionReference.description;
 #endif
         [ShowIf("isStackable")]public int maxStackCount = 999;
-        [BoxGroup("Runtime")][ShowInInspector]public int CurrentStack { get; protected set; }
+        public int CurrentStack { get; protected set; }
         /// <summary> 원본이 인벤토리에 들어가는 것을 막기위한 값. 새 카피를 생성해서 인벤토리에 넣을 때, 이 부분을 true로 바꿔야함. </summary>
         public bool IsCopy { get; set; }
         /// <summary> 독자적인 설명을 가질지, 참조할지 여부. </summary>

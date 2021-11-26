@@ -1,11 +1,9 @@
-#if UNITY_EDITOR
+#if DEBUG
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Sirenix.OdinInspector;
-using UnityEditor;
-using UnityEditor.Experimental;
 using UnityEngine;
 
 namespace OcDialogue

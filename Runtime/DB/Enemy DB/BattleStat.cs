@@ -91,12 +91,40 @@ namespace OcDialogue
             a.Multiply(mult);
             return a;
         }
+        
+        public static BattleStat operator +(BattleStat a, BattleStat b)
+        {
+            a.Slice += b.Slice;
+            a.Strike += b.Strike;
+            a.Thrust += b.Thrust;
+
+            a.Fire += b.Fire;
+            a.Ice += b.Ice;
+            a.Lightening += b.Lightening;
+            a.Dark += b.Dark;
+
+            return a;
+        }
+
+        public static BattleStat operator -(BattleStat a, BattleStat b)
+        {
+            a.Slice -= b.Slice;
+            a.Strike -= b.Strike;
+            a.Thrust -= b.Thrust;
+
+            a.Fire -= b.Fire;
+            a.Ice -= b.Ice;
+            a.Lightening -= b.Lightening;
+            a.Dark -= b.Dark;
+
+            return a;
+        }
 
         public override string ToString()
         {
             return
-                $"Strike : {Strike} | Slice : {Slice} | Thrust : {Thrust} || Sum : {PhysicalSum} | Avg : {PhysicalAvg}\n" +
-                $"Fire : {Fire} | Ice : {Ice} | Lightening : {Lightening} | Dark : {Dark} || Sum : {ElementalSum} | Avg : {ElementalAvg}\n";
+                $"Strike : {Strike} | Slice : {Slice} | Thrust : {Thrust} => [Sum : {PhysicalSum}] [Avg : {PhysicalAvg}]\n" +
+                $"Fire : {Fire} | Ice : {Ice} | Lightening : {Lightening} | Dark : {Dark} => [Sum : {ElementalSum}] [Avg : {ElementalAvg}]";
         }
     }
 }
