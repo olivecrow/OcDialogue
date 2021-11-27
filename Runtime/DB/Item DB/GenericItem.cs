@@ -9,7 +9,7 @@ namespace OcDialogue
     public class GenericItem : ItemBase, IUsableItem
     {
         public override ItemType type => ItemType.Generic;
-        public virtual GenericType subtype { get; protected set; }
+        public GenericType subtype;
         public virtual bool IsUsableItem => isUsable;
         public override string SubTypeString => subtype.ToString();
         /// <summary> 사용할 수 있는 아이템인지 여부. 현재 상태가 아니라 아이템의 특성을 말하는 것. </summary>

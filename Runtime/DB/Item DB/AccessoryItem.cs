@@ -10,7 +10,7 @@ namespace OcDialogue
     public class AccessoryItem : ItemBase, IEquipment
     {
         public override ItemType type => ItemType.Accessory;
-        public virtual AccessoryType subtype { get; protected set; }
+        public AccessoryType subtype;
         public override string SubTypeString => subtype.ToString();
         public AssetReference Avatar => null;
         public ItemBase ItemBase => this;

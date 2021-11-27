@@ -11,7 +11,7 @@ namespace OcDialogue
     public class ArmorItem : ItemBase, IEquipment
     {
         public override ItemType type => ItemType.Armor;
-        public virtual ArmorType subtype { get; protected set; }
+        public ArmorType subtype;
         public override string SubTypeString => subtype.ToString();
 
 #if UNITY_EDITOR

@@ -83,6 +83,7 @@ namespace OcDialogue
             baseCopy.maxStackCount = maxStackCount;
             baseCopy.IsCopy = true;
             baseCopy.description = description;
+            baseCopy.IconReference = IconReference;
         }
         
         /// <summary> GetCopy에서 생성된 복사본을 전달받아서 각 타입에서 구현해야 할 속성 및 필드를 반영하여 반환함. </summary>

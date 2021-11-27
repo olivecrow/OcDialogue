@@ -1,6 +1,13 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+## [1.3.5] - 2021-11-28
+### Fixed
+- DB 편집기에서 WeaponItem 출력이 제대로 되지 않던 문제 해결.
+- item의 subtype들을 직렬화 가능하도록 virtual 구문 삭제함.
+- itemBase의 ApplyBase에서 iconReference가 적용되지 않던 문제 해결
+- Inventory에서 isCopy 체크가 되어있지 않은 원본이 인벤토리로 들어가는 문제 해결
+
 ## [1.3.4] - 2021-11-26
 
 ### Added

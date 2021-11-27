@@ -149,8 +149,12 @@ namespace OcDialogue.Editor
                     else
                     {
                         GUI.color = new Color(2f, 1.8f, 1f);
-                        var selectedIdx = (int)Enum.Parse(typeof(WeaponType), _itemSubType);
-                        if (selectedIdx < 0) selectedIdx = 0;
+                        int selectedIdx = (int) WeaponType.OneHandSword;
+                        if (Enum.TryParse(_itemSubType, out WeaponType weaponType))
+                        {
+                            selectedIdx = (int)weaponType;
+                        }
+                        if (selectedIdx < (int) WeaponType.OneHandSword) selectedIdx = (int) WeaponType.OneHandSword;
                         var selected = EditorGUILayout.EnumPopup((WeaponType)selectedIdx);
                         var newValue = ((WeaponType)selected).ToString();
                         if (_itemSubType != newValue) rebuildRequest = true;

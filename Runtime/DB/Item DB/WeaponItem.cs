@@ -10,7 +10,7 @@ namespace OcDialogue
     public class WeaponItem : ItemBase, IEquipment
     {
         public override ItemType type => ItemType.Weapon;
-        public virtual WeaponType subtype { get; protected set; }
+        public WeaponType subtype;
         public override string SubTypeString => subtype.ToString();
         public virtual int MaxUpgrade => 10;
         public virtual int CurrentUpgrade { get; set; }

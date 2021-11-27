@@ -57,6 +57,11 @@ namespace OcDialogue
         /// <summary> 아이템 추가. 내부적으로 카피를 생성하기 때문에 아무거나 집어넣으면 됨. 한 개라도 성공하면 true를 반환.</summary>
         public bool AddItem(ItemBase item, int count = 1)
         {
+            if (!item.IsCopy)
+            {
+                Printer.Print($"아이템의 원본이 인벤토리에 들어오려해서 거부됨 | item : {item.itemName}", LogType.Warning);
+                return false;
+            }
             if (count < 1)
             {
                 Printer.Print($"[Inventory] 잘못된 개수가 입력됨 | count : {count}", LogType.Error);

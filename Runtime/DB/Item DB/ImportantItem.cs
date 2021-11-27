@@ -9,7 +9,7 @@ namespace OcDialogue
     public class ImportantItem : ItemBase
     {
         public override ItemType type => ItemType.Important;
-        public virtual ImportantItemType subtype { get; protected set; }
+        public ImportantItemType subtype;
         public override string SubTypeString => subtype.ToString();
 
         protected override ItemBase CreateInstance()
