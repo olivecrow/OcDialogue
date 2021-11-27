@@ -17,7 +17,8 @@ namespace OcDialogue.DB
         [InlineButton(nameof(EditorPresetToDefault), "프리셋 초기화")]
 #endif
         public OcData Parent;
-        [TableList(IsReadOnly = true)]public List<DataRow> DataRows;
+        [TableList(IsReadOnly = true, AlwaysExpanded = true, NumberOfItemsPerPage = 50, ShowPaging = true, DrawScrollView = false)]
+        public List<DataRow> DataRows;
         public event Action<DataRow> OnRuntimeValueChanged; 
         public void GenerateRuntimeData()
         {

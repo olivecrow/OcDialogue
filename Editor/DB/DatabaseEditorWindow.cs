@@ -31,7 +31,6 @@ namespace OcDialogue.Editor
         string _itemSubType;
         string _category;
         bool _isCategoryEditMode;
-
         UnityEditor.Editor _questDbEditor;
         UnityEditor.Editor _npcEditor;
         UnityEditor.Editor _enemyEditor;
