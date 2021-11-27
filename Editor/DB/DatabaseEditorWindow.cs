@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using OcDialogue.DB;
+using OcUtility;
+using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
 using Sirenix.Utilities.Editor;
@@ -55,18 +57,22 @@ namespace OcDialogue.Editor
             bool isDirty = false;
             int drawEnumToolbar(Color color, int currentValue, string[] names, int height, Texture2D[] icons = null)
             {
-                SirenixEditorGUI.BeginHorizontalToolbar();
                 GUI.backgroundColor = color;
                 GUI.contentColor = color;
                 var contents = new GUIContent[names.Length];
+                int newValue = currentValue;
                 for (int i = 0; i < names.Length; i++)
                 {
                     contents[i] = new GUIContent(names[i], icons?[i]);
                 }
-                var newValue = GUILayout.Toolbar(currentValue, contents, GUILayoutOptions.Height(height));
-                if(currentValue != newValue) rebuildRequest = true;
-                GUI.backgroundColor = Color.white; GUI.contentColor = Color.white;
-                SirenixEditorGUI.EndHorizontalToolbar();
+
+                newValue = GUILayout.Toolbar(currentValue, contents, GUILayoutOptions.Height(height));
+                if (currentValue != newValue) rebuildRequest = true;
+                GUI.backgroundColor = Color.white;
+                GUI.contentColor = Color.white;
+                
+                
+                
                 return newValue;
             }
             void drawCategory(Color color, string[] categories, in SerializedObject serializedObject)
@@ -130,12 +136,28 @@ namespace OcDialogue.Editor
                         (int) _itemType, Enum.GetNames(typeof(ItemType)),
                         25,
                         new []{icon("GenericItem Icon"), icon("ArmorItem Icon"), icon("WeaponItem Icon"), icon("AccessoryItem Icon"), icon("ImportantItem Icon")});
-                    var subTypeNames = Enum.GetNames(ItemDatabase.GetSubType(_itemType));
-                    var selectedIdx = subTypeNames.ToList().IndexOf(_itemSubType);
-                    var idx = drawEnumToolbar(new Color(2f, 1.8f, 1f), selectedIdx, Enum.GetNames(ItemDatabase.GetSubType(_itemType)), 20);
-                    if (idx < 0) idx = 0;
-                    _itemSubType = subTypeNames[idx];
                     
+                    var subTypeNames = Enum.GetNames(ItemDatabase.GetSubType(_itemType));
+
+                    if (_itemType != ItemType.Weapon)
+                    {
+                        var selectedIdx = subTypeNames.ToList().IndexOf(_itemSubType);
+                        var idx = drawEnumToolbar(new Color(2f, 1.8f, 1f), selectedIdx, Enum.GetNames(ItemDatabase.GetSubType(_itemType)), 20);
+                        if (idx < 0) idx = 0;
+                        _itemSubType = subTypeNames[idx];
+                    }
+                    else
+                    {
+                        GUI.color = new Color(2f, 1.8f, 1f);
+                        var selectedIdx = (int)Enum.Parse(typeof(WeaponType), _itemSubType);
+                        if (selectedIdx < 0) selectedIdx = 0;
+                        var selected = EditorGUILayout.EnumPopup((WeaponType)selectedIdx);
+                        var newValue = ((WeaponType)selected).ToString();
+                        if (_itemSubType != newValue) rebuildRequest = true;
+                        _itemSubType = newValue;
+                        GUI.color = Color.white;
+                    }
+
                     SirenixEditorGUI.BeginHorizontalToolbar();
                     {
                         ItemBase selectedItem = MenuTree?.Selection?.SelectedValue as ItemBase;
@@ -335,7 +357,9 @@ namespace OcDialogue.Editor
                     foreach (var item in ItemDatabase.Instance.Items)
                     {
                         if (item.type == _itemType && item.SubTypeString == _itemSubType)
+                        {
                             tree.Add(item.itemName, item, item.IconPreview as Texture);
+                        }
                     }
                     break;
                 case DBType.Quest:

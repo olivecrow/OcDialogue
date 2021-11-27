@@ -1,6 +1,14 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+## [1.3.4] - 2021-11-26
+
+### Added
+- Inventory에서 아이템 이름 및 guid로 아이템을 찾을 수 있는 Find 메서드 추가.
+
+### Fixed
+- DB 편집기에서 WeaponItem의 서브타입이 너무 길어서 EnumPopUp으로 바꿈.
+
 ## [1.3.3] - 2021-11-26
 ### Added
 - GenericItem이 아닌 중요 아이템 등도 사용 가능하도록 IUsable 인터페이스를 추가.

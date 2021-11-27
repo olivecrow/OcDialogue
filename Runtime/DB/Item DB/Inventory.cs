@@ -147,6 +147,24 @@ namespace OcDialogue
             return item.isStackable ? exist.CurrentStack : _items.Count(x => x.GUID == item.GUID);
         }
 
+        public ItemBase Find(string name)
+        {
+            return _items.Find(x => x.itemName == name);
+        }
+
+        public ItemBase Find(int guid)
+        {
+            return _items.Find(x => x.GUID == guid);
+        }
+        public T Find<T>(string name) where T : ItemBase
+        {
+            return _items.Find(x => x.itemName == name) as T;
+        }
+        public T Find<T>(int guid) where T : ItemBase
+        {
+            return _items.Find(x => x.GUID == guid) as T;
+        }
+
         /// <summary> 아이템을 개수에 상관 없이 삭제함. </summary>
         public void RemoveSingleItem(ItemBase item)
         {
