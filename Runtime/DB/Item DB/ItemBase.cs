@@ -88,8 +88,7 @@ namespace OcDialogue
         
         /// <summary> GetCopy에서 생성된 복사본을 전달받아서 각 타입에서 구현해야 할 속성 및 필드를 반영하여 반환함. </summary>
         protected abstract void ApplyTypeProperty(ItemBase baseCopy);
-        
-        
+
 #if UNITY_EDITOR
         void OnValidate()
         {

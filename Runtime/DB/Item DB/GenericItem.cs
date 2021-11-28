@@ -10,6 +10,9 @@ namespace OcDialogue
     {
         public override ItemType type => ItemType.Generic;
         public GenericType subtype;
+        public ItemBase ItemBase => this;
+        public virtual int MaxStack => maxStackCount;
+
         public virtual bool IsUsableItem => isUsable;
         public override string SubTypeString => subtype.ToString();
         /// <summary> 사용할 수 있는 아이템인지 여부. 현재 상태가 아니라 아이템의 특성을 말하는 것. </summary>
@@ -44,7 +47,7 @@ namespace OcDialogue
             //TODO : 아마 소비에 관한 것.
         }
 
-        
+
 #if UNITY_EDITOR
         public override void SetSubTypeFromString(string subtypeName)
         {
