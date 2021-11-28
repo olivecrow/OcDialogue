@@ -1,9 +1,13 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+## [1.3.8] - 2021-11-28
+### Fixed
+- ItemBase의 CurrentStack을 virtual로 변경.
+
 ## [1.3.7] - 2021-11-28
 ### Added
-- IUsableItem에 ItemBase 및 CurrentCount 프로퍼티 추가.
+- IUsableItem에 ItemBase 및 CurrentStack 프로퍼티 추가.
   - stackable이 아닌 아이템은 별도의 사용 횟수를 표시해야 하기때문에 추가했음.
 
 ## [1.3.6] - 2021-11-28
