@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using OcDialogue.DB.Enemy_DB;
 using OcUtility;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
@@ -31,14 +32,13 @@ namespace OcDialogue.DB
         }
 
         [TextArea]public string Description;
-        [InlineButton("CalcStatsFromLevelAndWeight", "스탯 반영")]public EnemyLevel EnemyLevel;
+        [InlineButton("CalcStatsFromLevelAndWeight", "스탯 반영")]public EnemyClass enemyClass;
         public float Weight;
-        [HorizontalGroup("BattleStat")]public BattleStat AttackStat;
         [HorizontalGroup("BattleStat")]public BattleStat DefenseStat;
         public float HP;
         public float Balance;
-        public float Stability;
-        public ItemDropInfo[] DropInfo;
+        public List<DamagerInfo> DamagerInfo;
+        [TableList]public ItemDropInfo[] DropInfo;
         [BoxGroup("DataRow")]public DataRowContainer dataRowContainer;
         public event Action<Enemy> OnRuntimeValueChanged;
 #if UNITY_EDITOR
@@ -131,6 +131,11 @@ namespace OcDialogue.DB
                 _runtime.KillCount = totalKillCount;
             }
         }
+
+        public DamagerInfo GetDamagerInfo(DamagerTag tag)
+        {
+            return DamagerInfo.Find(x => x.tag == tag);
+        }
         
         
 #if UNITY_EDITOR
@@ -152,9 +157,13 @@ namespace OcDialogue.DB
         {
             void setPhysicalAttack(float uniformValue)
             {
-                AttackStat.Strike = uniformValue;
-                AttackStat.Slice  = uniformValue;
-                AttackStat.Thrust = uniformValue;
+                foreach (var damagerInfo in DamagerInfo)
+                {
+                    damagerInfo.stat.Strike = uniformValue;
+                    damagerInfo.stat.Slice  = uniformValue;
+                    damagerInfo.stat.Thrust = uniformValue;
+                    damagerInfo.weight = Weight * 0.1f;
+                }
             }
 
             void setPhysicalDefense(float uniformValue)
@@ -171,62 +180,52 @@ namespace OcDialogue.DB
                 DefenseStat.Lightening = uniformValue;
                 DefenseStat.Dark = uniformValue;
             }
-            switch (EnemyLevel)
+            switch (enemyClass)
             {
-                case EnemyLevel.Standard:
+                case EnemyClass.Standard:
                     HP = Weight * 10;
                     Balance = Weight;
-                    Stability = Mathf.Lerp(10, 40, Weight / 100f);
                     setPhysicalAttack(Weight * 1.2f);
                     setPhysicalDefense(Weight * 0.5f);
                     setElementalDefense(1);
                     break;
-                case EnemyLevel.Ranger:
+                case EnemyClass.Ranger:
                     HP = Weight * 7;
                     Balance = Weight * 0.8f;
-                    Stability = Weight * 0.3f;
-                    Stability = Mathf.Lerp(10, 40, Weight / 120f);
                     setPhysicalDefense(Weight * 0.3f);
                     setElementalDefense(1);
                     break;
-                case EnemyLevel.Magician:
+                case EnemyClass.Magician:
                     HP = Weight * 5;
                     Balance = Weight * 0.6f;
-                    Stability = Weight * 0.2f;
-                    Stability = Mathf.Lerp(10, 40, Weight / 150f);
                     setPhysicalAttack(Weight * 0.7f);
                     setPhysicalDefense(Weight * 0.2f);
                     setElementalDefense(Weight);
                     break;
-                case EnemyLevel.Heavy:
+                case EnemyClass.Heavy:
                     HP = Weight * 15;
                     Balance = Weight * 1.2f;
-                    Stability = Weight * 0.5f;
-                    Stability = Mathf.Lerp(10, 40, Weight / 50f);
                     setPhysicalAttack(Weight * 1.5f);
                     setPhysicalDefense(Weight * 1.5f);
                     setElementalDefense(1);
                     break;
-                case EnemyLevel.Named:
+                case EnemyClass.Named:
                     HP = Weight * 20;
                     Balance = Weight;
-                    Stability = Mathf.Lerp(10, 40, Weight / 100f);
                     setPhysicalAttack(Weight * 2f);
                     setPhysicalDefense(Weight * 0.7f);
                     setElementalDefense(Weight * 0.3f);
                     break;
-                case EnemyLevel.FieldBoss:
+                case EnemyClass.FieldBoss:
                     HP = Weight * 25;
                     Balance = Weight * 2f;
-                    Stability = Weight;
                     setPhysicalAttack(Weight * 1.8f);
                     setPhysicalDefense(Weight);
                     setElementalDefense(Weight * 0.5f);
                     break;
-                case EnemyLevel.Boss:
+                case EnemyClass.Boss:
                     HP = Weight * 30;
                     Balance = Weight * 2f;
-                    Stability = Weight;
                     setPhysicalAttack(Weight * 2f);
                     setPhysicalDefense(Weight * 1.2f);
                     setElementalDefense(Weight);

@@ -17,7 +17,7 @@ namespace OcDialogue
 
         [BoxGroup("ReadOnly")][ReadOnly]public int GUID;
         [BoxGroup("ReadOnly")][ReadOnly]public virtual ItemType type { get; protected set; }
-        public string itemName;
+        [Delayed]public string itemName;
         public AssetReferenceSprite IconReference;
         public bool isStackable;
         /// <summary> Editor Only. </summary>

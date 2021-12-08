@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace OcDialogue
 {
-    public enum EnemyLevel
+    public enum EnemyClass
     {
         Standard,
         Ranger,

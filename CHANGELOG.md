@@ -1,6 +1,15 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+## [1.3.9] -2021-12-09
+### Added
+- DamagerTag및 DamagerInfo를 만들어서 Enemy의 공격부위에 대한 프리셋을 만들 수 있게 함
+
+### Fixed
+- Enemy의 Stabilty 필드를 일단 삭제함. 나중에 필요해지면 그때 생성할 것.
+- EnemyLevel struct를 EnemyClass로 이름을 변경함
+- ItemBase의 ItemName에 [Delayed] 어트리뷰트를 추가함.
+
 ## [1.3.8] - 2021-11-28
 ### Fixed
 - ItemBase의 CurrentStack을 virtual로 변경.

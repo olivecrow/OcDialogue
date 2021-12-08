@@ -44,7 +44,13 @@ public class EnemyDBTest
             if (enemy.HP <= 0) Debug.LogError($"[{enemy.Address}] Hp가 0 이하임");
             if (enemy.Balance <= 0) Debug.LogError($"[{enemy.Address}] Balance가 0 이하임");
             if (enemy.Weight <= 0) Debug.LogWarning($"[{enemy.Address}] Weight가 0 이하임");
-            if (enemy.Stability <= 0) Debug.LogWarning($"[{enemy.Address}] Stability가 0 이하임");
+            if (enemy.DamagerInfo.Count > 0)
+            {
+                if(enemy.DamagerInfo.Any(x => x.stat.PhysicalSum + x.stat.ElementalSum <= 0)) 
+                    Debug.LogError($"[{enemy.Address}]공격이 0 이하임");
+                if(enemy.DamagerInfo.Any(x => x.weight <= 0)) 
+                    Debug.LogWarning($"[{enemy.Address}]공격의 무게가 0 이하임");
+            }
             if (string.IsNullOrWhiteSpace(enemy.Category)) Debug.LogError($"[{enemy.Address}] 카테고리가 비어있음");
         }
     }
