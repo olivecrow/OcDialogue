@@ -11,6 +11,9 @@ namespace OcDialogue.DB.Enemy_DB
         LeftFoot,
         RightFoot,
         Head,
-        Tail
+        Tail,
+        Body,
+        Extra1,
+        Extra2
     }
 }

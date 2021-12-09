@@ -37,6 +37,7 @@ namespace OcDialogue.DB
         [HorizontalGroup("BattleStat")]public BattleStat DefenseStat;
         public float HP;
         public float Balance;
+        public float Stability;
         public List<DamagerInfo> DamagerInfo;
         [TableList]public ItemDropInfo[] DropInfo;
         [BoxGroup("DataRow")]public DataRowContainer dataRowContainer;

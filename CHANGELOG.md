@@ -1,6 +1,16 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+## [1.3.10] -2021-12-10
+### Added
+- ExportWizard에서 ItemDB를 추출할 때 선택 가능한 옵션 추기
+  - 각 타입별로 추출하는 경우, 추출할 타입을 선택하는 기능 추가
+  - 각 타입별로 추출하는 경우, 각 타입의 변수 또한 추출할지 선택하는 기능 추가
+
+### Fixed
+- DamagerTag 항목 추가
+- Enemy에 Stability 다시 추가함
+
 ## [1.3.9] -2021-12-09
 ### Added
 - DamagerTag및 DamagerInfo를 만들어서 Enemy의 공격부위에 대한 프리셋을 만들 수 있게 함

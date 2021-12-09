@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using OcDialogue.DB;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
@@ -11,6 +13,17 @@ using UnityEngine.Localization.Settings;
 
 namespace OcDialogue.Editor
 {
+    [Flags]
+    public enum ExportItemTypeFlags
+    {
+        None = 0,
+        Generic = 2,
+        Armor = 4,
+        Weapon = 8,
+        Accessory = 16,
+        Important = 32,
+        All = int.MaxValue
+    }
     public class ExportWizard : OdinEditorWindow
     {
         public enum ExportType
@@ -35,7 +48,13 @@ namespace OcDialogue.Editor
         
         [Space]
         [ShowIf(nameof(type), ExportType.ItemDB)] [LabelText("타입별로 따로 저장")] public bool separateByItemType;
-        [ShowIf(nameof(type), ExportType.ItemDB)] [LabelText("아이템 타입 분류 추출")] public bool exportItemTypeTerms;
+
+        [ShowIf(nameof(type), ExportType.ItemDB)] [ShowIf(nameof(separateByItemType))] 
+        [LabelText("추출할 타입")] [Indent()] [EnumToggleButtons]
+        public ExportItemTypeFlags exportItemTypeFlags;
+        [ShowIf(nameof(type), ExportType.ItemDB)] [ShowIf(nameof(separateByItemType))] 
+        [LabelText("변수 필드 포함")] public bool includeFields;
+        [ShowIf(nameof(type), ExportType.ItemDB)] [LabelText("타입 분류를 파일로 Export")] public bool exportItemTypeTerms;
         [ShowIf(nameof(type), ExportType.ItemDB)] public string itemNameFieldName = "아이템";
         [ShowIf(nameof(type), ExportType.ItemDB)] public string itemTypeFieldName = "대분류";
         [ShowIf(nameof(type), ExportType.ItemDB)] public string itemSubtypeFieldName = "소분류";
@@ -58,12 +77,19 @@ namespace OcDialogue.Editor
         public string commentFieldName = "비고";
 
         string labelPreview => $"{fileNamePrefix}_{type}.csv";
+        const string key_pathPrefs = "OcDialogue_ExportPath";
         
         [MenuItem("OcDialogue/Export Wizard")]
         static void Open()
         {
             var wnd = GetWindow<ExportWizard>(true);
             wnd.minSize = new Vector2(720, 480);
+        }
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            folderPath = EditorPrefs.GetString(key_pathPrefs);
         }
 
         [Button]
@@ -87,6 +113,7 @@ namespace OcDialogue.Editor
                     ExportEnemyDB();
                     break;
             }
+            EditorPrefs.SetString(key_pathPrefs, folderPath);
         }
 
         [Button("번역용 CSV 테이블 Export")]
@@ -242,7 +269,7 @@ namespace OcDialogue.Editor
             if (separateByItemType)
             {
                 var typeNames = Enum.GetNames(typeof(ItemType));
-                var key = new[]
+                var key = new []
                 {
                     guidFieldName,
                     itemSubtypeFieldName,
@@ -250,18 +277,49 @@ namespace OcDialogue.Editor
                     itemDescFieldName,
                     commentFieldName
                 };
+
                 foreach (var itemType in typeNames)
                 {
-                    var writer = new CSVWriter(key);
+                    var asEnum = (ItemType)Enum.Parse(typeof(ItemType), itemType);
+                    if(!exportItemTypeFlags.HasFlag(typeEnumToFlag(asEnum))) continue;
+                    var t = getItemType((ItemType)Enum.Parse(typeof(ItemType), itemType));
+                    var tKey = new List<string>(key);
+                    
+                    var fields = t.GetFields(
+                        BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+                    if(includeFields)
+                        foreach (var fieldInfo in fields)
+                        {
+                            if(fieldInfo.Name == "subtype" || fieldInfo.Name == "description" || 
+                               fieldInfo.Name == "GUID" || fieldInfo.Name == "itemName") continue;
+                            if(fieldInfo.IsNotSerialized) continue;
+                            if(fieldInfo.IsDefined(typeof(CompilerGeneratedAttribute))) continue;
+                            tKey.Add($"M_{fieldInfo.Name}");
+                        }
+                    
+                    var writer = new CSVWriter(tKey.ToArray());
                     foreach (var itemBase in ItemDatabase.Instance.Items)
                     {
                         if(itemBase.type.ToString() != itemType) continue;
-                        writer.Add(
+                        var rowData = new List<string>()
+                        {
                             itemBase.GUID.ToString(),
                             itemBase.SubTypeString,
                             itemBase.itemName,
                             itemBase.description,
-                            "");
+                            ""
+                        };
+                        
+                        foreach (var fieldInfo in fields)
+                        {
+                            if(!tKey.Contains($"M_{fieldInfo.Name}")) continue;
+                            var casted = cast(itemBase);
+                            var value = fieldInfo.GetValue(casted);
+                            rowData.Add(value == null ? "" : value.ToString());
+                        }
+                        
+                        writer.Add(rowData.ToArray());
+                        
                     }
                     writer.Save(folderPath, $"{fileNamePrefix}_{type}_{itemType}");
                 }
@@ -291,7 +349,64 @@ namespace OcDialogue.Editor
             
                 writer.Save(folderPath,$"{fileNamePrefix}_{type}");    
             }
-            
+
+
+            Type getItemType(ItemType type)
+            {
+                switch (type)
+                {
+                    case ItemType.Generic:
+                        return typeof(GenericItem);
+                    case ItemType.Armor:
+                        return typeof(ArmorItem);
+                    case ItemType.Weapon:
+                        return typeof(WeaponItem);
+                    case ItemType.Accessory:
+                        return typeof(AccessoryItem);
+                    case ItemType.Important:
+                        return typeof(ImportantItem);
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(type), type, null);
+                }
+            }
+
+            object cast(ItemBase item)
+            {
+                switch (item.type)
+                {
+                    case ItemType.Generic:
+                        return item as GenericItem;
+                    case ItemType.Armor:
+                        return item as ArmorItem;
+                    case ItemType.Weapon:
+                        return item as WeaponItem;
+                    case ItemType.Accessory:
+                        return item as AccessoryItem;
+                    case ItemType.Important:
+                        return item as ImportantItem;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            ExportItemTypeFlags typeEnumToFlag(ItemType t)
+            {
+                switch (t)
+                {
+                    case ItemType.Generic:
+                        return ExportItemTypeFlags.Generic;
+                    case ItemType.Armor:
+                        return ExportItemTypeFlags.Armor;
+                    case ItemType.Weapon:
+                        return ExportItemTypeFlags.Weapon;
+                    case ItemType.Accessory:
+                        return ExportItemTypeFlags.Accessory;
+                    case ItemType.Important:
+                        return ExportItemTypeFlags.Important;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(t), t, null);
+                }
+            }
         }
 
         #endregion
