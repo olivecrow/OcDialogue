@@ -24,7 +24,7 @@ namespace OcDialogue
         }
         
 #if UNITY_EDITOR
-        public override void SetSubTypeFromString(string subtypeName)
+        internal override void SetSubTypeFromString(string subtypeName)
         {
             subtype = (ImportantItemType) Enum.Parse(typeof(ImportantItemType), subtypeName);
         }

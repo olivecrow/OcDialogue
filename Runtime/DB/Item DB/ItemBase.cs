@@ -19,21 +19,23 @@ namespace OcDialogue
         [BoxGroup("ReadOnly")][ReadOnly]public virtual ItemType type { get; protected set; }
         [Delayed]public string itemName;
         public AssetReferenceSprite IconReference;
+        public bool canBeTrashed;
         public bool isStackable;
         /// <summary> Editor Only. </summary>
         public abstract string SubTypeString { get; }
 #if UNITY_EDITOR
         [BoxGroup("ReadOnly")][PreviewField(ObjectFieldAlignment.Left)][ShowInInspector] public Object IconPreview => IconReference.editorAsset;
         /// <summary> Editor Only. 각 아이템 타입에 맞는 SubType을 할당함. </summary>
-        public abstract void SetSubTypeFromString(string subtypeName);
+        internal abstract void SetSubTypeFromString(string subtypeName);
         /// <summary> Editor Only. 데이터베이스 편집기에서 보여주는 참조된 아이템 설명. </summary>
         [PropertyOrder(101), ShowInInspector, MultiLineProperty(10), ReadOnly, ShowIf("referOtherDescription")]
         public string descriptionRefPreview => descriptionReference == null ? "No Reference" : descriptionReference.description;
 #endif
         [ShowIf("isStackable")]public int maxStackCount = 999;
         public virtual int CurrentStack { get; protected set; }
+        public Inventory Inventory { get; set; }
         /// <summary> 원본이 인벤토리에 들어가는 것을 막기위한 값. 새 카피를 생성해서 인벤토리에 넣을 때, 이 부분을 true로 바꿔야함. </summary>
-        public bool IsCopy { get; set; }
+        internal bool IsCopy { get; set; }
         /// <summary> 독자적인 설명을 가질지, 참조할지 여부. </summary>
         [PropertyOrder(100)]public bool referOtherDescription;
         /// <summary> 설명을 참조할 다른 방어구. </summary>
@@ -41,7 +43,7 @@ namespace OcDialogue
         [PropertyOrder(100), TextArea(10, 20), HideIf("referOtherDescription")] public string description;
 
         /// <summary> 아이템 개수를 늘림. 1~maxCount의 개수로 제한되며, 오버될 경우, onStackOverflow가 호출됨. stackable아이템이 아니거나 count가 1보다 작은 경우 작동하지 않음. </summary>
-        public void AddStack(int count, Action onStackOverflow = null)
+        internal void AddStack(int count, Action onStackOverflow = null)
         {
             if(!IsCopy) return;
             if(!isStackable) return;
@@ -51,18 +53,23 @@ namespace OcDialogue
             CurrentStack = Mathf.Clamp(CurrentStack, 1, maxStackCount);
         }
 
-        /// <summary> 아이템 개수를 제거함. 개수가 0 이하가 되는 경우, onEmpty가 호출됨. stackable아이템이 아니거나 count가 1보다 작은 경우 작동하지 않음. </summary>
-        public void RemoveStack(int count, Action onEmpty = null)
+        /// <summary> 아이템 개수를 제거함. 개수가 0 이하가 되는 경우, onEmpty가 호출됨. stackable아이템이 아니거나 count가 1보다 작은 경우 작동하지 않음.
+        /// 삭제된 개수를 반환함. </summary>
+        internal int RemoveStack(int count, Action onEmpty = null)
         {
-            if(!IsCopy) return;
-            if(!isStackable) return;
-            if(count < 1) return;
+            if(!IsCopy) return 0;
+            if(!isStackable) return 0;
+            if(count < 1) return 0;
+
+            var diff = CurrentStack >= count ? CurrentStack - count : CurrentStack;
             CurrentStack -= count;
             if(CurrentStack <= 0) onEmpty?.Invoke();
+
+            return diff;
         }
 
         /// <summary> 아이템의 복사본을 반환함. 실제 런타임에서 쓰이는 데이터. </summary>
-        public ItemBase GetCopy()
+        internal ItemBase GetCopy()
         {
             var copy = CreateInstance();
             ApplyBase(copy);

@@ -9,6 +9,7 @@ namespace OcDialogue
     [Serializable]
     public struct BattleStat
     {
+        [ShowInInspector][PropertyOrder(-3), HorizontalGroup("phy")][LabelWidth(100)]public float TotalSum => PhysicalSum + ElementalSum;
         [ShowInInspector][PropertyOrder(-2), HorizontalGroup("phy")][LabelWidth(100)]public float PhysicalSum => Strike + Slice + Thrust;
         [ShowInInspector][PropertyOrder(-2), HorizontalGroup("phy")][LabelWidth(100)]public float PhysicalAvg => PhysicalSum / 3f;
         
@@ -23,6 +24,13 @@ namespace OcDialogue
         [PropertyOrder(4)][LabelWidth(100)]public float Lightening;
         [PropertyOrder(4)][LabelWidth(100)]public float Dark;
 
+        public void PhysicalAdd(float value)
+        {
+            Strike += value;
+            Slice += value;
+            Thrust += value;
+        }
+        
         public void PhysicalMultiply(float uniformValue)
         {
             Strike *= uniformValue;
@@ -52,12 +60,20 @@ namespace OcDialogue
             Dark *= dark;
         }
 
+        /// <summary>
+        /// 현재 스탯에 동일한 값을 곱함.
+        /// </summary>
+        /// <param name="uniformValue"></param>
         public void Multiply(float uniformValue)
         {
             PhysicalMultiply(uniformValue);
             ElementalMultiply(uniformValue);
         }
 
+        /// <summary>
+        /// 현재 스텟에 해당되는 각 스텟을 곱함
+        /// </summary>
+        /// <param name="multiplier"></param>
         public void Multiply(BattleStat multiplier)
         {
             PhysicalMultiply(multiplier.Strike, multiplier.Slice, multiplier.Thrust);
@@ -75,7 +91,11 @@ namespace OcDialogue
                    Fire.Equals(other.Fire) && Ice.Equals(other.Ice) && Lightening.Equals(other.Lightening) &&
                    Dark.Equals(other.Dark);
         }
-        
+        public override bool Equals(object obj)
+        {
+            return obj is BattleStat other && Equals(other);
+        }
+
         public static bool operator ==(BattleStat a, BattleStat b)
         {
             return a.Equals(b);
@@ -86,9 +106,20 @@ namespace OcDialogue
             return !(a == b);
         }
 
+        /// <summary>
+        /// 지정된 값을 곱한 스탯을 반환함. 원본은 수정되지 않음.
+        /// </summary>
         public static BattleStat operator * (BattleStat a, float mult)
         {
             a.Multiply(mult);
+            return a;
+        }
+        /// <summary>
+        /// 해당된 스텟을 곱한 스탯을 반환함. 원본은 수정되지 않음.
+        /// </summary>
+        public static BattleStat operator * (BattleStat a, BattleStat b)
+        {
+            a.Multiply(b);
             return a;
         }
         

@@ -32,11 +32,22 @@ namespace OcDialogue
         static Inventory _playerInventory;
         public Inventory()
         {
+            name = "New Inventory";
             _items = new List<ItemBase>();
         }
 
         public Inventory(IEnumerable<ItemBase> items)
         {
+            name = "New Inventory";
+            _items = new List<ItemBase>();
+            foreach (var item in items)
+            {
+                _items.Add(item.GetCopy());
+            }
+        }
+        public Inventory(string name, IEnumerable<ItemBase> items)
+        {
+            this.name = name;
             _items = new List<ItemBase>();
             foreach (var item in items)
             {
@@ -44,18 +55,16 @@ namespace OcDialogue
             }
         }
 
+        public string name;
         public IEnumerable<ItemBase> Items => _items;
         List<ItemBase> _items;
 
-        public event Action<ItemBase, int> OnItemAdded;
-        public event Action<ItemBase, int> OnItemRemoved;
-        public event Action OnInventoryChanged;
-        public event Action<ItemBase> OnStackOverflow;
+        public event Action<ItemBase, InventoryChangeType> OnInventoryChanged;
         public static event Action<Inventory> OnPlayerInventoryChanged;
         
 
         /// <summary> 아이템 추가. 내부적으로 카피를 생성하기 때문에 아무거나 집어넣으면 됨. 한 개라도 성공하면 true를 반환.</summary>
-        public bool AddItem(ItemBase item, int count = 1)
+        public bool AddItem(ItemBase item, int count = 1, Action onOverflow = null)
         {
             if (count < 1)
             {
@@ -63,6 +72,7 @@ namespace OcDialogue
                 return false;
             }
 
+            InventoryChangeType changeType;
             var addedCount = 0;
             if (item.isStackable)
             {
@@ -72,19 +82,19 @@ namespace OcDialogue
                     var copy = item.GetCopy();
                     copy.AddStack(count);
                     AddNewItem(copy);
+                    changeType = InventoryChangeType.AddSingle;
                 }
                 else
                 {
                     var existCount = Count(exist); 
                     if(existCount == exist.maxStackCount)
                     {
-                        OnStackOverflow?.Invoke(exist);
+                        onOverflow?.Invoke();
                         return false;
                     }
                     
-                    addedCount = existCount + count > exist.maxStackCount ? 
-                        count - (exist.maxStackCount - existCount) : count;
-                    exist.AddStack(count, () => OnStackOverflow?.Invoke(exist));
+                    exist.AddStack(count, () => onOverflow?.Invoke());
+                    changeType = InventoryChangeType.AddStack;
                 }
             }
             else
@@ -94,48 +104,84 @@ namespace OcDialogue
                     addedCount++;
                     AddNewItem(item.GetCopy());
                 }
+
+                changeType = InventoryChangeType.AddSingle;
             }
-            OnItemAdded?.Invoke(_items.Find(x => x.GUID == item.GUID), addedCount);
-            OnInventoryChanged?.Invoke();
+            OnInventoryChanged?.Invoke(item, changeType);
             Printer.Print($"[Inventory] 아이템 추가됨. item : {item.itemName} | count : {count}");
             return true;
         }
 
         void AddNewItem(ItemBase item)
         {
+            item.Inventory = this;
             _items.Add(item);
         }
 
-        /// <summary> 인벤토리의 아이템 제거. 원본이든 카피든 상관 없이 동일한 GUID를 가지는 아이템을 개수만큼 제거함. 파라미터 아이템의 CurrentStack은 고려하지 않음. </summary>
-        public void RemoveItem(ItemBase item, int count = 1)
+        /// <summary> 인벤토리의 아이템 제거. 아이템의 스택을 초과해서 한 슬롯이 통째로 없어질때 onEmpty를 호출함.
+        /// 반환값은 그 개수만큼의 스택을 가진 아이템.
+        /// Stackable이 아닌 아이템을 여러개 삭제할 경우, 마지막 한 번만 onEmpty를 호출하고 해당 아이템 하나만 반환함.</summary>
+        public ItemBase RemoveItem(ItemBase item, int count = 1, Action onEmpty = null, ItemMatchingType matchingType = ItemMatchingType.GUID)
         {
             if (count <= 0)
             {
                 Printer.Print($"[Inventory] 잘못된 아이템 개수가 입력됨. item : {item.itemName} | count : {count}", LogType.Error);
-                return;
+                return null;
             }
-            var exist = _items.Find(x => x.GUID == item.GUID);
+            var exist = matchingType == ItemMatchingType.GUID ? 
+                _items.Find(x => x.GUID == item.GUID) : _items.Find(x => x == item);
             if(exist == null)
             {
                 Printer.Print($"[Inventory] 존재하지 않는 아이템을 인벤토리에서 제거하려 함. item : {item.itemName} | count : {count}", LogType.Error);
-                return;
+                return null;
             }
+
+            if (!exist.canBeTrashed)
+            {
+                Printer.Print($"[Inventory] 버릴 수 없는 아이템. item : {exist.itemName}", LogType.Warning);
+                return null;
+            }
+
+            InventoryChangeType changeType;
+            ItemBase removedItem;
             if (item.isStackable)
             {
-                exist.RemoveStack(count, () => RemoveSingleItem(exist));
+                changeType = InventoryChangeType.RemoveStack;
+                var removeCount = exist.RemoveStack(count, () =>
+                {
+                    _items.Remove(item);
+                    onEmpty?.Invoke();
+                    changeType = InventoryChangeType.RemoveSingle;
+                });
+                
+                removedItem = exist.GetCopy();
+                removedItem.AddStack(removeCount);
             }
             else
             {
+                removedItem = exist;
+                removedItem.Inventory = null;
                 for (int i = 0; i < count; i++)
                 {
-                    RemoveSingleItem(exist);
+                    _items.Remove(item);
                     exist = _items.Find(x => x.GUID == item.GUID);
                     if(exist == null) break;
                 }
+
+                changeType = InventoryChangeType.RemoveSingle;
+                onEmpty?.Invoke();
             }
-            OnInventoryChanged?.Invoke();
-            OnItemRemoved?.Invoke(exist, count);
+            OnInventoryChanged?.Invoke(removedItem, changeType);
             Printer.Print($"[Inventory] 아이템 제거됨. item : {item.itemName} | count : {count}");
+            return removedItem;
+        }
+        
+        /// <summary> 인벤토리에 존재하는 해당 아이템을 강제로 삭제함.  </summary>
+        /// <param name="item"></param>
+        public void RemoveSingleItem(ItemBase item)
+        {
+            _items.Remove(item);
+            OnInventoryChanged?.Invoke(item, InventoryChangeType.RemoveSingle);
         }
 
         /// <summary> 현재 인벤토리에 존재하는 아이템의 개수를 반환함. isStackable인 경우, StackAmount를 반환하고, 아닌 경우에 총 개수를 반환함. </summary>
@@ -163,12 +209,6 @@ namespace OcDialogue
         public T Find<T>(int guid) where T : ItemBase
         {
             return _items.Find(x => x.GUID == guid) as T;
-        }
-
-        /// <summary> 아이템을 개수에 상관 없이 삭제함. </summary>
-        public void RemoveSingleItem(ItemBase item)
-        {
-            _items.Remove(item);
         }
 
         public List<ItemSaveData> GetSaveData()
@@ -238,5 +278,19 @@ namespace OcDialogue
             Application.quitting -= ReleaseEvent;
         }
 #endif
+    }
+
+    public enum ItemMatchingType
+    {
+        GUID,
+        Instance
+    }
+
+    public enum InventoryChangeType
+    {
+        AddStack,
+        AddSingle,
+        RemoveStack,
+        RemoveSingle
     }
 }

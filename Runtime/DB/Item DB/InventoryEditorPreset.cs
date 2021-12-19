@@ -82,6 +82,7 @@ namespace OcDialogue
             [VerticalGroup("Item")][ShowIf("@item != null && item.isStackable")] public int count;
             [VerticalGroup("Item")][ShowIf("@item != null && (type == ItemType.Weapon || type == ItemType.Armor || type == ItemType.Accessory)")]
             public bool equip;
+            public bool equipLeft;
 
             [HideInInspector] public UnityEngine.Object _cachedIcon;
             void OnTypeChanged()

@@ -49,7 +49,7 @@ namespace OcDialogue
 
 
 #if UNITY_EDITOR
-        public override void SetSubTypeFromString(string subtypeName)
+        internal override void SetSubTypeFromString(string subtypeName)
         {
             subtype = (GenericType) Enum.Parse(typeof(GenericType), subtypeName);
         }

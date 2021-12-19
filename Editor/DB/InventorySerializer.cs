@@ -19,8 +19,6 @@ namespace OcDialogue.Editor
         {
             if(inventory == null) return;
             _inventory = inventory;
-            _inventory.OnItemAdded += (item, i) =>  DrawItems(item.type);
-            _inventory.OnItemRemoved += (item, i) =>  DrawItems(item.type);
         }
 
         public void DrawItems(ItemType type)

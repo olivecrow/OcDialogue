@@ -20,7 +20,7 @@ namespace OcDialogue
         public bool IsEquipped { get; set; }
 
         public int maxDurability = 100;
-        public int weight;
+        public float weight;
 
         public BattleStat AttackStat => attackStat;
         [SerializeField]BattleStat attackStat;
@@ -56,7 +56,7 @@ namespace OcDialogue
         
         
 #if UNITY_EDITOR
-        public override void SetSubTypeFromString(string subtypeName)
+        internal override void SetSubTypeFromString(string subtypeName)
         {
             subtype = (WeaponType) Enum.Parse(typeof(WeaponType), subtypeName);
         }

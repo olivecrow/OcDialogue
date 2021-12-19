@@ -77,7 +77,7 @@ namespace OcDialogue
         }
 
 #if UNITY_EDITOR
-        public override void SetSubTypeFromString(string subtypeName)
+        internal override void SetSubTypeFromString(string subtypeName)
         {
             subtype = (ArmorType) Enum.Parse(typeof(ArmorType), subtypeName);
         }

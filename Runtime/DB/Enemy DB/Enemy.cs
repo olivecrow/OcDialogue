@@ -15,7 +15,6 @@ namespace OcDialogue.DB
     {
         public override string Address => $"{Category}/{name}";
         public DataRowContainer DataRowContainer => dataRowContainer;
-        [InfoBox("몬스터가 여러개의 Damager를 가지는 경우, 여기에 적힌 값을 기본으로 두고, 각 Damager에 배율을 정해서 곱해서 사용할 것.")]
         [ValueDropdown("GetCategory")][PropertyOrder(-2)]
         public string Category;
         [ShowInInspector, PropertyOrder(-1)][DelayedProperty]
@@ -43,7 +42,8 @@ namespace OcDialogue.DB
         [BoxGroup("DataRow")]public DataRowContainer dataRowContainer;
         public event Action<Enemy> OnRuntimeValueChanged;
 #if UNITY_EDITOR
-        
+        [InlineButton("UpdateDamagerInfoFromWeapon")]
+        public OcDictionary<WeaponItem, DamagerTag> e_DamagerReference;
         public RuntimeValue EditorPreset => _editorPreset;
         [SerializeField]
         [DisableIf("@UnityEditor.EditorApplication.isPlaying")]
@@ -243,6 +243,17 @@ namespace OcDialogue.DB
             }
 
             return list;
+        }
+
+        void UpdateDamagerInfoFromWeapon()
+        {
+            foreach (var refer in e_DamagerReference)
+            {
+                var info = DamagerInfo.Find(x => x.tag == refer.Value);
+                if(info == null) return;
+                info.stat = refer.Key.AttackStat;
+                info.weight = refer.Key.weight;
+            }
         }
 #endif
     }

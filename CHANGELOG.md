@@ -1,6 +1,26 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+## [1.4.0]
+### Added
+- ItemBase에 CanBeTrashed 필드 추가
+- ItemBase에 자신이 속한 Inventory를 알 수 있도록 프로퍼티를 추가함
+  - 인벤토리에 추가될때 자동으로 할당되고, 제거될 때, 자동으로 해제됨
+- InventoryEditorPreset에 isLeft 변수 추가함
+- Enemy에 WeaponItem의 정보를 바탕으로 DamagerInfo를 업데이트 할 수 있는 기능 추가
+
+### Fixed
+- WeaponItem의 Weight을 int에서 float으로 변경
+- BattleStat의 모든 속성의 총 합 표시
+- Inventory.Remove의 아이템 매칭 방식을 GUID, Instance중에서 선택할 수 있도록 변경
+- Inventory.RemoveSingleItem에서도 OnInventoryChanged 이벤트가 호출되도록 변경
+- Inventory의 OnInventoryChanged이벤트에 ItemBase, InventoryChangeType 파라미터 추가
+- ItemBase의 AddStack, RemoveStack, GetCopy 메서드의 접근자를 internal로 제한함
+
+- EasySave Integration 샘플에서 ES3 캐싱을 기본적으로 사용하도록 설정함
+- Debugging Essential Integraion을 변경된 코드에 맞게 수정함
+
+
 ## [1.3.10] -2021-12-10
 ### Added
 - ExportWizard에서 ItemDB를 추출할 때 선택 가능한 옵션 추기

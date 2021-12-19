@@ -35,7 +35,7 @@ namespace OcDialogue
         public bool IsEquipped { get; set; }
         public float weight = 0.5f;
 #if UNITY_EDITOR
-        public override void SetSubTypeFromString(string subtypeName)
+        internal override void SetSubTypeFromString(string subtypeName)
         {
             subtype = (AccessoryType) Enum.Parse(typeof(AccessoryType), subtypeName);
         }  
