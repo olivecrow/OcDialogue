@@ -25,19 +25,32 @@ namespace OcDialogue
                 if(isNew) OnPlayerInventoryChanged?.Invoke(value);
                 
 #if UNITY_EDITOR
+                _playerInventory.OnInventoryChanged += (item, type) => Printer.Print($"[Inventory] OnInventoryChanged ({item.itemName}, {type})");
                 Application.quitting += ReleaseEvent;
 #endif
             }
         }
         static Inventory _playerInventory;
+        public static List<Inventory> CreatedInventories;
         public Inventory()
         {
+            if (CreatedInventories == null) CreatedInventories = new List<Inventory>();
+            CreatedInventories.Add(this);
             name = "New Inventory";
             _items = new List<ItemBase>();
         }
 
+        public Inventory(string name)
+        {
+            if (CreatedInventories == null) CreatedInventories = new List<Inventory>();
+            CreatedInventories.Add(this);
+            this.name = name;
+            _items = new List<ItemBase>();
+        }
         public Inventory(IEnumerable<ItemBase> items)
         {
+            if (CreatedInventories == null) CreatedInventories = new List<Inventory>();
+            CreatedInventories.Add(this);
             name = "New Inventory";
             _items = new List<ItemBase>();
             foreach (var item in items)
@@ -47,6 +60,8 @@ namespace OcDialogue
         }
         public Inventory(string name, IEnumerable<ItemBase> items)
         {
+            if (CreatedInventories == null) CreatedInventories = new List<Inventory>();
+            CreatedInventories.Add(this);
             this.name = name;
             _items = new List<ItemBase>();
             foreach (var item in items)
@@ -108,7 +123,6 @@ namespace OcDialogue
                 changeType = InventoryChangeType.AddSingle;
             }
             OnInventoryChanged?.Invoke(item, changeType);
-            Printer.Print($"[Inventory] 아이템 추가됨. item : {item.itemName} | count : {count}");
             return true;
         }
 
@@ -163,7 +177,8 @@ namespace OcDialogue
                 removedItem.Inventory = null;
                 for (int i = 0; i < count; i++)
                 {
-                    _items.Remove(item);
+                    _items.Remove(exist);
+                    exist.Inventory = null;
                     exist = _items.Find(x => x.GUID == item.GUID);
                     if(exist == null) break;
                 }
@@ -172,7 +187,6 @@ namespace OcDialogue
                 onEmpty?.Invoke();
             }
             OnInventoryChanged?.Invoke(removedItem, changeType);
-            Printer.Print($"[Inventory] 아이템 제거됨. item : {item.itemName} | count : {count}");
             return removedItem;
         }
         
@@ -180,6 +194,7 @@ namespace OcDialogue
         /// <param name="item"></param>
         public void RemoveSingleItem(ItemBase item)
         {
+            item.Inventory = null;
             _items.Remove(item);
             OnInventoryChanged?.Invoke(item, InventoryChangeType.RemoveSingle);
         }
@@ -273,6 +288,7 @@ namespace OcDialogue
 #if UNITY_EDITOR
         static void ReleaseEvent()
         {
+            CreatedInventories = null;
             _playerInventory = null;
             OnPlayerInventoryChanged = null;
             Application.quitting -= ReleaseEvent;

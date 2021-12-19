@@ -86,6 +86,7 @@ namespace OcDialogue.DB
                         DataRowType.Int => _initialValue.IntValue,
                         DataRowType.Float => _initialValue.FloatValue,
                         DataRowType.String => _initialValue.StringValue,
+                        _ => throw new ArgumentOutOfRangeException()
                     };              
                 }
 #endif

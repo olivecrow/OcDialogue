@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using OcUtility;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -34,19 +35,20 @@ namespace OcDialogue
         public virtual bool IsNowUsable()
         {
             if (!isUsable) return false;
-            //TODO
             if (isStackable && CurrentStack <= 0) return false;
+
             return true;
         }
-        public virtual bool Use(Action onEmpty = null)
+        public virtual ItemUsageResult Use()
         {
-            if(!IsNowUsable()) return false;
-            if (isStackable) CurrentStack--;
-            if(CurrentStack <= 0) onEmpty?.Invoke();
-            return true;
-            //TODO : 아마 소비에 관한 것.
+            if(!IsNowUsable()) return ItemUsageResult.None;
+            CurrentStack--;
+            UsageProcess();
+            Printer.Print($"[{itemName}] 사용됨 | CurrentStack : {CurrentStack}");
+            return CurrentStack <= 0 ? ItemUsageResult.Empty : ItemUsageResult.Success;
         }
 
+        protected virtual void UsageProcess(){}
 
 #if UNITY_EDITOR
         internal override void SetSubTypeFromString(string subtypeName)

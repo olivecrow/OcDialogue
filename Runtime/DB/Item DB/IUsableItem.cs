@@ -10,6 +10,13 @@ namespace OcDialogue
         int CurrentStack { get; }
         bool IsUsableItem { get; }
         bool IsNowUsable();
-        bool Use(Action onEmpty);
+        ItemUsageResult Use();
+    }
+
+    public enum ItemUsageResult
+    {
+        None,
+        Success,
+        Empty
     }
 }

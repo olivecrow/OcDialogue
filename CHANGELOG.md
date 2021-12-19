@@ -1,6 +1,12 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+## [1.4.1] -2021-12-19
+### Fixed
+- ItemBase의 CanBeTrashed가 카피에서 적용되지 않던 문제 해결
+- IUsableItem.Use가 ItemUsageResult 값을 반환하도록 변경
+- ItemBase의 CurrentStack이 0이 되면 자동으로 인벤토리에서 해제되도록 변경 
+
 ## [1.4.0]
 ### Added
 - ItemBase에 CanBeTrashed 필드 추가
