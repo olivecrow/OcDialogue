@@ -5,6 +5,7 @@ using Sirenix.OdinInspector;
 using Sirenix.Utilities;
 using System.Linq;
 using OcDialogue.DB;
+using Sirenix.OdinInspector.Editor;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -17,6 +18,7 @@ namespace OcDialogue
     public class ItemDatabase : OcData
     {
         public override string Address => "ItemDatabase";
+
         public static ItemDatabase Instance => DBManager.Instance.ItemDatabase;
         
         public List<ItemBase> Items;

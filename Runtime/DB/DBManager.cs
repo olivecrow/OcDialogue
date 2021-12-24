@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using OcUtility;
 using Sirenix.OdinInspector;
 using UnityEditor;
@@ -26,8 +27,9 @@ namespace OcDialogue.DB
         public QuestDB QuestDatabase;
         public NPCDB NpcDatabase;
         public EnemyDB EnemyDatabase;
+        public List<OcData> ExternalDBs;
         public bool SaveOnChanged = true;
-        
+
 #if UNITY_EDITOR
         /// <summary> Editor Only. </summary>
         [Button][InitializeOnLoadMethod]

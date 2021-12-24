@@ -52,6 +52,15 @@ namespace OcDialogue.Editor
 
         protected override void OnBeginDrawEditors()
         {
+            SirenixEditorGUI.BeginHorizontalToolbar();
+            {
+                if (SirenixEditorGUI.ToolbarButton("외부 DB 등록"))
+                {
+                    GetWindow<ExternalDBRegisterWindow>();
+                }
+            }   
+            SirenixEditorGUI.EndHorizontalToolbar();
+            
             bool rebuildRequest = false;
             bool isDirty = false;
             int drawEnumToolbar(Color color, int currentValue, string[] names, int height, Texture2D[] icons = null)

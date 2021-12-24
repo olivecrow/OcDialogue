@@ -1,18 +1,12 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using OcDialogue.DB;
 using OcDialogue.DB.GameProcess_DB;
-using OcUtility;
 using Sirenix.OdinInspector;
-using UnityEditor;
 using UnityEngine;
 
 namespace OcDialogue.DB
 {
     [CreateAssetMenu(fileName = "GameProcess DB", menuName = "Oc Dialogue/DB/GameProcess DB", order = 0)]
-    public class GameProcessDB : OcData, IDataRowUser
+    public sealed class GameProcessDB : OcData, IDataRowUser
     {
         public static GameProcessDB Instance => DBManager.Instance.GameProcessDB;
         public IGamePlayer GamePlayer { get; set; }
@@ -20,6 +14,7 @@ namespace OcDialogue.DB
         public TimeSpan PlayTimeUntilLastSession { get; set; }
         public TimeSpan PlayTimeSinceThisSession { get; set; }
         public override string Address => "GameProcessData";
+
         public DataRowContainer DataRowContainer => dataRowContainer;
         
         public bool usePreset;
