@@ -16,6 +16,7 @@ namespace OcDialogue
     {
         public static DialogueAsset Instance => DBManager.Instance.DialogueAsset;
         public string DefaultDialogueUISceneName = "Dialogue UI";
+        public IDialogueActorDB DialogueNPCDB { get; set; }
         public string[] Categories;
         public List<Conversation> Conversations;
 

@@ -17,7 +17,7 @@ namespace OcDialogue
         [ValueDropdown("GetCategoryList")]public string Category;
         [InlineButton("ApplyName", ShowIf = "@name != key")]public string key;
         [InfoBox("Main NPC가 설정되어있지 않음", InfoMessageType.Warning, "@MainNPC == null")]
-        [ValueDropdown("GetNPCList")]public NPC MainNPC;
+        [ValueDropdown("GetNPCList")]public OcNPC MainNPC;
         /// <summary> 에디터에서 참고용으로 사용되는 설명. 인게임에서는 등장하지 않음. </summary>
         [TextArea]public string description;
         public List<Balloon> Balloons;
@@ -131,25 +131,16 @@ namespace OcDialogue
 
             return list;
         }
-        
+
         /// <summary> MainActor 필드에서 NPC이름을 드롭다운으로 보여주기위한 리스트를 반환함. (Odin Inspector용) </summary>
-        ValueDropdownList<NPC> GetNPCList()
-        {
-            var list = new ValueDropdownList<NPC>();
-            foreach (var npc in NPCDB.Instance.NPCs)
-            {
-                list.Add(npc.name, npc);
-            }
-        
-            return list;
-        }
+        ValueDropdownList<OcNPC> GetNPCList() => DialogueAsset.Instance.DialogueNPCDB.GetOdinDropDown();
 
 
         [BoxGroup("유틸리티 메서드")]
         [HorizontalGroup("유틸리티 메서드/1", LabelWidth = 100), LabelText("Replace"), ValueDropdown("GetNPCList")]
-        public NPC replace_before;
+        public OcNPC replace_before;
         [HorizontalGroup("유틸리티 메서드/1", LabelWidth = 50), LabelText("  =>"), ValueDropdown("GetNPCList")][InlineButton("ReplaceNPC", "Replace")]
-        public NPC replace_after;
+        public OcNPC replace_after;
 
         void ReplaceNPC()
         {

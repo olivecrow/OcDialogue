@@ -9,6 +9,7 @@ namespace OcDialogue.Editor
     public class DBEditorWindowV2 : OdinMenuEditorWindow
     {
         List<string> _DBNames;
+        OcDB _currentDB;
         IDBEditor _CurrentDBEditor;
 
         int CurrentSelectedDBIndex
@@ -37,27 +38,19 @@ namespace OcDialogue.Editor
         protected override void OnEnable()
         {
             base.OnEnable();
-            _DBNames = new List<string>();
-            _DBNames.Add(GameProcessDB.Instance.Address);
-            _DBNames.Add(ItemDatabase.Instance.Address);
-            _DBNames.Add(QuestDB.Instance.Address);
-            _DBNames.Add(NPCDB.Instance.Address);
-            _DBNames.Add(EnemyDB.Instance.Address);
-            foreach (var externalDB in DBManager.Instance.ExternalDBs)
-            {
-                _DBNames.Add(externalDB.Address);
-            }
-
             UpdateDBEditor();
         }
 
         protected override void OnBeginDrawEditors()
         {
             GUI.color = new Color(1f, 1f, 2f);
-            CurrentSelectedDBIndex = OcEditorUtility.DrawCategory(CurrentSelectedDBIndex, _DBNames, GUILayout.Height(40));
+            CurrentSelectedDBIndex = 
+                OcEditorUtility.DrawCategory(CurrentSelectedDBIndex, _DBNames, GUILayout.Height(40));
             GUI.color = Color.white;
-            GUILayout.Label(_DBNames[CurrentSelectedDBIndex], new GUIStyle(GUI.skin.label){fontSize = 20, normal = {textColor = Color.white}});
             
+            _CurrentDBEditor?.DrawToolbar();
+            _CurrentDBEditor?.OnInspectorGUI();
+
         }
 
         protected override OdinMenuTree BuildMenuTree()
@@ -70,13 +63,19 @@ namespace OcDialogue.Editor
 
         void UpdateDBEditor()
         {
-            if(_CurrentDBEditor != null) DestroyImmediate(_CurrentDBEditor as UnityEditor.Editor);
-            _CurrentDBEditor = CurrentSelectedDBIndex switch
+            if (_DBNames == null) _DBNames = new List<string>();
+            _DBNames.Clear();
+            foreach (var db in DBManager.Instance.DBs) _DBNames.Add(db.Address);
+            if(_CurrentDBEditor != null)
             {
-                0 => UnityEditor.Editor.CreateEditor(GameProcessDB.Instance) as IDBEditor,
-                1 => UnityEditor.Editor.CreateEditor(ItemDatabase.Instance) as IDBEditor,
-                _ => UnityEditor.Editor.CreateEditor(DBManager.Instance.ExternalDBs[__currentSelectedDBIndex - 5]) as IDBEditor
-            };
+                DestroyImmediate(_CurrentDBEditor as UnityEditor.Editor);
+                _CurrentDBEditor = null;
+            }
+
+            _currentDB = DBManager.Instance.DBs[__currentSelectedDBIndex];
+            _CurrentDBEditor =
+                UnityEditor.Editor.CreateEditor(DBManager.Instance.DBs[__currentSelectedDBIndex]) as IDBEditor;
+            _CurrentDBEditor.Window = this;
         }
     }
 }

@@ -31,6 +31,10 @@
       "displayName": "Debugging Essentials Integration",
       "description": "Debugging Essentials 에셋과 통합해주는 샘플. 임포트하기만 하면 Debugging Essentials의 콘솔에서 확장된 메서드를 사용할 수 있음.",
       "path": "Samples~/Debugging Essentials Integration"
+    },{
+      "displayName": "DBSample",
+      "description": "GameProcess, Item, Quest, NPC, Enemy 등 주요 DB와 에디터를 구현한 샘플",
+      "path": "Samples~/DBSample"
     }
   ]
 }

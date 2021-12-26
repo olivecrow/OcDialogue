@@ -140,7 +140,7 @@ namespace OcDialogue.DB
         public bool IsWarningOn()
         {
             if (factors == null) return false;
-            return factors.Any(x => x.Data == null) || !string.IsNullOrWhiteSpace(e_bindingErrMsg);
+            return factors.Any(x => x.TargetData == null) || !string.IsNullOrWhiteSpace(e_bindingErrMsg);
         }
 #endif
     }

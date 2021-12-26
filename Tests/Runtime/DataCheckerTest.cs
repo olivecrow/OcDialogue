@@ -16,32 +16,27 @@ public class DataCheckerTest
         row.name = $"Test_{type}({value})";
         row.SetTypeAndValue(type, value);
         var factor = new CheckFactor();
-        factor.SetTargetData(row);
-        factor.SetTargetValue(targetValue);
+        factor.TargetData = row;
+
+        switch (targetValue)
+        {
+            case bool b:
+                factor.BoolValue = b;
+                break;
+            case int i:
+                factor.IntValue = i;
+                break;
+            case float f:
+                factor.FloatValue = f;
+                break;
+            case string s:
+                factor.StringValue = s;
+                break;
+        }
         factor.op = op;
         return factor;
     }
 
-    static CheckFactor Factor_QuestState(QuestState state, QuestState targetState, CheckFactor.Operator op)
-    {
-        var q = ScriptableObject.CreateInstance<Quest>();
-        q.name = $"Test_Quest({state})";
-        q.SetState(state);
-        var factor = new CheckFactor();
-        factor.SetTargetData(q);
-        factor.SetTargetValue(targetState);
-        factor.op = op;
-        return factor;
-    }
-
-    static CheckFactor Factor_Item(ItemBase item, int targetValue, CheckFactor.Operator op)
-    {
-        var factor = new CheckFactor();
-        factor.SetTargetData(item);
-        factor.SetTargetValue(targetValue);
-        factor.op = op;
-        return factor;
-    }
 
     static Binding Binding(DataChecker checker, Condition condition, params int[] indices)
     {
@@ -112,22 +107,6 @@ public class DataCheckerTest
         Result(false, checker);
         
         
-        // = QuestState =
-        // Equal
-        checker.factors = new[] { Factor_QuestState(QuestState.None, QuestState.None,  CheckFactor.Operator.Equal) };
-        Result(true, checker);
-
-        checker.factors = new[] { Factor_QuestState(QuestState.None, QuestState.WorkingOn, CheckFactor.Operator.Equal) };
-        Result(false, checker);
-
-        // Not Equal
-        checker.factors = new[] { Factor_QuestState(QuestState.None, QuestState.WorkingOn, CheckFactor.Operator.NotEqual) };
-        Result(true, checker);
-
-        checker.factors = new[] { Factor_QuestState(QuestState.None, QuestState.None,  CheckFactor.Operator.NotEqual) };
-        Result(false, checker);
-
-
         // = int =
         // -Equal
         checker.factors = new[] { Factor_DataRow(DataRowType.Int, 100, 100, CheckFactor.Operator.Equal) };
@@ -216,85 +195,6 @@ public class DataCheckerTest
         Result(false, checker);
         
         
-        // = item =
-        var inv = new Inventory();
-        Inventory.PlayerInventory = inv;
-        var stackable = ItemDatabase.Instance.AddItem(ItemType.Generic, GenericType.Consumable.ToString());
-        yield return null;
-        stackable.itemName = "TEST_Stackable";
-        stackable.isStackable = true;
-        stackable.maxStackCount = 999;
-        inv.AddItem(stackable, 20);
-        
-        checker.factors = new[] { Factor_Item(stackable, 20, CheckFactor.Operator.Equal) };
-        Result(true, checker);
-        checker.factors = new[] { Factor_Item(stackable, 19, CheckFactor.Operator.Equal) };
-        Result(false, checker);
-
-        checker.factors = new[] { Factor_Item(stackable, 19, CheckFactor.Operator.NotEqual) };
-        Result(true, checker);
-        checker.factors = new[] { Factor_Item(stackable, 20, CheckFactor.Operator.NotEqual) };
-        Result(false, checker);
-        
-        checker.factors = new[] { Factor_Item(stackable, 19, CheckFactor.Operator.Greater) };
-        Result(true, checker);
-        checker.factors = new[] { Factor_Item(stackable, 20, CheckFactor.Operator.Greater) };
-        Result(false, checker);
-        
-        checker.factors = new[] { Factor_Item(stackable, 20, CheckFactor.Operator.GreaterEqual) };
-        Result(true, checker);
-        checker.factors = new[] { Factor_Item(stackable, 21, CheckFactor.Operator.GreaterEqual) };
-        Result(false, checker);
-        
-        checker.factors = new[] { Factor_Item(stackable, 21, CheckFactor.Operator.Less) };
-        Result(true, checker);
-        checker.factors = new[] { Factor_Item(stackable, 20, CheckFactor.Operator.Less) };
-        Result(false, checker);
-        
-        checker.factors = new[] { Factor_Item(stackable, 20, CheckFactor.Operator.LessEqual) };
-        Result(true, checker);
-        checker.factors = new[] { Factor_Item(stackable, 19, CheckFactor.Operator.LessEqual) };
-        Result(false, checker);
-
-        var unStackable = ItemDatabase.Instance.AddItem(ItemType.Generic, GenericType.Consumable.ToString());
-        yield return null;
-        unStackable.isStackable = false;
-        unStackable.itemName = "TEST_UnStackable";
-        inv.AddItem(unStackable, 20);
-        
-        checker.factors = new[] { Factor_Item(unStackable, 20, CheckFactor.Operator.Equal) };
-        Result(true, checker);
-        checker.factors = new[] { Factor_Item(unStackable, 19, CheckFactor.Operator.Equal) };
-        Result(false, checker);
-
-        checker.factors = new[] { Factor_Item(unStackable, 19, CheckFactor.Operator.NotEqual) };
-        Result(true, checker);
-        checker.factors = new[] { Factor_Item(unStackable, 20, CheckFactor.Operator.NotEqual) };
-        Result(false, checker);
-        
-        checker.factors = new[] { Factor_Item(unStackable, 19, CheckFactor.Operator.Greater) };
-        Result(true, checker);
-        checker.factors = new[] { Factor_Item(unStackable, 20, CheckFactor.Operator.Greater) };
-        Result(false, checker);
-        
-        checker.factors = new[] { Factor_Item(unStackable, 20, CheckFactor.Operator.GreaterEqual) };
-        Result(true, checker);
-        checker.factors = new[] { Factor_Item(unStackable, 21, CheckFactor.Operator.GreaterEqual) };
-        Result(false, checker);
-        
-        checker.factors = new[] { Factor_Item(unStackable, 21, CheckFactor.Operator.Less) };
-        Result(true, checker);
-        checker.factors = new[] { Factor_Item(unStackable, 20, CheckFactor.Operator.Less) };
-        Result(false, checker);
-        
-        checker.factors = new[] { Factor_Item(unStackable, 20, CheckFactor.Operator.LessEqual) };
-        Result(true, checker);
-        checker.factors = new[] { Factor_Item(unStackable, 19, CheckFactor.Operator.LessEqual) };
-        Result(false, checker);
-        
-        ItemDatabase.Instance.DeleteItem(stackable);
-        ItemDatabase.Instance.DeleteItem(unStackable);
-        Inventory.PlayerInventory = null;
     }
 
     [UnityTest]
@@ -342,7 +242,6 @@ public class DataCheckerTest
         {
             Factor_DataRow(DataRowType.Bool, true, false, CheckFactor.Operator.NotEqual), // true
             Factor_DataRow(DataRowType.Int, 100, 100, CheckFactor.Operator.Equal), // true
-            Factor_QuestState(QuestState.WorkingOn, QuestState.Done, CheckFactor.Operator.Equal) // false
         };
         Result(false, checker);
         

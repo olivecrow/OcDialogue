@@ -27,7 +27,7 @@ namespace OcDialogue
         [ReadOnly] public Type type;
 
         [ShowIf("type", Type.Dialogue)] [ValueDropdown("GetNPCList")]
-        public NPC actor;
+        public OcNPC actor;
 
         [InfoBox("타입이 Action일땐 텍스트가 참고용 설명으로만 쓰이고 대화에서 나타나지 않음\n오로지 Checker, Setter, Event, Image용도로만 쓰임", 
             VisibleIf = "@type == Balloon.Type.Action")]
@@ -84,17 +84,9 @@ namespace OcDialogue
 
 #if UNITY_EDITOR
         public string description;
+
         /// <summary> actor필드에서 NPC이름을 드롭다운으로 보여주기위한 리스트를 반환함. (Odin Inspector용) </summary>
-        ValueDropdownList<NPC> GetNPCList()
-        {
-            var list = new ValueDropdownList<NPC>();
-            foreach (var npc in NPCDB.Instance.NPCs)
-            {
-                list.Add(npc.name, npc);
-            }
-        
-            return list;
-        }
+        ValueDropdownList<OcNPC> GetNPCList() => DialogueAsset.Instance.DialogueNPCDB.GetOdinDropDown();
 
         ValueDropdownList<Balloon> GetBalloonText()
         {
@@ -159,7 +151,7 @@ namespace OcDialogue
                 if(checker.factors.Length == 0) return true;
                 foreach (var factor in checker.factors)
                 {
-                    if (factor.Data == null) return true;
+                    if (factor.TargetData == null) return true;
                 }
             }
             if (useSetter)
@@ -167,7 +159,7 @@ namespace OcDialogue
                 if(setters == null || setters.Length == 0) return true;
                 foreach (var setter in setters)
                 {
-                    if (setter.Data == null) return true;
+                    if (setter.TargetData == null) return true;
                 }
             }
             if (useEvent)

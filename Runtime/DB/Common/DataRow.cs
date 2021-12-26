@@ -14,7 +14,7 @@ namespace OcDialogue.DB
     public class DataRow : OcData
     {
         public override string Address => name;
-
+        
         [ShowInInspector]
         [DisableIf("@UnityEditor.EditorApplication.isPlaying")]
         [PropertyOrder(1)]
@@ -202,6 +202,51 @@ namespace OcDialogue.DB
             };
         }
 
+        
+        public override bool IsTrue(string fieldName, CheckFactor.Operator op, object checkValue)
+        {
+            return IsTrue(op, checkValue);
+        }
+
+        public override object GetValue(string fieldName)
+        {
+            return TargetValue;
+        }
+
+        public override string[] GetFieldNames()
+        {
+            return null;
+        }
+
+        public override void SetData(string fieldName, DataSetter.Operator op, object value)
+        {
+            switch (op)
+            {
+                case DataSetter.Operator.Set:
+                    break;
+                case DataSetter.Operator.Add:
+                    break;
+                case DataSetter.Operator.Multiply:
+                    break;
+                case DataSetter.Operator.Divide:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(op), op, null);
+            }
+        }
+
+        public override ValueDropdownList<CheckFactor.Operator> GetCheckerOperator()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override ValueDropdownList<DataSetter.Operator> GetSetterOperator()
+        {
+            throw new NotImplementedException();
+        }
+        
+        
+        
         public override string ToString()
         {
             return $"{name} | {Type} | {TargetValue}";

@@ -40,10 +40,6 @@ public class DialogueDBTest
             if (DataCheckerTest.HasNull(balloon.checker))
                 Debug.LogError($"[{conversation.key}/{balloon.GUID}] Balloon.Checker에 빈 요소가 존재함");
             
-            if(DataCheckerTest.HasDeadData(balloon.checker))
-                Debug.LogError($"[{conversation.key}/{balloon.GUID}] Balloon.Checker에 DB에 포함되지 않은 요소가 존재함 \n" +
-                               $"죽은 데이터는 컴파일 후 사라지는 게 정상이기때문에 재 컴파일을 시도해볼 것.");
-            
             if (DataCheckerTest.HasUnusedCheckeables(balloon.checker))
                 Debug.LogError($"[{conversation.key}/{balloon.GUID}] Balloon.Checker에 사용되지 않은 Checkable이 존재함");
         });
@@ -61,7 +57,7 @@ public class DialogueDBTest
                 return;
             }
 
-            if (balloon.setters.Any(x => x.Data == null))
+            if (balloon.setters.Any(x => x.targetData == null))
                 Debug.LogError($"[{conversation.key}/{balloon.GUID}] Balloon.Setter에 Data가 비어있음");
         });
     }

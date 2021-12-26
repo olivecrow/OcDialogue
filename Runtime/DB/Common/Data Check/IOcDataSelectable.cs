@@ -7,17 +7,10 @@ namespace OcDialogue.DB
     public interface IOcDataSelectable
     {
 #if UNITY_EDITOR
-      OcData Data { get; }
+        OcData TargetData { get; set; }
         string Detail { get; }
         void UpdateAddress();
-        void SetTargetData(OcData data);  
 #endif
-    }
-    
-    public interface IStandardDB
-    {
-        string[] CategoryRef { get; }
-        IEnumerable<OcData> AllData { get; }
     }
 
     public interface IDataRowUser

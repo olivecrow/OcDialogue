@@ -12,16 +12,23 @@ namespace OcDialogue.DB
     public class DataSelectWindow : OdinEditorWindow
     {
         public IOcDataSelectable DataSelectable;
-        [OnValueChanged(nameof(OnDBTypeChanged))][EnumToggleButtons]public DBType DBType;
-        [BoxGroup][HideLabel][ShowIf(nameof(_useDataSelector))]public DataRowSelector DataRowSelector;
-        [BoxGroup][HideLabel][ShowIf(nameof(DBType), OcDialogue.DBType.Item)]public ItemSelector ItemSelector;
-        [BoxGroup][HideLabel][ShowIf(nameof(DBType), OcDialogue.DBType.Quest)]public StandardDataSelector QuestSelector;
-        [BoxGroup][HideLabel][ShowIf(nameof(DBType), OcDialogue.DBType.NPC)] public StandardDataSelector NPCSelector;
-        [BoxGroup][HideLabel][ShowIf(nameof(DBType), OcDialogue.DBType.Enemy)] public StandardDataSelector EnemySelector;
-        [HideInInspector]public Action<OcData> OnDataSelected;
-#pragma warning disable 414
+        public Action<OcData> OnDataSelected;
+        public StandardDataSelector Selector { get; private set; }
+        string[] _DBNames;
+
+        OcDB CurrentSelectedDB
+        {
+            get => _currentSelectedDB;
+            set
+            {
+                var isNew = _currentSelectedDB != value;
+                _currentSelectedDB = value;
+                if (isNew) Selector = new StandardDataSelector(value);
+            }
+        }
+        OcDB _currentSelectedDB;
+        int _currentSelectedDBIndex;
         bool _useDataSelector;
-#pragma warning restore 414
         public static DataSelectWindow Open(IOcDataSelectable dataSelectable)
         {
             var wnd = GetWindow<DataSelectWindow>(true);
@@ -34,69 +41,28 @@ namespace OcDialogue.DB
         protected override void OnEnable()
         {
             base.OnEnable();
-            OnDBTypeChanged();
+
+            _DBNames = DBManager.Instance.DBs.Select(x => x.name).ToArray();
         }
 
-        void OnDBTypeChanged()
+        protected override void OnGUI()
         {
-            _useDataSelector = false;
-            DataRowSelector = null;
-            ItemSelector = null;
-            QuestSelector = null;
-            NPCSelector = null;
-            EnemySelector = null;
-            switch (DBType)
-            {
-                case DBType.GameProcess:
-                    _useDataSelector = true;
-                    if(DataRowSelector == null) DataRowSelector = new DataRowSelector(GameProcessDB.Instance.DataRowContainer.DataRows);
-                    break;
-                case DBType.Item:
-                    if(ItemSelector == null) ItemSelector = new ItemSelector(ItemDatabase.Instance.Items);
-                    break;
-                case DBType.Quest:
-                    if(QuestSelector == null) QuestSelector = new StandardDataSelector(QuestDB.Instance);
-                    break;
-                case DBType.NPC:
-                    if(NPCSelector == null) NPCSelector = new StandardDataSelector(NPCDB.Instance);
-                    break;
-                case DBType.Enemy:
-                    if(EnemySelector == null) EnemySelector = new StandardDataSelector(EnemyDB.Instance);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            base.OnGUI();
+            _currentSelectedDBIndex = EditorGUILayout.Popup(_currentSelectedDBIndex, _DBNames);
+            CurrentSelectedDB = DBManager.Instance.DBs[_currentSelectedDBIndex];
         }
 
         [Button]
         void Apply()
         {
-            OcData targetData = null;
-            switch (DBType)
+            if(Selector != null && Selector.Data != null)
             {
-                case DBType.GameProcess:
-                    targetData = DataRowSelector.DataRow;
-                    break;
-                case DBType.Item:
-                    targetData = ItemSelector.Item;
-                    break;
-                case DBType.Quest:
-                    targetData = QuestSelector.ValidData;
-                    break;
-                case DBType.NPC:
-                    targetData = NPCSelector.ValidData;
-                    break;
-                case DBType.Enemy:
-                    targetData = EnemySelector.ValidData;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+                DataSelectable.TargetData = Selector.Data;
+                DataSelectable.UpdateAddress();
+                OnDataSelected?.Invoke(Selector.Data);
+                if(Selection.activeObject != null) EditorUtility.SetDirty(Selection.activeObject);
+                Close();
             }
-            DataSelectable?.SetTargetData(targetData);
-            DataSelectable?.UpdateAddress();
-            OnDataSelected?.Invoke(targetData);
-            // if(Selection.activeObject != null) EditorUtility.SetDirty(Selection.activeObject);
-            Close();
         }
     }
 
@@ -125,44 +91,6 @@ namespace OcDialogue.DB
     }
 
     [Serializable]
-    public class ItemSelector
-    {
-        [EnumToggleButtons]public ItemType ItemType;
-        [ValueDropdown(nameof(GetSubTypeList))]public string ItemSubType;
-        [ValueDropdown(nameof(GetItemList))]public ItemBase Item;
-
-        IEnumerable<ItemBase> _Items;
-        public ItemSelector(IEnumerable<ItemBase> items)
-        {
-            _Items = items;
-        }
-        
-        ValueDropdownList<string> GetSubTypeList()
-        {
-            var list = new ValueDropdownList<string>();
-            var names = Enum.GetNames(ItemDatabase.GetSubType(ItemType));
-            foreach (var name in names)
-            {
-                list.Add(name);
-            }
-
-            return list;
-        }
-
-        ValueDropdownList<ItemBase> GetItemList()
-        {
-            if (_Items == null) return null;
-            var list = new ValueDropdownList<ItemBase>();
-            foreach (var item in _Items.Where(x => x.type == ItemType && x.SubTypeString == ItemSubType))
-            {
-                list.Add(item.itemName, item);
-            }
-
-            return list;
-        }
-    }
-
-    [Serializable]
     public class StandardDataSelector
     {
         public enum DataSelectionType
@@ -183,19 +111,19 @@ namespace OcDialogue.DB
             DataSelectionType.Target_DataRow => DataRowSelector.DataRow,
             _ => throw new ArgumentOutOfRangeException()
         };
-
-        IStandardDB _DB;
-        public StandardDataSelector(IStandardDB db)
+        
+        OcDB _DB;
+        public StandardDataSelector(OcDB db)
         {
             _DB = db;
-            Category = db.CategoryRef[0];
+            Category = db.Category[0];
         }
 
         ValueDropdownList<string> GetCategory()
         {
             if (_DB == null) return null;
             var list = new ValueDropdownList<string>();
-            foreach (var category in _DB.CategoryRef)
+            foreach (var category in _DB.Category)
             {
                 list.Add(category);
             }

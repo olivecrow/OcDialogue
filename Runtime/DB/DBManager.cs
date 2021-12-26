@@ -8,50 +8,42 @@ using UnityEngine;
 namespace OcDialogue.DB
 {
     [CreateAssetMenu(fileName = "DB Manager", menuName = "Oc Dialogue/DB/DB Manager", order = 0)]
-    public class DBManager : OcData
+    public class DBManager : ScriptableObject
     {
-        public override OcData Parent => null;
-        public override string Address => "DB Manager";
-        public const string AssetPath = "DB Manager";
-        
         public static DBManager Instance => _instance;
         static DBManager _instance;
         
-        public static event Action OnRuntimeInitilized;
+        public static event Action OnRuntimeInitialized;
         public static bool RuntimeInitialized => _runtimeInitialized;
         static bool _runtimeInitialized;
 
         public DialogueAsset DialogueAsset;
-        public GameProcessDB GameProcessDB;
-        public ItemDatabase ItemDatabase;
-        public QuestDB QuestDatabase;
-        public NPCDB NpcDatabase;
-        public EnemyDB EnemyDatabase;
-        public List<OcData> ExternalDBs;
-        public bool SaveOnChanged = true;
+
+        public List<OcDB> DBs;
 
 #if UNITY_EDITOR
         /// <summary> Editor Only. </summary>
         [Button][InitializeOnLoadMethod]
         static void EditorInit()
         {
-            _instance = Resources.Load<DBManager>(AssetPath);
+            _instance = Resources.Load<DBManager>("DB Manager");
         }
 #endif
         
         [RuntimeInitializeOnLoadMethod]
         static void RuntimeInit()
         {
-            _instance = Resources.Load<DBManager>(AssetPath);
+            _instance = Resources.Load<DBManager>("DB Manager");
             
             Printer.Print($"[DB Manager V2] RuntimeInit : 모든 데이터 초기화");
-            _instance.GameProcessDB.Init();
-            _instance.QuestDatabase.Init();
-            _instance.NpcDatabase.Init();
-            _instance.EnemyDatabase.Init();
+            foreach (var db in _instance.DBs)
+            {
+                db.Init();
+            }
 
             _runtimeInitialized = true;
-            OnRuntimeInitilized?.Invoke();
+            OnRuntimeInitialized?.Invoke();
+            OnRuntimeInitialized = null;
         }
 
         void OnDestroy()

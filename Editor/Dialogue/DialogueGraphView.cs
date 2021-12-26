@@ -359,92 +359,92 @@ namespace OcDialogue.Editor
 
         public void CreateQuestStateNodes(DropdownMenuAction action)
         {
-            var selected = selection[0] as DialogueNode;
-            if(selected == null) return;
-
-            var selector = DataSelectWindow.Open(null);
-            selector.OnDataSelected += data =>
-            {
-                if(!(data is Quest)) return;
-
-                var sourceRect = selected.GetPosition();
-                
-                var beforeQuestNode = CreateLinkedNode(selected, Balloon.Type.Dialogue);
-                beforeQuestNode.Balloon.useChecker = true;
-                beforeQuestNode.Balloon.checker = new DataChecker();
-                beforeQuestNode.Balloon.checker.factors = new[] { new CheckFactor() };
-                beforeQuestNode.Balloon.checker.factors[0].SetTargetData(data);
-                beforeQuestNode.RefreshIcons();
-                beforeQuestNode.Balloon.text = "퀘스트 수락 전";
-                
-                var acceptQuestNode = CreateBalloonAndNode(Balloon.Type.Dialogue, 
-                    sourceRect.position + new Vector2(sourceRect.width * 2 + 200f, sourceRect.position.y - sourceRect.height));
-                {
-                    var edge = beforeQuestNode.OutputPort.ConnectTo(acceptQuestNode.InputPort);
-                    var linkData = CreateLinkDataFromEdge(edge);
-                    Conversation.AddLinkData(linkData);
-                    AddElement(edge);
-                }
-                acceptQuestNode.Balloon.useSetter = true;
-                acceptQuestNode.Balloon.setters = new[] { new DataSetter() };
-                acceptQuestNode.Balloon.setters[0].SetTargetData(data);
-                acceptQuestNode.Balloon.setters[0].QuestStateValue = QuestState.WorkingOn;
-                acceptQuestNode.RefreshIcons();
-                acceptQuestNode.Balloon.text = "퀘스트 수락";
-
-                var workingOnQuestNode = CreateLinkedNode(selected, Balloon.Type.Dialogue);
-                workingOnQuestNode.Balloon.useChecker = true;
-                workingOnQuestNode.Balloon.checker = new DataChecker();
-                workingOnQuestNode.Balloon.checker.factors = new[] { new CheckFactor(), new CheckFactor() };
-                workingOnQuestNode.Balloon.checker.factors[0].SetTargetData(data);
-                workingOnQuestNode.Balloon.checker.factors[0].QuestStateValue = QuestState.WorkingOn;
-
-                workingOnQuestNode.Balloon.checker.factors[1].SetTargetData(data);
-                workingOnQuestNode.Balloon.checker.factors[1].detail = DataChecker.QUEST_CLEARAVAILABILITY;
-                workingOnQuestNode.Balloon.checker.factors[1].BoolValue = false;
-                workingOnQuestNode.RefreshIcons();
-                workingOnQuestNode.Balloon.text = "퀘스트 진행중.";
-
-                var clearableQuestNode = CreateLinkedNode(selected, Balloon.Type.Dialogue);
-                clearableQuestNode.Balloon.useChecker = true;
-                clearableQuestNode.Balloon.checker = new DataChecker();
-                clearableQuestNode.Balloon.checker.factors = new[] { new CheckFactor(), new CheckFactor() };
-                clearableQuestNode.Balloon.checker.factors[0].SetTargetData(data);
-                clearableQuestNode.Balloon.checker.factors[0].QuestStateValue = QuestState.WorkingOn;
-
-                clearableQuestNode.Balloon.checker.factors[1].SetTargetData(data);
-                clearableQuestNode.Balloon.checker.factors[1].detail = DataChecker.QUEST_CLEARAVAILABILITY;
-                clearableQuestNode.Balloon.checker.factors[1].BoolValue = true;
-                clearableQuestNode.RefreshIcons();
-                clearableQuestNode.Balloon.text = "퀘스트 진행중. 클리어 가능.";
-                
-                
-                var clearQuestNode = CreateBalloonAndNode(Balloon.Type.Dialogue, 
-                    sourceRect.position + new Vector2(sourceRect.width * 2 + 200f, sourceRect.position.y + sourceRect.height));
-                {
-                    var edge = clearableQuestNode.OutputPort.ConnectTo(clearQuestNode.InputPort);
-                    var linkData = CreateLinkDataFromEdge(edge);
-                    Conversation.AddLinkData(linkData);
-                    AddElement(edge);
-                }
-                clearQuestNode.Balloon.useSetter = true;
-                clearQuestNode.Balloon.setters = new[] { new DataSetter() };
-                clearQuestNode.Balloon.setters[0].SetTargetData(data);
-                clearQuestNode.Balloon.setters[0].QuestStateValue = QuestState.Done;
-                clearQuestNode.RefreshIcons();
-                clearQuestNode.Balloon.text = "퀘스트 완료";
-                
-
-                var finishQuestNode = CreateLinkedNode(selected, Balloon.Type.Dialogue);
-                finishQuestNode.Balloon.useChecker = true;
-                finishQuestNode.Balloon.checker = new DataChecker();
-                finishQuestNode.Balloon.checker.factors = new[] { new CheckFactor() };
-                finishQuestNode.Balloon.checker.factors[0].SetTargetData(data);
-                finishQuestNode.Balloon.checker.factors[0].QuestStateValue = QuestState.Done;
-                finishQuestNode.RefreshIcons();
-                finishQuestNode.Balloon.text = "퀘스트 완료 후";
-
-            };
+            // var selected = selection[0] as DialogueNode;
+            // if(selected == null) return;
+            //
+            // var selector = DataSelectWindow.Open(null);
+            // selector.OnDataSelected += data =>
+            // {
+            //     if(!(data is Quest)) return;
+            //
+            //     var sourceRect = selected.GetPosition();
+            //     
+            //     var beforeQuestNode = CreateLinkedNode(selected, Balloon.Type.Dialogue);
+            //     beforeQuestNode.Balloon.useChecker = true;
+            //     beforeQuestNode.Balloon.checker = new DataChecker();
+            //     beforeQuestNode.Balloon.checker.factors = new[] { new CheckFactor() };
+            //     beforeQuestNode.Balloon.checker.factors[0].SetTargetData(data);
+            //     beforeQuestNode.RefreshIcons();
+            //     beforeQuestNode.Balloon.text = "퀘스트 수락 전";
+            //     
+            //     var acceptQuestNode = CreateBalloonAndNode(Balloon.Type.Dialogue, 
+            //         sourceRect.position + new Vector2(sourceRect.width * 2 + 200f, sourceRect.position.y - sourceRect.height));
+            //     {
+            //         var edge = beforeQuestNode.OutputPort.ConnectTo(acceptQuestNode.InputPort);
+            //         var linkData = CreateLinkDataFromEdge(edge);
+            //         Conversation.AddLinkData(linkData);
+            //         AddElement(edge);
+            //     }
+            //     acceptQuestNode.Balloon.useSetter = true;
+            //     acceptQuestNode.Balloon.setters = new[] { new DataSetter() };
+            //     acceptQuestNode.Balloon.setters[0].SetTargetData(data);
+            //     acceptQuestNode.Balloon.setters[0].QuestStateValue = QuestState.WorkingOn;
+            //     acceptQuestNode.RefreshIcons();
+            //     acceptQuestNode.Balloon.text = "퀘스트 수락";
+            //
+            //     var workingOnQuestNode = CreateLinkedNode(selected, Balloon.Type.Dialogue);
+            //     workingOnQuestNode.Balloon.useChecker = true;
+            //     workingOnQuestNode.Balloon.checker = new DataChecker();
+            //     workingOnQuestNode.Balloon.checker.factors = new[] { new CheckFactor(), new CheckFactor() };
+            //     workingOnQuestNode.Balloon.checker.factors[0].SetTargetData(data);
+            //     workingOnQuestNode.Balloon.checker.factors[0].QuestStateValue = QuestState.WorkingOn;
+            //
+            //     workingOnQuestNode.Balloon.checker.factors[1].SetTargetData(data);
+            //     workingOnQuestNode.Balloon.checker.factors[1].detail = DataChecker.QUEST_CLEARAVAILABILITY;
+            //     workingOnQuestNode.Balloon.checker.factors[1].BoolValue = false;
+            //     workingOnQuestNode.RefreshIcons();
+            //     workingOnQuestNode.Balloon.text = "퀘스트 진행중.";
+            //
+            //     var clearableQuestNode = CreateLinkedNode(selected, Balloon.Type.Dialogue);
+            //     clearableQuestNode.Balloon.useChecker = true;
+            //     clearableQuestNode.Balloon.checker = new DataChecker();
+            //     clearableQuestNode.Balloon.checker.factors = new[] { new CheckFactor(), new CheckFactor() };
+            //     clearableQuestNode.Balloon.checker.factors[0].SetTargetData(data);
+            //     clearableQuestNode.Balloon.checker.factors[0].QuestStateValue = QuestState.WorkingOn;
+            //
+            //     clearableQuestNode.Balloon.checker.factors[1].SetTargetData(data);
+            //     clearableQuestNode.Balloon.checker.factors[1].detail = DataChecker.QUEST_CLEARAVAILABILITY;
+            //     clearableQuestNode.Balloon.checker.factors[1].BoolValue = true;
+            //     clearableQuestNode.RefreshIcons();
+            //     clearableQuestNode.Balloon.text = "퀘스트 진행중. 클리어 가능.";
+            //     
+            //     
+            //     var clearQuestNode = CreateBalloonAndNode(Balloon.Type.Dialogue, 
+            //         sourceRect.position + new Vector2(sourceRect.width * 2 + 200f, sourceRect.position.y + sourceRect.height));
+            //     {
+            //         var edge = clearableQuestNode.OutputPort.ConnectTo(clearQuestNode.InputPort);
+            //         var linkData = CreateLinkDataFromEdge(edge);
+            //         Conversation.AddLinkData(linkData);
+            //         AddElement(edge);
+            //     }
+            //     clearQuestNode.Balloon.useSetter = true;
+            //     clearQuestNode.Balloon.setters = new[] { new DataSetter() };
+            //     clearQuestNode.Balloon.setters[0].SetTargetData(data);
+            //     clearQuestNode.Balloon.setters[0].QuestStateValue = QuestState.Done;
+            //     clearQuestNode.RefreshIcons();
+            //     clearQuestNode.Balloon.text = "퀘스트 완료";
+            //     
+            //
+            //     var finishQuestNode = CreateLinkedNode(selected, Balloon.Type.Dialogue);
+            //     finishQuestNode.Balloon.useChecker = true;
+            //     finishQuestNode.Balloon.checker = new DataChecker();
+            //     finishQuestNode.Balloon.checker.factors = new[] { new CheckFactor() };
+            //     finishQuestNode.Balloon.checker.factors[0].SetTargetData(data);
+            //     finishQuestNode.Balloon.checker.factors[0].QuestStateValue = QuestState.Done;
+            //     finishQuestNode.RefreshIcons();
+            //     finishQuestNode.Balloon.text = "퀘스트 완료 후";
+            //
+            // };
         }
 
     }
