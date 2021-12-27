@@ -34,7 +34,7 @@
     },{
       "displayName": "DBSample",
       "description": "GameProcess, Item, Quest, NPC, Enemy 등 주요 DB와 에디터를 구현한 샘플",
-      "path": "Samples~/DBSample"
+      "path": "Samples~/DBSamples"
     }
   ]
 }
