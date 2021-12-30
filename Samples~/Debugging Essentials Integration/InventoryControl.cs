@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Text;
 using DebuggingEssentials;
+using MyDB;
 using OcDialogue;
 
 namespace Samples.Debugging_Essential_Integration
@@ -11,7 +12,7 @@ namespace Samples.Debugging_Essential_Integration
         [ConsoleCommand("","ItemDatabase 내의 해당 파라미터의 이름을 포함하는 아이템 목록을 출력함")]
         public static void PrintItems(string name)
         {
-            var items = ItemDatabase.Instance.Items.Where(x => x.itemName.Contains(name));
+            var items = ItemDB.Instance.Items.Where(x => x.itemName.Contains(name));
             var sb = new StringBuilder();
             sb.Append($"다음 문자열을 포함하는 아이템 : {name}");
             foreach (var item in items)
@@ -45,7 +46,7 @@ namespace Samples.Debugging_Essential_Integration
                 return false;
             }
 
-            item = ItemDatabase.Instance.FindItem(name);
+            item = ItemDB.Instance.FindItem(name);
             if (item == null)
             {
                 RuntimeConsole.Log($"해당 아이템이 데이터베이스 내에 존재하지 않음 | itemName : {name}");

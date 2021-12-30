@@ -130,7 +130,12 @@ namespace OcDialogue
             if (existNames == null || !existNames.Any()) sameNameCount = 0;
             else
             {
-                sameNameCount = existNames.Count(x => x.Contains(defaultName));
+                while (true)
+                {
+                    sameNameCount++;
+                    if(existNames.Contains($"{defaultName} {sameNameCount}")) continue;
+                    break;
+                }
             }
 
             return $"{defaultName} {sameNameCount}";

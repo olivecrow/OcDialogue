@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using OcDialogue;
+using OcDialogue.DB;
 using OcDialogue.Samples;
 using UnityEngine;
 
@@ -11,8 +12,10 @@ public class RuntimeSaveGUI : MonoBehaviour
     bool _showPresetNames;
     bool _showSaveGUI;
     string _tempInput;
-    string _dbType;
-    List<string> _dbTypeNames;
+    string _dbName;
+    List<string> _dbNames;
+    OcDB _db;
+    ES3Settings ES3Settings => EasySaveIntegration.ES3Settings;
 #if !DEBUG
     void Awake()
     {
@@ -22,22 +25,22 @@ public class RuntimeSaveGUI : MonoBehaviour
 
     void OnEnable()
     {
-        var enumNames = Enum.GetNames(typeof(DBType)).ToList();
-        _dbTypeNames = new List<string>();
-        _dbTypeNames.Add("All");
-        _dbTypeNames.AddRange(enumNames);
-        _dbType = _dbTypeNames[0];
+        _dbNames = new List<string>();
+        _dbNames.Add("All");
+        _dbNames.AddRange(DBManager.Instance.DBs.Select(x => x.Address));
+        _dbName = _dbNames[0];
     }
 
     void OnGUI()
     {
         GUILayout.BeginHorizontal();
-        if (GUILayout.Button(_dbType, GUILayout.Width(150)))
+        if (GUILayout.Button(_dbName, GUILayout.Width(150)))
         {
-            var currIdx = _dbTypeNames.IndexOf(_dbType);
+            var currIdx = _dbNames.IndexOf(_dbName);
             currIdx++;
-            currIdx = (int)Mathf.Repeat(currIdx, _dbTypeNames.Count);
-            _dbType = _dbTypeNames[currIdx];
+            currIdx = (int)Mathf.Repeat(currIdx, _dbNames.Count);
+            _dbName = _dbNames[currIdx];
+            _db = DBManager.Instance.DBs.Find(x => x.Address == _dbName);
         }
         if (GUILayout.Button("Load"))
         {
@@ -54,7 +57,7 @@ public class RuntimeSaveGUI : MonoBehaviour
 
         if (GUILayout.Button("Print Exist Keys"))
         {
-            var keys = ES3.GetKeys();
+            var keys = ES3.GetKeys(ES3Settings);
             foreach (var key in keys)
             {
                 Debug.Log($"key : {key}");
@@ -65,12 +68,10 @@ public class RuntimeSaveGUI : MonoBehaviour
         {
             List<string> names;
             {
-                if (Enum.TryParse(_dbType, out DBType t))
-                {
-                    names = EasySaveIntegration.GetPresetNames(t);
-                }
+                if (_db != null) names = EasySaveIntegration.GetPresetNames(_db);
                 else names = EasySaveIntegration.GetPresetNames();
             }
+            
             if (names.Count == 0)
             {
                 _showPresetNames = false;
@@ -81,10 +82,11 @@ public class RuntimeSaveGUI : MonoBehaviour
                 GUILayout.BeginHorizontal();
                 if(GUILayout.Button(preset))
                 {
-                    if (Enum.TryParse(_dbType, out DBType t))
+                    if (_db != null)
                     {
                         Debug.Log($"preset : {preset}");
-                        EasySaveIntegration.LoadFromPreset(t, preset);
+                     
+                        EasySaveIntegration.LoadFromPreset(_db, preset);
                     }
                     else EasySaveIntegration.LoadFromPreset(preset);
                     toDefault();
@@ -95,12 +97,9 @@ public class RuntimeSaveGUI : MonoBehaviour
                 GUI.color = Color.red;
                 if (GUILayout.Button("X", GUILayout.Width(30)))
                 {
-                    if (Enum.TryParse(_dbType, out DBType t))
-                    {
-                        EasySaveIntegration.RemovePreset(t, preset);
-                    }
+                    if (_db != null) EasySaveIntegration.RemovePreset(_db, preset);
                     else EasySaveIntegration.RemovePreset(preset);
-                    toDefault();
+                    EasySaveIntegration.StoreCachedFile();
                     GUILayout.EndHorizontal();
                     return;
                 }
@@ -117,28 +116,8 @@ public class RuntimeSaveGUI : MonoBehaviour
             _tempInput = GUILayout.TextField(_tempInput, 15, GUILayout.Width(150));
             if (GUILayout.Button("OK"))
             {
-                if (Enum.TryParse(_dbType, out DBType t))
-                {
-                    switch (t)
-                    {
-                        case DBType.GameProcess:
-                            EasySaveIntegration.SaveGameProcessDB(_tempInput);
-                            break;
-                        case DBType.Item:
-                            EasySaveIntegration.SaveInventory(_tempInput);
-                            break;
-                        case DBType.Quest:
-                            EasySaveIntegration.SaveQuestDB(_tempInput);
-                            break;
-                        case DBType.NPC:
-                            EasySaveIntegration.SaveNPCDB(_tempInput);
-                            break;
-                        case DBType.Enemy:
-                            EasySaveIntegration.SaveEnemyDB(_tempInput);
-                            break;
-                    }
-                }
-                else EasySaveIntegration.Save(_tempInput);
+                if (_db != null) EasySaveIntegration.SaveDB(_db, _tempInput, true);
+                else EasySaveIntegration.Save(_tempInput, true);
                 toDefault();
             }
 

@@ -2,11 +2,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using OcDialogue.DB;
 using OcUtility;
 using Sirenix.Utilities;
 using Sirenix.Utilities.Editor;
 using UnityEditor;
-using UnityEditor.Localization.Plugins.XLIFF.V12;
+
+// #if ENABLE_LOCALIZATION
+// using UnityEditor.Localization.Plugins.XLIFF.V12;
+// #endif
 using UnityEngine;
 
 namespace OcDialogue.Editor
@@ -95,6 +99,65 @@ namespace OcDialogue.Editor
             i.SetPixel(0,0, color);
             i.Apply();
             return i;
+        }
+        
+        
+        public static void EditCategory(OcDB db, List<CategoryEditWindow.Transition> transitions,
+            Action<string> additional, Action<OcData> removed)
+        {
+            var undo = Undo.GetCurrentGroup();
+            Undo.RecordObject(db, "카테고리 편집");
+            var newCategory = new List<string>();
+            var removedCategory = new List<string>();
+            for (int i = 0; i < transitions.Count; i++)
+            {
+                if (!string.IsNullOrWhiteSpace(transitions[i].after)) newCategory.Add(transitions[i].after);
+            }
+
+            foreach (var s in db.Categories)
+            {
+                if (transitions.All(x => x.before != s)) removedCategory.Add(s);
+            }
+
+            db.Categories = newCategory.ToArray();
+            foreach (var t in transitions)
+            {
+                if (string.IsNullOrWhiteSpace(t.before))
+                {
+                    additional?.Invoke(t.after);
+                    continue;
+                }
+
+                var data = db.AllData.FirstOrDefault(x => x.Category == t.before);
+                if(data != null)
+                {
+                    if (string.IsNullOrWhiteSpace(t.after))
+                    {
+                        if (!EditorUtility.DisplayDialog(
+                                "삭제된 카테고리의 데이터를 소거하시겠습니까?", t.before,
+                                "OK", "Cancel")) return;
+                        removed?.Invoke(data);
+                    }
+                    else
+                    {
+                        Undo.RecordObject(data, "카테고리 편집");
+                        data.Category = t.after;
+                        Debug.Log($"data category : {data.Category}");
+                    }
+                }
+
+                Undo.CollapseUndoOperations(undo);
+            }
+
+            foreach (var category in removedCategory)
+            {
+                var data = db.AllData.FirstOrDefault(x => x.Category == category);
+                if (data == null) continue;
+                if (!EditorUtility.DisplayDialog(
+                        "삭제된 카테고리의 데이터를 소거하시겠습니까?", category,
+                        "OK", "Cancel")) continue;
+                removed?.Invoke(data);
+            }
         }
     }
 }

@@ -1,0 +1,29 @@
+{
+    "name": "OcDialogue.DialogueUISample.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "GUID:b2827b5227fde439da75d0495d5d531d",
+        "GUID:43e224429687d6e4680fdb553321205f",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:f06555f75b070af458a003d92f9efb00",
+        "GUID:b5bce35f673bec440bfad02a628eca22",
+        "GUID:0147bfa9cd75800409702b9ff2885826",
+        "GUID:eec0964c48f6f4e40bc3ec2257ccf8c5",
+        "GUID:84651a3751eca9349aac36a66bba901b"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.localization",
+            "expression": "",
+            "define": "PACKAGE_LOCALIZATION"
+        }
+    ],
+    "noEngineReferences": false
+}

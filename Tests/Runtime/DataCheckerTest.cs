@@ -242,6 +242,7 @@ public class DataCheckerTest
         {
             Factor_DataRow(DataRowType.Bool, true, false, CheckFactor.Operator.NotEqual), // true
             Factor_DataRow(DataRowType.Int, 100, 100, CheckFactor.Operator.Equal), // true
+            Factor_DataRow(DataRowType.String, "true", "false", CheckFactor.Operator.Equal), // false
         };
         Result(false, checker);
         

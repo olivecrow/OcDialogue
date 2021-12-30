@@ -11,15 +11,16 @@ namespace OcDialogue
     {
         public virtual OcData Parent => parent;
         public abstract string Address { get; }
+        public abstract string Category { get; set; }
         public string TotalAddress => $"{(Parent == null ? "" : Parent.TotalAddress + "/")}{Address}";
+        [HideInTables]
         public OcData parent;
 
         public abstract bool IsTrue(string fieldName, CheckFactor.Operator op, object checkValue);
         public abstract object GetValue(string fieldName);
         public abstract string[] GetFieldNames();
-        public abstract void SetData(string fieldName, DataSetter.Operator op, object value);
-        public abstract ValueDropdownList<CheckFactor.Operator> GetCheckerOperator();
-        public abstract ValueDropdownList<DataSetter.Operator> GetSetterOperator();
+        public abstract void SetValue(string fieldName, DataSetter.Operator op, object value);
+        public abstract DataRowType GetValueType(string fieldName);
 
         public static bool IsTrue(bool a, CheckFactor.Operator op, bool b)
         {
@@ -65,58 +66,7 @@ namespace OcDialogue
             };
         }
 
-        protected static class Operator
-        {
-            public static ValueDropdownList<CheckFactor.Operator> CheckerAll
-            {
-                get
-                {
-                    var list = new ValueDropdownList<CheckFactor.Operator>();
-                    var enumNames = Enum.GetNames(typeof(CheckFactor.Operator));
-                    for (int i = 0; i < enumNames.Length; i++)
-                    {
-                        list.Add((CheckFactor.Operator)Enum.Parse(typeof(CheckFactor.Operator), enumNames[i]));
-                    }
-
-                    return list;
-                }
-            }
-            public static ValueDropdownList<CheckFactor.Operator> CheckerBool
-            {
-                get
-                {
-                    var list = new ValueDropdownList<CheckFactor.Operator>();
-                    list.Add(CheckFactor.Operator.Equal);
-                    list.Add(CheckFactor.Operator.NotEqual);
-
-                    return list;
-                }
-            }
-            public static ValueDropdownList<DataSetter.Operator> SetterAll
-            {
-                get
-                {
-                    var list = new ValueDropdownList<DataSetter.Operator>();
-                    var enumNames = Enum.GetNames(typeof(DataSetter.Operator));
-                    for (int i = 0; i < enumNames.Length; i++)
-                    {
-                        list.Add((DataSetter.Operator)Enum.Parse(typeof(DataSetter.Operator), enumNames[i]));
-                    }
-
-                    return list;
-                }
-            }
-            public static ValueDropdownList<DataSetter.Operator> SetterBool
-            {
-                get
-                {
-                    var list = new ValueDropdownList<DataSetter.Operator>();
-                    list.Add(DataSetter.Operator.Set);
-
-                    return list;
-                }
-            }
-        } 
+        
 
 #if UNITY_EDITOR
         /// <summary> Editor Only. </summary>

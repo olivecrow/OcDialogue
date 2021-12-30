@@ -23,23 +23,27 @@ namespace OcDialogue.DB
         [InlineButton(nameof(AddBindingSize), "+")]
         [InlineButton(nameof(SubtractBindingSize), "-")]
         public int bindingSize = 1;
-        [ShowInInspector][ValueDropdown("GetIndexDropDown")]
+        [ShowInInspector][ValueDropdown(nameof(GetIndexDropDown))]
         [HorizontalGroup("2"), HideLabel][PropertyOrder(1)]
         public int Index0
         {
             get => cIndex[0];
             set => cIndex[0] = value;
         }
-        [HorizontalGroup("2", Width = 50), HideLabel][PropertyOrder(2)] public Condition condition1;
-        [ShowInInspector][ValueDropdown("GetIndexDropDown")][HorizontalGroup("2"), HideLabel][PropertyOrder(3)] 
+        [HorizontalGroup("2", MaxWidth = 50), HideLabel][PropertyOrder(2)] 
+        public Condition condition1;
+        
+        [ShowInInspector][ValueDropdown(nameof(GetIndexDropDown))]
+        [HorizontalGroup("2"), HideLabel][PropertyOrder(3)] 
         public int Index1
         {
             get => cIndex[1];
             set => cIndex[1] = value;
         }
-        [HorizontalGroup("2", Width = 50), HideLabel] [ShowInInspector][ShowIf("@bindingSize > 1")] [PropertyOrder(4)]
+        [HorizontalGroup("2", MaxWidth = 50), HideLabel] [ShowInInspector][ShowIf("@bindingSize > 1")] [PropertyOrder(4)]
         public Condition condition2 => condition1;
-        [ShowInInspector][ValueDropdown("GetIndexDropDown")]
+        
+        [ShowInInspector][ValueDropdown(nameof(GetIndexDropDown))]
         [HorizontalGroup("2"), HideLabel] [ShowIf("@bindingSize > 1")][PropertyOrder(5)]
         public int Index2
         {
@@ -47,10 +51,11 @@ namespace OcDialogue.DB
             set => cIndex[2] = value;
         }
 
-        [HorizontalGroup("2", Width = 50), HideLabel] [ShowInInspector] [ShowIf("@bindingSize > 2")][PropertyOrder(6)]
+        [HorizontalGroup("2", MaxWidth = 50), HideLabel] [ShowInInspector] [ShowIf("@bindingSize > 2")][PropertyOrder(6)]
         public Condition condition3 => condition1;
-        [ShowInInspector][ValueDropdown("GetIndexDropDown")][HorizontalGroup("2"), HideLabel] 
-        [ShowIf("@bindingSize > 2")][PropertyOrder(7)]
+        
+        [ShowInInspector][ValueDropdown(nameof(GetIndexDropDown))]
+        [HorizontalGroup("2"), HideLabel] [ShowIf("@bindingSize > 2")][PropertyOrder(7)]
         public int Index3
         {
             get => cIndex[3];
@@ -64,7 +69,6 @@ namespace OcDialogue.DB
         {
             var wnd = GetWindow<CheckableBindingWindow>(true);
             wnd.minSize = new Vector2(720, 480);
-            wnd.maxSize = new Vector2(720, 480);
             return wnd;
         }
         public void SetChecker(DataChecker checker)
@@ -76,7 +80,8 @@ namespace OcDialogue.DB
             cIndex = new[] {-1, -1, -1, -1};
             bindingSize = 1;
         }
-        [Button][PropertyOrder(100)][DisableIf("@Index0 == -1 || Index1 == -1")]
+        [HorizontalGroup("button1")]
+        [Button(ButtonSizes.Medium)][PropertyOrder(100)][DisableIf("@Index0 == -1 || Index1 == -1")]
         void PreviewExpression()
         {
             _tempBinding = new Binding();
@@ -98,7 +103,8 @@ namespace OcDialogue.DB
             expression = tmpGroups[tmpGroups.Count - 1].ToExpression(false);
             _previewApplied = false;
         }
-        [Button][PropertyOrder(100)][EnableIf("@!_previewApplied && _tempBinding != null")]
+        [HorizontalGroup("button1")]
+        [Button(ButtonSizes.Medium)][PropertyOrder(100)][EnableIf("@!_previewApplied && _tempBinding != null")]
         void Bind()
         {
             if(_tempBinding == null) return;
@@ -117,7 +123,7 @@ namespace OcDialogue.DB
             _tempBinding = null;
             _previewApplied = true;
         }
-        [Button][PropertyOrder(100), GUIColor(1,1,0)]
+        [Button(ButtonSizes.Large)][PropertyOrder(100), GUIColor(1,1,0)]
         void Apply()
         {
             if (!_previewApplied && _tempBinding != null)

@@ -97,7 +97,8 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000002, guid: 7a250cd05c144754898bac3891af1ece, type: 2}
+  m_LightingDataAsset: {fileID: 112000002, guid: 7a250cd05c144754898bac3891af1ece,
+    type: 2}
   m_LightingSettings: {fileID: 0}
 --- !u!196 &4
 NavMeshSettings:
@@ -152,6 +153,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1412256665}
   m_Father: {fileID: 2123892081}
@@ -253,6 +255,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 292537582}
   m_Father: {fileID: 1003114758}
@@ -394,6 +397,7 @@ RectTransform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1749722886}
   m_RootOrder: 0
@@ -466,6 +470,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 112729033}
   m_RootOrder: 0
@@ -498,7 +503,8 @@ MonoBehaviour:
   m_text: Choice
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fbc67749b6e9d58469bc83c792d51945, type: 2}
-  m_sharedMaterial: {fileID: 4725579889042724406, guid: fbc67749b6e9d58469bc83c792d51945, type: 2}
+  m_sharedMaterial: {fileID: 4725579889042724406, guid: fbc67749b6e9d58469bc83c792d51945,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -600,6 +606,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1412256665}
   m_RootOrder: 2
@@ -676,6 +683,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1412256665}
   m_RootOrder: 0
@@ -713,7 +721,8 @@ MonoBehaviour:
     If you have long text, split it with 2 sentence.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fbc67749b6e9d58469bc83c792d51945, type: 2}
-  m_sharedMaterial: {fileID: 4725579889042724406, guid: fbc67749b6e9d58469bc83c792d51945, type: 2}
+  m_sharedMaterial: {fileID: 4725579889042724406, guid: fbc67749b6e9d58469bc83c792d51945,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -825,7 +834,8 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
   references:
-    version: 1
+    version: 2
+    RefIds: []
 --- !u!1 &1003114757
 GameObject:
   m_ObjectHideFlags: 0
@@ -856,6 +866,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 112729033}
   m_Father: {fileID: 2123892081}
@@ -981,6 +992,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1884793873}
   m_RootOrder: 0
@@ -1054,6 +1066,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 717020262}
   - {fileID: 1973912194}
@@ -1161,6 +1174,7 @@ RectTransform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 175188318}
   m_Father: {fileID: 1884793873}
@@ -1222,6 +1236,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1365825640}
   - {fileID: 1749722886}
@@ -1322,6 +1337,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1412256665}
   m_RootOrder: 1
@@ -1354,7 +1370,8 @@ MonoBehaviour:
   m_text: Name
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fbc67749b6e9d58469bc83c792d51945, type: 2}
-  m_sharedMaterial: {fileID: 4725579889042724406, guid: fbc67749b6e9d58469bc83c792d51945, type: 2}
+  m_sharedMaterial: {fileID: 4725579889042724406, guid: fbc67749b6e9d58469bc83c792d51945,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1532,6 +1549,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0, y: 0, z: 0}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1884793873}
   - {fileID: 93635682}
@@ -1559,7 +1577,7 @@ MonoBehaviour:
   canvasGroup: {fileID: 2123892076}
   LocalizedStringTable:
     m_TableReference:
-      m_TableCollectionName: GUID:f5f2627a12b7d4833bce513ef5b5ca2b
+      m_TableCollectionName: 
   AutoDialogue: 0
   IntervalBetweenDisplay: 0.7
   DisplayTimePerCharacter: 0.2

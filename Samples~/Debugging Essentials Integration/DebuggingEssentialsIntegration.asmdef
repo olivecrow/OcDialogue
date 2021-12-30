@@ -1,0 +1,18 @@
+{
+    "name": "DebuggingEssentialsIntegration",
+    "rootNamespace": "",
+    "references": [
+        "GUID:bcf80c3750a117b4bacb3168bf9d8a50",
+        "GUID:b2827b5227fde439da75d0495d5d531d",
+        "GUID:395bb13feb3b4814483e6c3aafb9a361"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -10,5 +10,12 @@ namespace OcDialogue
     {
         public string from;
         public string to;
+        public LinkData(){}
+
+        public LinkData(string from, string to)
+        {
+            this.@from = from;
+            this.to = to;
+        }
     }
 }

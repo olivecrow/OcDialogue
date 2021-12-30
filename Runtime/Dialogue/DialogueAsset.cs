@@ -15,11 +15,22 @@ namespace OcDialogue
     public class DialogueAsset : ScriptableObject
     {
         public static DialogueAsset Instance => DBManager.Instance.DialogueAsset;
-        public string DefaultDialogueUISceneName = "Dialogue UI";
-        public IDialogueActorDB DialogueNPCDB { get; set; }
-        public string[] Categories;
-        public List<Conversation> Conversations;
 
+        public string DefaultDialogueUISceneName = "Dialogue UI";
+        public string[] Categories;
+
+        public IDialogueActorDB DialogueNPCDB
+        {
+            get
+            {
+                if (_dialogueActorDB == null) 
+                    _dialogueActorDB = DBManager.Instance.DBs.Find(x => x is IDialogueActorDB) as IDialogueActorDB;
+
+                return _dialogueActorDB;
+            }
+        }
+        public List<Conversation> Conversations;
+        IDialogueActorDB _dialogueActorDB;
         public DialogueAsset()
         {
             Categories = new[] {"Main"};

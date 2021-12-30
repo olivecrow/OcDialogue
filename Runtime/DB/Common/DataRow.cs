@@ -14,7 +14,15 @@ namespace OcDialogue.DB
     public class DataRow : OcData
     {
         public override string Address => name;
+
+        public override string Category
+        {
+            get => category;
+            set => category = value;
+        }
         
+        [HideInTables]
+        public string category;
         [ShowInInspector]
         [DisableIf("@UnityEditor.EditorApplication.isPlaying")]
         [PropertyOrder(1)]
@@ -49,7 +57,7 @@ namespace OcDialogue.DB
             set => _runtimeValue = value;
         }
         public event Action<DataRow> OnRuntimeValueChanged;
-        [ShowInInspector, TableColumnWidth(150, false), PropertyOrder(-1)]
+        [ShowInInspector, TableColumnWidth(150, false), PropertyOrder(-1)][DelayedProperty]
         public string Name
         {
             get => name;
@@ -146,34 +154,67 @@ namespace OcDialogue.DB
         }
 
         /// <summary> 런타임 bool 값을 변경함. </summary>
-        public void SetValue(bool value, bool withoutNotify = false)
+        public void SetValue(bool value, DataSetter.Operator op = DataSetter.Operator.Set, bool withoutNotify = false)
         {
+            if(op != DataSetter.Operator.Set) 
+                Debug.LogWarning($"[DataRow][{name}] bool 타입엔 Operator.Set만 사용할 수 있음 | SetValue ==> {value}");
             var isNew = _runtimeValue.BoolValue != value;
             _runtimeValue.BoolValue = value;
             if(!withoutNotify && isNew) OnRuntimeValueChanged?.Invoke(this);
         }
 
         /// <summary> 런타임 int 값을 변경함. </summary>
-        public void SetValue(int value, bool withoutNotify = false)
+        public void SetValue(int value, DataSetter.Operator op = DataSetter.Operator.Set, bool withoutNotify = false)
         {
-            var isNew = _runtimeValue.IntValue != value;
-            _runtimeValue.IntValue = value;
+            var result = op switch
+            {
+                DataSetter.Operator.Set => value,
+                DataSetter.Operator.Add => _runtimeValue.IntValue + value,
+                DataSetter.Operator.Multiply => _runtimeValue.IntValue * value,
+                DataSetter.Operator.Divide => _runtimeValue.IntValue / value,
+                _ => throw new ArgumentOutOfRangeException(nameof(op), op, null)
+            };
+            var isNew = _runtimeValue.IntValue != result;
+            _runtimeValue.IntValue = result;
             if(!withoutNotify && isNew) OnRuntimeValueChanged?.Invoke(this);
         }
 
         /// <summary> 런타임 float 값을 변경함. </summary>
-        public void SetValue(float value, bool withoutNotify = false)
+        public void SetValue(float value, DataSetter.Operator op = DataSetter.Operator.Set, bool withoutNotify = false)
         {
-            var isNew = Math.Abs(_runtimeValue.FloatValue - value) > 0.0005f;
+            var result = op switch
+            {
+                DataSetter.Operator.Set => value,
+                DataSetter.Operator.Add => _runtimeValue.FloatValue + value,
+                DataSetter.Operator.Multiply => _runtimeValue.FloatValue * value,
+                DataSetter.Operator.Divide => _runtimeValue.FloatValue / value,
+                _ => throw new ArgumentOutOfRangeException(nameof(op), op, null)
+            };
+            
+            var isNew = Math.Abs(_runtimeValue.FloatValue - result) > 0.0005f;
             _runtimeValue.FloatValue = value;
             if(!withoutNotify && isNew) OnRuntimeValueChanged?.Invoke(this);
         }
 
         /// <summary> 런타임 string 값을 변경함. </summary>
-        public void SetValue(string value, bool withoutNotify = false)
+        public void SetValue(string value, DataSetter.Operator op = DataSetter.Operator.Set, bool withoutNotify = false)
         {
-            var isNew = _runtimeValue.StringValue != value;
-            _runtimeValue.StringValue = value;
+            string result;
+            switch(op)
+            {
+                case DataSetter.Operator.Set :
+                    result = value;
+                    break;
+                case DataSetter.Operator.Add :
+                    result = _runtimeValue.StringValue + value;
+                    break;
+                default:
+                    result = value;
+                    Debug.LogWarning($"[DataRow][{name}] bool 타입엔 Operator.Set만 사용할 수 있음 | SetValue ==> {value}");
+                    break;
+            };
+            var isNew = _runtimeValue.StringValue != result;
+            _runtimeValue.StringValue = result;
             if(!withoutNotify && isNew) OnRuntimeValueChanged?.Invoke(this);
         }
 
@@ -218,41 +259,45 @@ namespace OcDialogue.DB
             return null;
         }
 
-        public override void SetData(string fieldName, DataSetter.Operator op, object value)
+        public override void SetValue(string fieldName, DataSetter.Operator op, object value)
         {
-            switch (op)
+            switch (Type)
             {
-                case DataSetter.Operator.Set:
+                case DataRowType.Bool:
+                    SetValue((bool)value, op);
                     break;
-                case DataSetter.Operator.Add:
+                case DataRowType.Int:
+                    SetValue((int)value, op);
                     break;
-                case DataSetter.Operator.Multiply:
+                case DataRowType.Float:
+                    SetValue((float)value, op);
                     break;
-                case DataSetter.Operator.Divide:
+                case DataRowType.String:
+                    SetValue(value.ToString(), op);
                     break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(op), op, null);
             }
         }
+        public override DataRowType GetValueType(string fieldName) => Type;
+        
 
-        public override ValueDropdownList<CheckFactor.Operator> GetCheckerOperator()
-        {
-            throw new NotImplementedException();
-        }
 
-        public override ValueDropdownList<DataSetter.Operator> GetSetterOperator()
-        {
-            throw new NotImplementedException();
-        }
-        
-        
-        
         public override string ToString()
         {
-            return $"{name} | {Type} | {TargetValue}";
+            return $"{TotalAddress} | {Type} | {TargetValue}";
         }
 
 #if UNITY_EDITOR
+        [Button("X"), GUIColor(2,0,0)][PropertyOrder(100)][TableColumnWidth(50, false)]
+        void DeleteSelf()
+        {
+            if(parent == null)
+            {
+                Debug.LogWarning($"parent가 비어있음");
+                return;
+            }
+
+            (parent as IDataRowUser).DataRowContainer.DeleteRow(name);
+        }
         public void LoadFromEditorPreset()
         {
             RuntimeValue = new PrimitiveValue()

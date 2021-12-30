@@ -14,13 +14,9 @@ namespace OcDialogue.DB
     [Serializable]
     public class DataChecker
     {
-        public CheckFactor[] factors;
+        [TableList]public CheckFactor[] factors;
         public List<Binding> bindings;
 
-        public const string QUEST_STATE = "Quest State";
-        public const string QUEST_CLEARAVAILABILITY = "Quest Clear Availability";
-        public const string NPC_ENCOUNTERED = "NPC Encountered";
-        public const string ENEMY_KILLCOUNT = "Enemy KillCount";
         public bool IsTrue()
         {
             if (factors == null || factors.Length == 0) return true;

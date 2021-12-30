@@ -1,6 +1,27 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+// TODO : ExportWizard 새로 만들기
+
+## [2.0.0] -2021-12-31
+### Added
+- 툴 내부에 구현되어있던 DB와 하위 데이터를 샘플로써 만듬
+  - DBSamples
+- 인벤토리 디버그 윈도우 만듬
+  - OcDialogue > 인벤토리 디버그 윈도우
+  - 런타임에서 생성된 모든 인벤토리에 접근 가능
+  - 디버그 윈도우 내에서 아이템 추가, 삭제, 복제 가능
+
+### Fixed
+- 툴 내부에 구현되어있던 DB와 하위 데이터들을 외부로 분리함
+- 외부에서 데이터를 구현해서 사용할 수 있도록 기저클래스와 인터페이스를 마련함
+  - OcDB, DBEditorBase, IDBEditor
+  - OcData 내부의 추상 클래스들 추가
+- 각 샘플을 리팩토링된 패키지에 맞게 수정함
+- DataChecker, DataSetter를 리팩토링된 패키지에 맞게 수정함
+- DBEditorWindow를 수정함
+- Localization 패키지에 관한 의존성 오류를 수정함
+
 ## [1.4.1] -2021-12-19
 ### Fixed
 - ItemBase의 CanBeTrashed가 카피에서 적용되지 않던 문제 해결

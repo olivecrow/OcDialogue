@@ -22,7 +22,7 @@ namespace OcDialogue.Editor
         readonly Vector2 DefaultNodeSize = new Vector2(160, 200);
         public DialogueGraphView(Conversation conversation)
         {
-            Debug.Log("[GraphView] New Instanciated");
+            // Debug.Log("[GraphView] New Instanciated");
             Conversation = conversation;
             InitOutline();
             CheckBalloons();
@@ -32,7 +32,7 @@ namespace OcDialogue.Editor
         /// <summary> 배경이나 줌 상태 등, 개괄적인 것을 초기화함. </summary>
         void InitOutline()
         {
-            Debug.Log("[GraphView] InitOutline");
+            // Debug.Log("[GraphView] InitOutline");
             SetupZoom(ContentZoomer.DefaultMinScale, ContentZoomer.DefaultMaxScale);
 
             this.AddManipulator(new ContentDragger());
@@ -114,7 +114,7 @@ namespace OcDialogue.Editor
             }
             if(selected != null) evt.menu.RemoveItemAt(0);
 
-            evt.menu.AppendAction( "Add Dialogue", a => 
+            evt.menu.AppendAction("Add Dialogue", a => 
             {
                 if(selected != null) CreateLinkedNode(selected, Balloon.Type.Dialogue);
                 else
@@ -158,26 +158,32 @@ namespace OcDialogue.Editor
                 // 노드를 선택해서 우클릭.
                 evt.menu.AppendAction("Cut", (a => CutSelectionCallback()),
                     (a => 
-                        canCutSelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled));
+                        canCutSelection  && (selected.capabilities & Capabilities.Copiable) != 0 ? 
+                            DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled));
                 evt.menu.AppendAction("Copy",(a => CopySelectionCallback()), 
                     (a => 
-                        canCopySelection ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled));
+                        canCopySelection  && (selected.capabilities & Capabilities.Copiable) != 0 ? 
+                            DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled));
                 evt.menu.AppendAction("Paste",(a => PasteCallback()), 
                     (a => 
                         canPaste ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled));
-                
+                evt.menu.AppendAction("Duplicate", a => DuplicateNode(selected), 
+                    canDuplicateSelection && (selected.capabilities & Capabilities.Copiable) != 0 ? 
+                        DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+
                 evt.menu.AppendSeparator();
                 //------
                 evt.menu.AppendAction("Delete", a =>
                 {
                     DeleteSelection();
                 });
-                
-                
-                evt.menu.AppendSeparator();
-                evt.menu.AppendAction("Add Quest State Nodes", CreateQuestStateNodes);
             }
-            
+            evt.menu.AppendSeparator();
+            foreach (var db in DBManager.Instance.DBs)
+            {
+                var editor = UnityEditor.Editor.CreateEditor(db) as IDBEditor;
+                editor.AddDialogueContextualMenu(evt, this);
+            }
         }
 
         /// <summary> Conversation을 새로 생성했을때, Balloons리스트와 Entry Balloon이 없는지 체크하고 새로 생성함. </summary>
@@ -217,7 +223,7 @@ namespace OcDialogue.Editor
             }
         }
 
-        DialogueNode CreateBalloonAndNode(Balloon.Type type, Vector2 position)
+        public DialogueNode CreateBalloonAndNode(Balloon.Type type, Vector2 position)
         {
             var newBalloon = Conversation.AddBalloon(type);
             var node = CreateNode(newBalloon, position);
@@ -229,7 +235,7 @@ namespace OcDialogue.Editor
         }
         
         /// <summary> Balloon 하나에 대응되는 노드 하나를 그림. </summary>
-        DialogueNode CreateNode(Balloon balloon, Vector2 position)
+        public DialogueNode CreateNode(Balloon balloon, Vector2 position)
         {
             var node = new DialogueNode(balloon);
             AddElement(node);
@@ -250,7 +256,7 @@ namespace OcDialogue.Editor
         }
 
         /// <summary> 전달받은 edge의 정보를 바탕으로 linkData를 생성함. 생성만 하기 때문에 Conversation에 추가하는건 직접 해야함. </summary>
-        LinkData CreateLinkDataFromEdge(Edge edge)
+        public LinkData CreateLinkDataFromEdge(Edge edge)
         {
             var from = FindNode(edge.output).Balloon.GUID;
             var to = FindNode(edge.input).Balloon.GUID;
@@ -262,7 +268,7 @@ namespace OcDialogue.Editor
             return linkData;
         }
         /// <summary> 선택된 노드에 연결된 노드를 생성함. </summary>
-        DialogueNode CreateLinkedNode(DialogueNode source, Balloon.Type balloonType)
+        public DialogueNode CreateLinkedNode(DialogueNode source, Balloon.Type balloonType)
         {
             var newBalloon = Conversation.AddBalloon(balloonType);
             var rect = source.GetPosition();
@@ -294,8 +300,29 @@ namespace OcDialogue.Editor
             }
             var edge = fromNode.OutputPort.ConnectTo(toNode.InputPort);
             AddElement(edge);
-            
             return edge;
+        }
+
+        DialogueNode DuplicateNode(DialogueNode node)
+        {
+            var undo = Undo.GetCurrentGroup();
+            Undo.RecordObject(Conversation, "Duplicate Node");
+            var balloon = Conversation.AddBalloon(node.Balloon.type);
+            var guid = balloon.GUID;
+            Undo.RegisterCreatedObjectUndo(balloon, "DuplicateNode");
+            EditorUtility.CopySerialized(node.Balloon, balloon);
+            balloon.GUID = guid;
+            var newNode = CreateNode(balloon, node.GetPosition().position + new Vector2(0, node.GetPosition().height));
+            
+            var inputBalloons = Conversation.FindInputBalloons(node.Balloon);
+            foreach (var inputBalloon in inputBalloons)
+            {
+                var linkData = new LinkData(inputBalloon.GUID, balloon.GUID);
+                Conversation.AddLinkData(linkData);
+                DrawEdge(linkData);
+            }
+            Undo.CollapseUndoOperations(undo);
+            return newNode;
         }
 
         /// <summary> balloon을 가진 노드를 찾음. 없으면 null을 반환함. </summary>
@@ -355,96 +382,6 @@ namespace OcDialogue.Editor
             base.HandleEvent(evt);
             if (evt.originalMousePosition != Vector2.zero) 
                 _lastMousePosition = (evt.originalMousePosition - (Vector2) viewTransform.position) / viewTransform.scale.x + new Vector2(0, -DefaultNodeSize.y * 0.2f);
-        }
-
-        public void CreateQuestStateNodes(DropdownMenuAction action)
-        {
-            // var selected = selection[0] as DialogueNode;
-            // if(selected == null) return;
-            //
-            // var selector = DataSelectWindow.Open(null);
-            // selector.OnDataSelected += data =>
-            // {
-            //     if(!(data is Quest)) return;
-            //
-            //     var sourceRect = selected.GetPosition();
-            //     
-            //     var beforeQuestNode = CreateLinkedNode(selected, Balloon.Type.Dialogue);
-            //     beforeQuestNode.Balloon.useChecker = true;
-            //     beforeQuestNode.Balloon.checker = new DataChecker();
-            //     beforeQuestNode.Balloon.checker.factors = new[] { new CheckFactor() };
-            //     beforeQuestNode.Balloon.checker.factors[0].SetTargetData(data);
-            //     beforeQuestNode.RefreshIcons();
-            //     beforeQuestNode.Balloon.text = "퀘스트 수락 전";
-            //     
-            //     var acceptQuestNode = CreateBalloonAndNode(Balloon.Type.Dialogue, 
-            //         sourceRect.position + new Vector2(sourceRect.width * 2 + 200f, sourceRect.position.y - sourceRect.height));
-            //     {
-            //         var edge = beforeQuestNode.OutputPort.ConnectTo(acceptQuestNode.InputPort);
-            //         var linkData = CreateLinkDataFromEdge(edge);
-            //         Conversation.AddLinkData(linkData);
-            //         AddElement(edge);
-            //     }
-            //     acceptQuestNode.Balloon.useSetter = true;
-            //     acceptQuestNode.Balloon.setters = new[] { new DataSetter() };
-            //     acceptQuestNode.Balloon.setters[0].SetTargetData(data);
-            //     acceptQuestNode.Balloon.setters[0].QuestStateValue = QuestState.WorkingOn;
-            //     acceptQuestNode.RefreshIcons();
-            //     acceptQuestNode.Balloon.text = "퀘스트 수락";
-            //
-            //     var workingOnQuestNode = CreateLinkedNode(selected, Balloon.Type.Dialogue);
-            //     workingOnQuestNode.Balloon.useChecker = true;
-            //     workingOnQuestNode.Balloon.checker = new DataChecker();
-            //     workingOnQuestNode.Balloon.checker.factors = new[] { new CheckFactor(), new CheckFactor() };
-            //     workingOnQuestNode.Balloon.checker.factors[0].SetTargetData(data);
-            //     workingOnQuestNode.Balloon.checker.factors[0].QuestStateValue = QuestState.WorkingOn;
-            //
-            //     workingOnQuestNode.Balloon.checker.factors[1].SetTargetData(data);
-            //     workingOnQuestNode.Balloon.checker.factors[1].detail = DataChecker.QUEST_CLEARAVAILABILITY;
-            //     workingOnQuestNode.Balloon.checker.factors[1].BoolValue = false;
-            //     workingOnQuestNode.RefreshIcons();
-            //     workingOnQuestNode.Balloon.text = "퀘스트 진행중.";
-            //
-            //     var clearableQuestNode = CreateLinkedNode(selected, Balloon.Type.Dialogue);
-            //     clearableQuestNode.Balloon.useChecker = true;
-            //     clearableQuestNode.Balloon.checker = new DataChecker();
-            //     clearableQuestNode.Balloon.checker.factors = new[] { new CheckFactor(), new CheckFactor() };
-            //     clearableQuestNode.Balloon.checker.factors[0].SetTargetData(data);
-            //     clearableQuestNode.Balloon.checker.factors[0].QuestStateValue = QuestState.WorkingOn;
-            //
-            //     clearableQuestNode.Balloon.checker.factors[1].SetTargetData(data);
-            //     clearableQuestNode.Balloon.checker.factors[1].detail = DataChecker.QUEST_CLEARAVAILABILITY;
-            //     clearableQuestNode.Balloon.checker.factors[1].BoolValue = true;
-            //     clearableQuestNode.RefreshIcons();
-            //     clearableQuestNode.Balloon.text = "퀘스트 진행중. 클리어 가능.";
-            //     
-            //     
-            //     var clearQuestNode = CreateBalloonAndNode(Balloon.Type.Dialogue, 
-            //         sourceRect.position + new Vector2(sourceRect.width * 2 + 200f, sourceRect.position.y + sourceRect.height));
-            //     {
-            //         var edge = clearableQuestNode.OutputPort.ConnectTo(clearQuestNode.InputPort);
-            //         var linkData = CreateLinkDataFromEdge(edge);
-            //         Conversation.AddLinkData(linkData);
-            //         AddElement(edge);
-            //     }
-            //     clearQuestNode.Balloon.useSetter = true;
-            //     clearQuestNode.Balloon.setters = new[] { new DataSetter() };
-            //     clearQuestNode.Balloon.setters[0].SetTargetData(data);
-            //     clearQuestNode.Balloon.setters[0].QuestStateValue = QuestState.Done;
-            //     clearQuestNode.RefreshIcons();
-            //     clearQuestNode.Balloon.text = "퀘스트 완료";
-            //     
-            //
-            //     var finishQuestNode = CreateLinkedNode(selected, Balloon.Type.Dialogue);
-            //     finishQuestNode.Balloon.useChecker = true;
-            //     finishQuestNode.Balloon.checker = new DataChecker();
-            //     finishQuestNode.Balloon.checker.factors = new[] { new CheckFactor() };
-            //     finishQuestNode.Balloon.checker.factors[0].SetTargetData(data);
-            //     finishQuestNode.Balloon.checker.factors[0].QuestStateValue = QuestState.Done;
-            //     finishQuestNode.RefreshIcons();
-            //     finishQuestNode.Balloon.text = "퀘스트 완료 후";
-            //
-            // };
         }
 
     }

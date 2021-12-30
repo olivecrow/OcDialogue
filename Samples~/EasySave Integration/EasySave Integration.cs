@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using OcDialogue.DB;
 using UnityEngine;
 
@@ -8,7 +9,7 @@ namespace OcDialogue.Samples
 {
     public static class EasySaveIntegration
     {
-        static ES3Settings ES3Settings;
+        public static ES3Settings ES3Settings;
         const string saveDataKey_PresetNames = "Preset";
         const string saveDataKey_DataRowContainer = "DataRowContainer";
         [RuntimeInitializeOnLoadMethod]
@@ -16,133 +17,68 @@ namespace OcDialogue.Samples
         {
             if (!DBManager.RuntimeInitialized)
             {
-                DBManager.OnRuntimeInitilized += Init;
+                DBManager.OnRuntimeInitialized += Init;
                 return;
             }
             ES3.CacheFile();
             ES3Settings = new ES3Settings(ES3.Location.Cache);
-            Load();
+            LoadAllDBs();
             InitSaveCallbacks();
         }
 
-        public static void LoadGameProcessDB(string presetName = "")
+        static void LoadAllDBs(string presetName = "")
         {
-            Debug.Log($"Load GameProcessDB | key : {presetName + GameProcessDB.Instance.Address}");
-            if (!ES3.KeyExists(presetName + GameProcessDB.Instance.Address, ES3Settings)) return;
-            Debug.Log("Overwrite");
-            var saveData = ES3.Load<GameProcessSaveData>(presetName + GameProcessDB.Instance.Address, ES3Settings);
-            GameProcessDB.Instance.Overwrite(saveData);
-        }
-
-        public static void LoadInventory(string presetName = "")
-        {
-            if (!ES3.KeyExists(presetName + ItemDatabase.Instance.Address, ES3Settings)) return;
-            var saveData = ES3.Load<List<ItemSaveData>>(presetName + ItemDatabase.Instance.Address, ES3Settings);
-            if (Inventory.PlayerInventory == null)
+            foreach (var db in DBManager.Instance.DBs)
             {
-                Inventory.OnPlayerInventoryChanged += inventory => inventory.Overwrite(saveData);
-            }
-            else
-            {
-                Inventory.PlayerInventory.Overwrite(saveData);
+                Load(db, presetName);
             }
         }
 
-        public static void LoadQuestDB(string presetName = "")
+        static void Load(OcDB db, string presetName)
         {
-            if (!ES3.KeyExists(presetName + QuestDB.Instance.Address, ES3Settings)) return;
-            var saveData =  ES3.Load<List<CommonSaveData>>(presetName + QuestDB.Instance.Address, ES3Settings);
-            QuestDB.Instance.Overwrite(saveData);
-        }
-
-        public static void LoadNPCDB(string presetName = "")
-        {
-            if (!ES3.KeyExists(presetName + NPCDB.Instance.Address, ES3Settings)) return;
-            var saveData = ES3.Load<List<CommonSaveData>>(presetName + NPCDB.Instance.Address, ES3Settings);
-            NPCDB.Instance.Overwrite(saveData);
-        }
-
-        public static void LoadEnemyDB(string presetName = "")
-        {
-            if (!ES3.KeyExists(presetName + EnemyDB.Instance.Address, ES3Settings)) return;
-            var saveData = ES3.Load<List<CommonSaveData>>(presetName + EnemyDB.Instance.Address, ES3Settings);
-            EnemyDB.Instance.Overwrite(saveData);
-        }
-        static void Load(string presetName = "")
-        {
-            LoadGameProcessDB(presetName);
-            LoadInventory(presetName);
-            LoadQuestDB(presetName);
-            LoadNPCDB(presetName);
-            LoadEnemyDB(presetName);
+            if (!ES3.KeyExists(Name(db.Address, presetName), ES3Settings)) return;
+            var saveData = ES3.Load<List<CommonSaveData>>(Name(db.Address, presetName), ES3Settings);
+            
+            db.Overwrite(saveData);
         }
 
         static void InitSaveCallbacks()
         {
-            GameProcessDB.Instance.OnRuntimeValueChanged += () => SaveGameProcessDB();
-
-            if (Inventory.PlayerInventory != null)
-            {
-                Inventory.PlayerInventory.OnInventoryChanged += (item, changeType) => SaveInventory();
-            }
-            else
-            {
-                Inventory.OnPlayerInventoryChanged += inventory => inventory.OnInventoryChanged += (item, changeType) => SaveInventory();
-            }
-            
-            QuestDB.Instance.OnRuntimeValueChanged += () => SaveQuestDB();
-            NPCDB.Instance.OnRuntimeValueChanged += () => SaveNPCDB();
-            EnemyDB.Instance.OnRuntimeValueChanged += () => SaveEnemyDB();
+            foreach (var db in DBManager.Instance.DBs) db.OnRuntimeValueChanged += () => SaveDB(db);
         }
         
         /// <summary>
         /// 데이터를 수동으로 저장함.
         /// </summary>
-        /// <param name="presetName"></param>
-        public static void Save(string presetName = "")
+        public static void Save(string presetName = "", bool saveAsFile = false)
         {
-            SaveGameProcessDB(presetName);
-            SaveInventory(presetName);
-            SaveQuestDB(presetName);
-            SaveNPCDB(presetName);
-            SaveEnemyDB(presetName);
-
+            foreach (var db in DBManager.Instance.DBs)
+            {
+                SaveDB(db, presetName);
+            }
             SavePresetName(presetName);
-            ES3.StoreCachedFile();
-        }
-        public static void SaveGameProcessDB(string presetName = "", bool saveAsFile = false)
-        {
-            ES3.Save(presetName + GameProcessDB.Instance.Address, GameProcessDB.Instance.DataRowContainer.GetSaveData(), ES3Settings);
-            SavePresetName(DBType.GameProcess, presetName);
-            if(saveAsFile) ES3.StoreCachedFile();
+            if(saveAsFile)
+            {
+                ES3.StoreCachedFile(ES3Settings);
+                Debug.Log($"[EasySave Integration] Store Cached File");
+            }
         }
 
-        public static void SaveInventory(string presetName = "", bool saveAsFile = false)
+        public static void SaveDB(OcDB db, string presetName = "", bool saveAsFile = false)
         {
-            ES3.Save(presetName + ItemDatabase.Instance.Address, Inventory.PlayerInventory.GetSaveData(), ES3Settings);
-            SavePresetName(DBType.Item, presetName);
-            if(saveAsFile) ES3.StoreCachedFile();
-        }
-        
-        public static void SaveQuestDB(string presetName = "", bool saveAsFile = false)
-        {
-            ES3.Save(presetName + QuestDB.Instance.Address, QuestDB.Instance.GetSaveData(), ES3Settings);
-            SavePresetName(DBType.Quest, presetName);
-            if(saveAsFile) ES3.StoreCachedFile();
+            ES3.Save(Name(db.Address, presetName), db.GetSaveData(), ES3Settings);
+            SavePresetName(Name(db.Address, presetName));
+            if(saveAsFile)
+            {
+                ES3.StoreCachedFile(ES3Settings);
+                Debug.Log($"[EasySave Integration] Store Cached File ({db.name})");
+            }
         }
 
-        public static void SaveNPCDB(string presetName = "", bool saveAsFile = false)
+        public static void StoreCachedFile()
         {
-            ES3.Save(presetName + NPCDB.Instance.Address, NPCDB.Instance.GetSaveData(), ES3Settings);
-            SavePresetName(DBType.NPC, presetName);
-            if(saveAsFile) ES3.StoreCachedFile();
-        }
-
-        public static void SaveEnemyDB(string presetName = "", bool saveAsFile = false)
-        {
-            ES3.Save(presetName + EnemyDB.Instance.Address, EnemyDB.Instance.GetSaveData(), ES3Settings);
-            SavePresetName(DBType.Enemy, presetName);
-            if(saveAsFile) ES3.StoreCachedFile();
+            ES3.StoreCachedFile(ES3Settings);
+            Debug.Log($"[EasySave Integration] Store Cached File");
         }
 
         public static void LoadFromPreset(string presetName)
@@ -152,34 +88,18 @@ namespace OcDialogue.Samples
                 Debug.LogWarning($"저장된 프리셋이 없음");
                 return;
             }
-            Load(presetName);
+            LoadAllDBs(presetName);
         }
-        public static void LoadFromPreset(DBType dbType, string presetName)
+        public static void LoadFromPreset(OcDB db, string presetName)
         {
-            if (!ES3.KeyExists(dbType + saveDataKey_PresetNames, ES3Settings))
+            if (!ES3.KeyExists(Name(db.Address, saveDataKey_PresetNames), ES3Settings))
             {
                 Debug.LogWarning($"저장된 프리셋이 없음");
                 return;
             }
 
-            switch (dbType)
-            {
-                case DBType.GameProcess:
-                    LoadGameProcessDB(presetName);
-                    break;
-                case DBType.Item:
-                    LoadInventory(presetName);
-                    break;
-                case DBType.Quest:
-                    LoadQuestDB(presetName);
-                    break;
-                case DBType.NPC:
-                    LoadNPCDB(presetName);
-                    break;
-                case DBType.Enemy:
-                    LoadEnemyDB(presetName);
-                    break;
-            }
+            var saveData = ES3.Load<List<CommonSaveData>>(Name(db.Address, presetName), ES3Settings);
+            db.Overwrite(saveData);
         }
 
         public static List<string> GetPresetNames()
@@ -187,10 +107,11 @@ namespace OcDialogue.Samples
             return ES3.KeyExists(saveDataKey_PresetNames, ES3Settings) ? 
                 ES3.Load<List<string>>(saveDataKey_PresetNames, ES3Settings) : new List<string>();
         }
-        public static List<string> GetPresetNames(DBType dbType)
+        public static List<string> GetPresetNames(OcDB db)
         {
-            return ES3.KeyExists(dbType + saveDataKey_PresetNames, ES3Settings) ?
-                ES3.Load<List<string>>(dbType + saveDataKey_PresetNames, ES3Settings) : new List<string>();
+            return ES3.KeyExists(saveDataKey_PresetNames, ES3Settings) ?
+                ES3.Load<List<string>>(saveDataKey_PresetNames, ES3Settings).Where(x => x.Contains(db.Address)).ToList() :
+                new List<string>();
         }
 
         public static void RemovePreset(string presetName)
@@ -199,11 +120,11 @@ namespace OcDialogue.Samples
             keys.Remove(presetName);
             ES3.Save(saveDataKey_PresetNames, keys, ES3Settings);
         }
-        public static void RemovePreset(DBType dbType, string presetName)
+        public static void RemovePreset(OcDB db, string presetName)
         {
-            var keys = GetPresetNames(dbType);
+            var keys = GetPresetNames(db);
             keys.Remove(presetName);
-            ES3.Save(dbType + saveDataKey_PresetNames, keys, ES3Settings);
+            ES3.Save(Name(db.Address, saveDataKey_PresetNames), keys, ES3Settings);
         }
 
         static void SavePresetName(string presetName)
@@ -217,18 +138,7 @@ namespace OcDialogue.Samples
             }
         }
 
-        static void SavePresetName(DBType dbType, string presetName)
-        {
-            if(string.IsNullOrWhiteSpace(presetName)) return;
-
-            var existPreset = GetPresetNames(dbType);
-            if (!existPreset.Contains(presetName))
-            {
-                existPreset.Add( presetName);
-                ES3.Save(dbType + saveDataKey_PresetNames, existPreset, ES3Settings);
-                Debug.Log($"saveKey | {dbType + saveDataKey_PresetNames} = {existPreset[0]}");
-            }
-        }
+        static string Name(string address, string presetName) => $"{presetName}({address})";
     }
 
 }

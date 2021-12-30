@@ -57,7 +57,7 @@ public class DialogueDBTest
                 return;
             }
 
-            if (balloon.setters.Any(x => x.targetData == null))
+            if (balloon.setters.Any(x => x.TargetData == null))
                 Debug.LogError($"[{conversation.key}/{balloon.GUID}] Balloon.Setter에 Data가 비어있음");
         });
     }

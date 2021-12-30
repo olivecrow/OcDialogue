@@ -9,7 +9,7 @@ namespace OcDialogue.DB
 #if UNITY_EDITOR
         OcData TargetData { get; set; }
         string Detail { get; }
-        void UpdateAddress();
+        void UpdateExpression();
 #endif
     }
 

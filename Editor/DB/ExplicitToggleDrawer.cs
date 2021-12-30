@@ -24,10 +24,10 @@ namespace OcDialogue.Editor
 
             var rect = EditorGUILayout.GetControlRect();
 
+            GUIHelper.PushLabelWidth(rect.width);
+            GUIHelper.PushContextWidth(rect.width);
             if (label != null) rect = EditorGUI.PrefixLabel(rect, label);
             
-            GUIHelper.PushLabelWidth(rect.width);
-            GUIHelper.PopLabelWidth();
             
             if (GUI.Button(rect, valueText, guiStyle))
             {
@@ -35,6 +35,9 @@ namespace OcDialogue.Editor
             }
 
             ValueEntry.SmartValue = value;
+            
+            GUIHelper.PopLabelWidth();
+            GUIHelper.PopContextWidth();
         }
     }
 }

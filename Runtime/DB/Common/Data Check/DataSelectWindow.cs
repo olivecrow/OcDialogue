@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using OcUtility;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using UnityEditor;
@@ -11,30 +12,42 @@ namespace OcDialogue.DB
 {
     public class DataSelectWindow : OdinEditorWindow
     {
+        [HideInInspector]
         public IOcDataSelectable DataSelectable;
+        [HideInInspector]
         public Action<OcData> OnDataSelected;
-        public StandardDataSelector Selector { get; private set; }
+
+        [HideLabel]
+        public StandardDataSelector Selector;
+
         string[] _DBNames;
 
-        OcDB CurrentSelectedDB
+        public OcDB CurrentDB
         {
-            get => _currentSelectedDB;
+            get => _currentDB;
             set
             {
-                var isNew = _currentSelectedDB != value;
-                _currentSelectedDB = value;
-                if (isNew) Selector = new StandardDataSelector(value);
+                var isNew = _currentDB != value;
+                _currentDB = value;
+                if (isNew)
+                {
+                    Selector = new StandardDataSelector(value);
+                    _currentDBIndex = _DBNames.ToList().IndexOf(value.name);
+                }
             }
         }
-        OcDB _currentSelectedDB;
-        int _currentSelectedDBIndex;
+        public bool DBRestriction { get; set; }
+        OcDB _currentDB;
+        OcData _caller;
+        int _currentDBIndex;
         bool _useDataSelector;
-        public static DataSelectWindow Open(IOcDataSelectable dataSelectable)
+        public static DataSelectWindow Open(IOcDataSelectable dataSelectable, OcData caller)
         {
             var wnd = GetWindow<DataSelectWindow>(true);
             wnd.minSize = new Vector2(700, 300);
             wnd.maxSize = new Vector2(700, 300);
             wnd.DataSelectable = dataSelectable;
+            wnd._caller = caller;
             return wnd;
         }
 
@@ -47,20 +60,42 @@ namespace OcDialogue.DB
 
         protected override void OnGUI()
         {
+            if (DBRestriction) GUI.enabled = false;
+
+            GUI.color = new Color(0.8f, 1.2f, 2f);
+            EditorGUILayout.BeginHorizontal();
+            var originalColor = GUI.color;
+            for (int i = 0; i < _DBNames.Length; i++)
+            {
+                var content = _DBNames[i];
+                if (i == _currentDBIndex) GUI.color = originalColor.SetA(0.5f);
+                else GUI.color = originalColor;
+                if (GUILayout.Button(content, GUILayout.Height(30)))
+                {
+                    _currentDBIndex = i;
+                }
+            }
+            GUI.color = originalColor;
+            EditorGUILayout.EndHorizontal();
+            GUI.color = Color.white;
+            
+            CurrentDB = DBManager.Instance.DBs[_currentDBIndex];
+            GUI.enabled = true;
             base.OnGUI();
-            _currentSelectedDBIndex = EditorGUILayout.Popup(_currentSelectedDBIndex, _DBNames);
-            CurrentSelectedDB = DBManager.Instance.DBs[_currentSelectedDBIndex];
         }
 
         [Button]
         void Apply()
         {
-            if(Selector != null && Selector.Data != null)
+            if(Selector != null && Selector.ValidData != null)
             {
-                DataSelectable.TargetData = Selector.Data;
-                DataSelectable.UpdateAddress();
-                OnDataSelected?.Invoke(Selector.Data);
-                if(Selection.activeObject != null) EditorUtility.SetDirty(Selection.activeObject);
+                if(_caller != null) Undo.RecordObject(_caller, "DataSelectWindow Apply");
+                if(DataSelectable != null)
+                {
+                    DataSelectable.TargetData = Selector.ValidData;
+                    DataSelectable.UpdateExpression();
+                }
+                OnDataSelected?.Invoke(Selector.ValidData);
                 Close();
             }
         }
@@ -100,10 +135,12 @@ namespace OcDialogue.DB
         }
         [ValueDropdown(nameof(GetCategory))]public string Category;
         [EnumToggleButtons]public DataSelectionType dataSelectionType;
-        [ValueDropdown(nameof(GetData))][OnValueChanged(nameof(UpdateDataContainer))] 
-        public OcData Data;
+        [ValueDropdown(nameof(GetData))][OnValueChanged(nameof(UpdateDataContainer))]
+        [SerializeField]
+        OcData Data;
         [ShowIf(nameof(dataSelectionType), DataSelectionType.Target_DataRow)]
-        public DataRowSelector DataRowSelector;
+        [SerializeField]
+        DataRowSelector DataRowSelector;
         
         public OcData ValidData => dataSelectionType switch
         {
@@ -116,14 +153,14 @@ namespace OcDialogue.DB
         public StandardDataSelector(OcDB db)
         {
             _DB = db;
-            Category = db.Category[0];
+            Category = db.CategoryOverride[0];
         }
 
         ValueDropdownList<string> GetCategory()
         {
             if (_DB == null) return null;
             var list = new ValueDropdownList<string>();
-            foreach (var category in _DB.Category)
+            foreach (var category in _DB.CategoryOverride)
             {
                 list.Add(category);
             }
@@ -144,7 +181,7 @@ namespace OcDialogue.DB
 
         void UpdateDataContainer()
         {
-            var user = Data as IDataRowUser;
+            if(Data is not IDataRowUser user) return;
             DataRowSelector = new DataRowSelector(user.DataRowContainer.DataRows);
         }
     }

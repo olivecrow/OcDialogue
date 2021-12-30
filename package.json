@@ -1,6 +1,6 @@
 {
   "name": "com.olivecrow.ocdialogue",
-  "version": "1.4.1",
+  "version": "2.0.0",
   "displayName": "Oc Dialogue",
   "description": "\ub370\uc774\ud130\ubca0\uc774\uc2a4\ub97c \ud3ec\ud568\ud55c \ucee4\uc2a4\ud140 \ub2e4\uc774\uc5bc\ub85c\uadf8 \uc2dc\uc2a4\ud15c.",
   "unity": "2020.3",
@@ -12,11 +12,6 @@
     "com.unity.testtools.codecoverage": "1.0.1"
   },
   "samples":[
-    {
-      "displayName": "External Item Adapter Sample",
-      "description": "기본 아이템 타입을 상속받은 커스텀 타입을 생성하고 적용하는 샘플",
-      "path": "Samples~/External Item Adapter"
-    },
     {
       "displayName": "Dialogue UI Sample",
       "description": "대화 UI 샘플. 이 샘플을 바탕으로 실제 사용하는게 편함.",
@@ -32,7 +27,7 @@
       "description": "Debugging Essentials 에셋과 통합해주는 샘플. 임포트하기만 하면 Debugging Essentials의 콘솔에서 확장된 메서드를 사용할 수 있음.",
       "path": "Samples~/Debugging Essentials Integration"
     },{
-      "displayName": "DBSample",
+      "displayName": "DBSamples",
       "description": "GameProcess, Item, Quest, NPC, Enemy 등 주요 DB와 에디터를 구현한 샘플",
       "path": "Samples~/DBSamples"
     }

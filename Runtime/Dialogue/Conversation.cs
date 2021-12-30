@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using OcDialogue.DB;
 using Sirenix.OdinInspector;
 
@@ -33,7 +34,21 @@ namespace OcDialogue
         {
             return Balloons.Find(x => x.GUID == guid);
         }
-        
+
+        public List<Balloon> FindInputBalloons(Balloon balloon)
+        {
+            return (from linkData in LinkData 
+                where linkData.to == balloon.GUID 
+                select FindBalloon(linkData.@from)).ToList();
+        }
+
+        public List<Balloon> FindLinkedBalloons(Balloon balloon)
+        {
+            return (from linkData in LinkData 
+                where linkData.@from == balloon.GUID 
+                select FindBalloon(linkData.to)).ToList();
+        }
+
 #if UNITY_EDITOR
         public event Action onValidate;
 
@@ -191,15 +206,29 @@ namespace OcDialogue
         void RemoveUnusedLinkData()
         {
             var removeList = new List<LinkData>();
+            var restoreList = new List<LinkData>();
             foreach (var linkData in LinkData)
             {
-                if(FindBalloon(linkData.@from) == null || FindBalloon(linkData.to) == null) removeList.Add(linkData);
+                if(FindBalloon(linkData.@from) == null || FindBalloon(linkData.to) == null)
+                {
+                    removeList.Add(linkData);
+                    continue;
+                }
+                if(LinkData.Any(x => x.@from == linkData.@from && x.to == linkData.to && x != linkData)) removeList.Add(linkData);
+                if(restoreList.Count(x => x.@from == linkData.@from && x.to == linkData.to) == 0) 
+                    restoreList.Add(linkData);
             }
 
             foreach (var linkData in removeList)
             {
                 Debug.Log($"[Conversation] LinkData 제거됨 | from : {linkData.@from} | to : {linkData.to}");
                 LinkData.Remove(linkData);
+            }
+            
+            
+            foreach (var linkData in restoreList)
+            {
+                LinkData.Add(linkData);
             }
         }
 

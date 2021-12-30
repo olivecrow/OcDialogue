@@ -54,7 +54,7 @@ namespace OcDialogue.DB
                     {
                         if (bool.TryParse(kv.Value, out var v))
                         {
-                            data.SetValue(v, true);
+                            data.SetValue(v, DataSetter.Operator.Set, true);
                         }
                         else Debug.LogWarning($"[DataRowContainer] 데이터 형식이 일치하지 않음 | type : {data.Type} | value : {v}");
 
@@ -64,7 +64,7 @@ namespace OcDialogue.DB
                     {
                         if (int.TryParse(kv.Value, out var v))
                         {
-                            data.SetValue(v, true);
+                            data.SetValue(v, DataSetter.Operator.Set, true);
                         }
                         else Debug.LogWarning($"[DataRowContainer] 데이터 형식이 일치하지 않음 | type : {data.Type} | value : {v}");
 
@@ -74,14 +74,14 @@ namespace OcDialogue.DB
                     {
                         if (float.TryParse(kv.Value, out var v))
                         {
-                            data.SetValue(v, true);
+                            data.SetValue(v, DataSetter.Operator.Set, true);
                         }
                         else Debug.LogWarning($"[DataRowContainer] 데이터 형식이 일치하지 않음 | type : {data.Type} | value : {v}");
 
                         break;
                     }
                     case DataRowType.String:
-                        data.SetValue(kv.Value, true);
+                        data.SetValue(kv.Value, DataSetter.Operator.Set, true);
                         break;
                 }
             }

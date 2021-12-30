@@ -1,0 +1,17 @@
+{
+    "name": "EasySaveIntergration",
+    "rootNamespace": "",
+    "references": [
+        "GUID:b2827b5227fde439da75d0495d5d531d",
+        "GUID:43e3bcd4ebaeb8b45966bee7b63249bd"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -9,7 +9,11 @@ using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Localization.Settings;
+
+// #if ENABLE_LOCALIZATION
+// using UnityEngine.Localization.Settings;
+// #endif
+
 
 namespace OcDialogue.Editor
 {
@@ -116,17 +120,17 @@ namespace OcDialogue.Editor
             // EditorPrefs.SetString(key_pathPrefs, folderPath);
         }
 
-        [Button("번역용 CSV 테이블 Export")]
-        void ExportLocalizationTemplate()
-        {
-            var keys = new List<string>();
-            keys.Add("Key");
-            keys.Add("Id");
-            keys.AddRange(LocalizationSettings.AvailableLocales.Locales.Select(x => x.Identifier.ToString()));
-            var writer = new CSVWriter(keys.ToArray());
-
-            writer.Save(folderPath, $"{fileNamePrefix}_Localization Template");
-        }
+        // [Button("번역용 CSV 테이블 Export")]
+        // void ExportLocalizationTemplate()
+        // {
+        //     var keys = new List<string>();
+        //     keys.Add("Key");
+        //     keys.Add("Id");
+        //     keys.AddRange(LocalizationSettings.AvailableLocales.Locales.Select(x => x.Identifier.ToString()));
+        //     var writer = new CSVWriter(keys.ToArray());
+        //
+        //     writer.Save(folderPath, $"{fileNamePrefix}_Localization Template");
+        // }
 
 
         #region Dialogue

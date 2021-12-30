@@ -150,7 +150,7 @@ namespace OcDialogue.Editor
 
         void GenerateConversationToolbar(int index)
         {
-            Debug.Log($"On Generate Conversation Toolbar | Category : {_currentCategory} | index : {index}");
+            // Debug.Log($"On Generate Conversation Toolbar | Category : {_currentCategory} | index : {index}");
             if (ConversationSelectToolbar != null) rootVisualElement.Remove(ConversationSelectToolbar);
             ConversationSelectToolbar = new Toolbar();
             rootVisualElement.Add(ConversationSelectToolbar);
@@ -177,7 +177,7 @@ namespace OcDialogue.Editor
                     {
                         Conversation.onValidate += OnConversationChanged;
                     }
-                    Debug.Log($"Generate Conversation Toolbar : key : {s}");
+                    // Debug.Log($"Generate Conversation Toolbar : key : {s}");
                     OnConversationChanged();
                     return Conversation == null ? null : Conversation.key;
                 });
@@ -210,7 +210,7 @@ namespace OcDialogue.Editor
         /// <summary> DropDown에서 다른 Conversation으로 변경되었을때 호출됨. 근데 Conversation의 key를 변경해도 호출됨...? </summary>
         void OnConversationChanged()
         {
-            Debug.Log("On Conversation Changed");
+            // Debug.Log("On Conversation Changed");
             if (Conversation != null)
             {
                 var targetConvList = Asset.Conversations.Where(x => x.Category == _currentCategory).ToList();

@@ -38,21 +38,59 @@ namespace OcDialogue.DB
             get => index;
             set => index = value;
         }
+        [TableColumnWidth(35, false), ReadOnly]
         public int index;
-        public OcData TargetData { get; set; }
-        
+
+        public OcData TargetData
+        {
+            get => targetData;
+            set
+            {
+                targetData = value;
+                if (targetData != null)
+                {
+                    var fieldNames = targetData.GetFieldNames();
+                    if (fieldNames != null && fieldNames.Length > 0)
+                    {
+                        detail = fieldNames[0];
+                    }
+                    else detail = "";
+                }
+                else detail = "";
+            }
+        }
+        [OnValueChanged(nameof(OnTargetDataChanged))][SuffixLabel("@GetValueType()")]
+        [SerializeField][HideLabel]
+        OcData targetData;
+        [ValueDropdown(nameof(GetDetailFieldName))][TableColumnWidth(120, false)]
         public string detail;
-         
+        [TableColumnWidth(100, false)][ValueDropdown(nameof(GetOperatorDropDown))]
         public Operator op;
-
+        [ShowIf(nameof(GetValueType), DataRowType.Bool)][VerticalGroup("value")][HideLabel][ExplicitToggle()]
         public bool BoolValue;
-
+        [ShowIf(nameof(GetValueType), DataRowType.Int)][VerticalGroup("value")][HideLabel]
         public int IntValue;
-        
+        [ShowIf(nameof(GetValueType), DataRowType.Float)][VerticalGroup("value")][HideLabel]
         public float FloatValue;
-
+        [ShowIf("@GetValueType()==DataRowType.String && !IsEnumType()")][VerticalGroup("value")][HideLabel]
         public string StringValue;
+
+        [ShowInInspector][ShowIf(nameof(IsEnumType))][ValueDropdown(nameof(GetEnumDropDown))]
+        [VerticalGroup("value")][HideLabel]
+        public string EnmValue
+        {
+            get => StringValue;
+            set
+            {
+                IntValue = (targetData as IEnumHandler).GetEnumNames(detail).ToString().IndexOf(value);
+                StringValue = value;
+            }
+        }
         
+        [HideInInspector]
+        public string address;
+        [HideInInspector]
+        public OcData parent;
 
         public string Detail
         {
@@ -60,23 +98,109 @@ namespace OcDialogue.DB
             set => detail = value;
         }
 
-        public void UpdateAddress()
+        public void UpdateExpression()
         {
-            throw new NotImplementedException();
+            address = TargetData == null ? "" : TargetData.TotalAddress;
+
         }
 
-        public object TargetValue => TargetData.GetValue(detail);
+        public object TargetValue => GetValueType() switch
+        {
+            DataRowType.Bool => BoolValue,
+            DataRowType.Int => IntValue,
+            DataRowType.Float => FloatValue,
+            DataRowType.String => StringValue,
+            _ => null
+        };
 
         public bool IsTrue()
         {
             return TargetData.IsTrue(detail, op, TargetValue);
         }
 
+        void OnTargetDataChanged()
+        {
+            if (targetData == null || 
+                targetData.GetFieldNames() == null || targetData.GetFieldNames().Length == 0)
+            {
+                detail = "";
+                return;
+            }
+
+            detail = targetData.GetFieldNames()[0];
+        }
+        DataRowType GetValueType()
+        {
+            if (targetData == null) return DataRowType.Bool;
+            return targetData.GetValueType(detail);
+        }
+
+        ValueDropdownList<Operator> GetOperatorDropDown()
+        {
+            var list = new ValueDropdownList<Operator>();
+            if (targetData == null) return list;
+            switch (targetData.GetValueType(detail))
+            {
+                case DataRowType.Bool:
+                case DataRowType.String:
+                    list.Add(Operator.Equal);
+                    list.Add(Operator.NotEqual);
+                    break;
+                case DataRowType.Int:
+                case DataRowType.Float:
+                    list.Add(Operator.Equal);
+                    list.Add(Operator.NotEqual);
+                    list.Add(Operator.Greater);
+                    list.Add(Operator.Less);
+                    list.Add(Operator.GreaterEqual);
+                    list.Add(Operator.LessEqual);
+                    break;
+            }
+
+            return list;
+        }
+
+        ValueDropdownList<string> GetDetailFieldName()
+        {
+            var list = new ValueDropdownList<string>();
+            if (targetData == null || targetData.GetFieldNames() == null) return list;
+            foreach (var fieldName in targetData.GetFieldNames())
+            {
+                list.Add(fieldName);
+            }
+
+            return list;
+        }
+
+        void PrintAddress()
+        {
+            Debug.Log(address);
+        }
+
+        bool IsEnumType()
+        {
+            if (targetData == null) return false;
+            return targetData is IEnumHandler && targetData.GetValueType(detail) == DataRowType.String;
+        }
+
+        ValueDropdownList<string> GetEnumDropDown()
+        {
+            var list = new ValueDropdownList<string>();
+            if (targetData == null) return list;
+            if (targetData is not IEnumHandler eHandler) return list; 
+            foreach (var enumName in eHandler.GetEnumNames(detail))
+            {
+                list.Add(enumName);
+            }
+
+            return list;
+        }
+
 #if UNITY_EDITOR
-        
+        [Button("선택"), GUIColor(1, 1, 2)][TableColumnWidth(50, false)][VerticalGroup("_")]
         void OpenSelectWindow()
         {
-            DataSelectWindow.Open(this);
+            DataSelectWindow.Open(this, parent);
         }
 
         
