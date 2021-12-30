@@ -181,7 +181,12 @@ namespace OcDialogue.DB
 
         void UpdateDataContainer()
         {
+#if UNITY_2021_1_OR_NEWER
             if(Data is not IDataRowUser user) return;
+#else
+            if(!(Data is IDataRowUser user)) return;
+#endif
+            
             DataRowSelector = new DataRowSelector(user.DataRowContainer.DataRows);
         }
     }

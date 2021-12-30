@@ -187,7 +187,11 @@ namespace OcDialogue.DB
         {
             var list = new ValueDropdownList<string>();
             if (targetData == null) return list;
-            if (targetData is not IEnumHandler eHandler) return list; 
+#if UNITY_2021_1_OR_NEWER
+            if (targetData is not IEnumHandler eHandler) return list;
+#else
+            if (!(targetData is IEnumHandler eHandler)) return list;
+#endif
             foreach (var enumName in eHandler.GetEnumNames(detail))
             {
                 list.Add(enumName);
