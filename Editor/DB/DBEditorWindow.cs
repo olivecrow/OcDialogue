@@ -28,10 +28,10 @@ namespace OcDialogue.Editor
         }
         int __currentSelectedDBIndex;
         
-        [MenuItem("OcDialogue/DB 에디터 V2")]
+        [MenuItem("OcDialogue/DB 에디터")]
         static void Open()
         {
-            var window = GetWindow<DBEditorWindow>("DB 에디터 V2", true, typeof(SceneView));
+            var window = GetWindow<DBEditorWindow>("DB 에디터", true, typeof(SceneView));
             window.minSize = new Vector2(720, 480);
         }
 

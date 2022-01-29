@@ -6,10 +6,11 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Timeline;
+using Object = UnityEngine.Object;
 
 namespace OcDialogue.Samples
 {
-    public class DataCheckEventTrigger : MonoBehaviour, IDialogueUser, IHierarchyIconDrawable
+    public class DataCheckEventTrigger : MonoBehaviour, IDialogueUser
     {
         public enum TriggerType
         {
@@ -36,8 +37,12 @@ namespace OcDialogue.Samples
         [HorizontalGroup("Conversation/1"), ShowIf("startConversation"), ValueDropdown("GetConversationList")][HideLabel][OnValueChanged("CheckEventUsage")]
         public Conversation conversation;
 
+        [BoxGroup("Conversation")] public UnityEvent OnDialogueEnd;
+        
         [InfoBox("이 대화에는 이벤트 리시버가 필요함.", InfoMessageType.Warning, "e_isReceiverNeed")]
-        [BoxGroup("Conversation"), LabelWidth(150)][InlineButton("AddSignalReceiver", "Add")] public SignalReceiver signalReceiver;
+        [ShowIf("e_isReceiverNeed")]
+        [BoxGroup("Conversation"), LabelWidth(150)][InlineButton("AddSignalReceiver", "Add")] 
+        public SignalReceiver signalReceiver;
 
         public UnityEvent e;
 
@@ -59,21 +64,16 @@ namespace OcDialogue.Samples
             if (!checker.IsTrue()) return;
             if (startConversation && conversation != null)
             {
-                DialogueUI.StartConversation(dialogueSceneName, conversation, this);
+                DialogueUI.StartConversation(dialogueSceneName, conversation, this, OnDialogueEnd.Invoke);
             }
+
             e.Invoke();
         }
 
 
 #if UNITY_EDITOR
-        public Texture2D IconTexture => null;
-        public string IconPath => checker.IsWarningOn() ? "Warning Icon" : "???";
-        public int DistanceToText => 200;
-        public Color IconTint => Color.yellow;
-        
-        
 #pragma warning disable 414
-        bool e_isReceiverNeed;
+        [HideInInspector]public bool e_isReceiverNeed;
 #pragma warning restore 414
         void Reset()
         {

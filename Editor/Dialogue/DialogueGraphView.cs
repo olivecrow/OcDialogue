@@ -1,12 +1,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using OcDialogue.DB;
 using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 using PopupWindow = UnityEngine.UIElements.PopupWindow;
 
 namespace OcDialogue.Editor
@@ -68,7 +70,6 @@ namespace OcDialogue.Editor
                     }
                 }
             }
-
             if (change.edgesToCreate != null)
             {
                 foreach (var edge in change.edgesToCreate)
@@ -99,7 +100,6 @@ namespace OcDialogue.Editor
                 }
                 Conversation.UpdateLinkedBalloonList();
             }
-            AssetDatabase.SaveAssets();
             return change;
         }
 
@@ -124,7 +124,6 @@ namespace OcDialogue.Editor
             });
             evt.menu.AppendAction("Add Choice", a => 
                 {
-                    Debug.Log($"Add Choice : selected == null ? {selected == null}");
                     if (selected != null) CreateLinkedNode(selected, Balloon.Type.Choice);
                     else
                     {
@@ -141,7 +140,6 @@ namespace OcDialogue.Editor
                 });
             evt.menu.AppendAction("Add Action", a => 
                 {
-                    Debug.Log($"Add Action : selected == null ? {selected == null}");
                     if (selected != null) CreateLinkedNode(selected, Balloon.Type.Action);
                     else
                     {
@@ -152,6 +150,11 @@ namespace OcDialogue.Editor
             if (selected == null)
             {
                 // 그리드에 대고 우클릭.
+                evt.menu.AppendAction("Select Conversation", a =>
+                {
+                    EditorGUIUtility.PingObject(Conversation);
+                    Selection.activeObject = Conversation;
+                });
             }
             else
             {
@@ -221,6 +224,7 @@ namespace OcDialogue.Editor
             {
                 DrawEdge(linkData);
             }
+            
         }
 
         public DialogueNode CreateBalloonAndNode(Balloon.Type type, Vector2 position)
@@ -359,10 +363,9 @@ namespace OcDialogue.Editor
             });
             return compatibles;
         }
-
+        
         public override EventPropagation DeleteSelection()
         {
-            // TODO : 노드 지우면 (있을 경우) 엣지도 같이 지워지게 하기.
             foreach (var s in selection)
             {
                 if(s is DialogueNode node) Conversation.RemoveBalloon(node.Balloon);
@@ -384,5 +387,10 @@ namespace OcDialogue.Editor
                 _lastMousePosition = (evt.originalMousePosition - (Vector2) viewTransform.position) / viewTransform.scale.x + new Vector2(0, -DefaultNodeSize.y * 0.2f);
         }
 
+        public void OnSelectionChanged()
+        {
+            Selection.objects = selection.Where(x => x is DialogueNode)
+                .Select(x => ((DialogueNode)x).Balloon).ToArray();
+        }
     }
 }

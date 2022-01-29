@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Experimental.GraphView;
+using UnityEditor.Localization.Plugins.XLIFF.V12;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -36,6 +38,12 @@ namespace OcDialogue.Editor
             get => Asset.Categories;
             set => Asset.Categories = value;
         }
+        
+
+        List<string> ConversationDropDownChoices => 
+            Asset.Conversations.Where(x => x.Category == _currentCategory).Select(x => x.key).ToList();
+
+        Dictionary<Edge, Label> _edgeLabels;
 
         string _currentCategory;
         static Dictionary<string, int> _lastViewConversation;
@@ -55,6 +63,7 @@ namespace OcDialogue.Editor
         {
             if(_instance != null) _instance.Close();
             _instance = this;
+            _edgeLabels = new Dictionary<Edge, Label>();
         }
 
         void OnDisable()
@@ -66,7 +75,31 @@ namespace OcDialogue.Editor
         {
             if(DialogueAsset.Instance == null) return;
             if(Conversation == null) return;
-            if (ConversationField != null && ConversationField.text != Conversation.key) ConversationField.SetValueWithoutNotify(Conversation.key);
+            if (EditorUtility.IsDirty(Asset) || EditorUtility.IsDirty(Conversation)) titleContent.text = "다이얼로그 에디터*";
+            else titleContent.text = "다이얼로그 에디터";
+            if (ConversationField != null)
+            {
+                if(ConversationField.text != Conversation.key)ConversationField.SetValueWithoutNotify(Conversation.key);
+                for (int i = 0; i < ConversationField.choices.Count; i++)
+                {
+                    ConversationField.choices[i] = Asset.Conversations[i].key;
+                }
+            }
+        }
+
+        void OnGUI()
+        {
+            foreach (var kv in _edgeLabels)
+            {
+                var edge = kv.Key;
+                var label = kv.Value;
+                var zoom = GraphView.viewTransform.scale.x;
+                var offset = new Vector3(15 , 30);
+                
+                label.transform.position =
+                    (edge.input.worldTransform.GetPosition() - (GraphView.viewTransform.position + offset)) / zoom;
+                
+            }
         }
 
         void CreateGUI()
@@ -162,7 +195,7 @@ namespace OcDialogue.Editor
                 
 #endif
                 "Conversation",
-                Asset.Conversations.Where(x => x.Category == _currentCategory).Select(x => x.key).ToList(),
+                ConversationDropDownChoices,
                 index, s =>
                 {
                     // 이전 Conversation이 있다면, OnConversationChanged 콜백을 해제함.
@@ -181,7 +214,6 @@ namespace OcDialogue.Editor
                     OnConversationChanged();
                     return Conversation == null ? null : Conversation.key;
                 });
-            
 
             if (Asset.Conversations.Find(x => x.Category == _currentCategory) == null)
             {
@@ -220,6 +252,27 @@ namespace OcDialogue.Editor
                 rootVisualElement.Add(GraphView);
                 GraphView.StretchToParentSize();
                 GraphView.SendToBack();
+                
+                _edgeLabels.Clear();
+                
+                // create priority label
+                foreach (var balloon in Conversation.Balloons)
+                {
+                    if(balloon.linkedBalloons.Count < 2) continue;
+                    for (int i = 0; i < balloon.linkedBalloons.Count; i++)
+                    {
+                        var inputNode = GraphView.FindNode(balloon.linkedBalloons[i]);
+                        var edge = GraphView.edges.First(x => x.input == inputNode.InputPort);
+                        var indexLabel = new Label(i.ToString());
+                        indexLabel.style.unityFontStyleAndWeight = new StyleEnum<FontStyle>(FontStyle.Bold);
+                        indexLabel.style.color = new Color(0.5f, 0.8f, 1f);
+                        indexLabel.style.position = new StyleEnum<Position>(Position.Absolute);
+
+                        edge.Add(indexLabel);
+                        _edgeLabels[edge] = indexLabel;
+                    }
+                }
+                
                 Selection.activeObject = Conversation;
             }
             else
@@ -242,7 +295,7 @@ namespace OcDialogue.Editor
         void RemoveConversation()
         {
             if(Conversation == null) return;
-            if(EditorUtility.DisplayDialog("Remove Conversation", "이 Conversation을 삭제하시겠습니까? 되돌릴 수 없는 작업입니다.", "안돼!", "질러!")) return;
+            if(!EditorUtility.DisplayDialog("Remove Conversation", "이 Conversation을 삭제하시겠습니까? 되돌릴 수 없는 작업입니다.", "삭제", "취소")) return;
             Asset.RemoveConversation(Conversation);
             GenerateConversationToolbar(0);
         }

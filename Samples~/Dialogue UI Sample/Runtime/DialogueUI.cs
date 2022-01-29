@@ -10,7 +10,7 @@ using OcUtility;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
-
+using UnityEngine.AddressableAssets;
 /*
  * PACKAGE_LOCALIZATION 은 정의된 어셈블리를 기준으로 작동함.
  * 따라서, OcDialoguePackage에 있는 스크립트들은 이 심볼이 패키지에따라 자동으로 활성화/비활성화되지만
@@ -76,9 +76,12 @@ namespace OcDialogue.Samples
         public List<ChoiceButton> ChoiceButtons { get; private set; }
         public string sceneName { get; private set; }
 
+        public event Action OnEnd;
+
         TweenerCore<string, string, StringOptions> _textTween;
         TweenerCore<Color, Color, ColorOptions> _textFadeTween;
         TweenerCore<float, float, FloatOptions> _canvasGroupTween;
+        Coroutine _conversationCoroutine;
 #if PACKAGE_LOCALIZATION
         StringTable _table;
 #endif
@@ -136,22 +139,26 @@ namespace OcDialogue.Samples
             _doubleClickTimer += Time.deltaTime;
         }
 
-        public static void StartConversation(string sceneName, Conversation conversation, IDialogueUser user)
+        public static void StartConversation(string sceneName, Conversation conversation, IDialogueUser user, Action onEnd = null)
         {
             // 현재 열린 DialogueUI가 없고, 로딩중도 아니면 로딩을 시작함.
             if (_instance == null && !IsLoadAsyncOn)
             {
                 IsLoadAsyncOn = true;
-                var async = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
-                Debug.Log($"Load");       
+                var async = Addressables.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
                 // 로딩이 완료되면 대화를 시작함.
-                async.completed += operation =>
+                async.Completed += handle =>
                 {
                     Instance.sceneName = sceneName;
                     Instance.User = user;
+                    Instance.OnEnd += onEnd;
                     Instance.StartConversation(conversation);
                     IsLoadAsyncOn = false;
                 };
+            }
+            else
+            {
+                Instance.StartConversation(conversation);
             }
         }
 
@@ -159,11 +166,15 @@ namespace OcDialogue.Samples
         {
             if(AutoDialogue) return;
             if(_doubleClickTimer < DoubleClickBlockTime) return;
-            if (!_textTween.IsComplete())
+            if(SubtitleDisplayStyle == SubtitleDisplayStyle.TypeWriter)
             {
-                _textTween.Complete();
-                return;
+                if (!_textTween.IsComplete())
+                {
+                    _textTween.Complete();
+                    return;
+                }
             }
+
             if(Choices != null && Choices.Count > 0) return;
             _isNextTriggered = true;
             _doubleClickTimer = 0f;
@@ -171,8 +182,9 @@ namespace OcDialogue.Samples
 
         void StartConversation(Conversation conversation)
         {
+            if(_conversationCoroutine != null) StopCoroutine(_conversationCoroutine);
             Conversation = conversation;
-            StartCoroutine(Process());
+            _conversationCoroutine = StartCoroutine(Process());
         }
 
         void Choice(Balloon choice)
@@ -202,6 +214,13 @@ namespace OcDialogue.Samples
                 yield break;
             }
 
+            if(_canvasGroupTween == null) _canvasGroupTween = canvasGroup.DOFade(1f, 0.2f).SetAutoKill(false);
+            else
+            {
+                _canvasGroupTween.ChangeValues(canvasGroup.alpha, 1f, 0.2f);
+                _canvasGroupTween.Restart();
+            }
+            
             while (true)
             {
                 choiceArea.SetActive(false);
@@ -224,8 +243,9 @@ namespace OcDialogue.Samples
                 Choices = Balloon.linkedBalloons.Where(x => x.type == Balloon.Type.Choice && (!x.useChecker || (x.useChecker && x.checker.IsTrue()))).ToList();
                 yield return StartCoroutine(PrintContents());
             }
-
+            OnEnd?.Invoke();
             SceneManager.UnloadSceneAsync(sceneName);
+            _conversationCoroutine = null;
         }
 
 
@@ -308,12 +328,7 @@ namespace OcDialogue.Samples
 #endif
             
             // 실제 출력되는 부분.
-            if(_canvasGroupTween == null) _canvasGroupTween = canvasGroup.DOFade(1f, 0.2f).SetAutoKill(false);
-            else
-            {
-                _canvasGroupTween.ChangeValues(canvasGroup.alpha, 1f, 0.2f);
-                _canvasGroupTween.Restart();
-            }
+            
             if (!HideName)
             {
                 var actorName = Balloon.actor == null || Balloon.actor.name == "System" ? "" : Balloon.actor.name;
@@ -323,6 +338,7 @@ namespace OcDialogue.Samples
             switch (SubtitleDisplayStyle)
             {
                 case SubtitleDisplayStyle.None:
+                    textField.text = targetText;
                     break;
                 case SubtitleDisplayStyle.TypeWriter:
                     textField.text = "";
@@ -337,7 +353,7 @@ namespace OcDialogue.Samples
                     break;
                 case SubtitleDisplayStyle.FadeInOut:
                     textField.alpha = 0f;
-
+                    textField.text = targetText;
                     if (_textFadeTween == null) _textFadeTween = textField.DOFade(1, TextFadeInTime).SetAutoKill(false).SetEase(Ease.OutCubic);
                     else
                     {
@@ -352,11 +368,14 @@ namespace OcDialogue.Samples
                         DisplayTimePerCharacter = Default_CutsceneTextInterval;
                     }
 
-                    // 일단 글자수 만큼의 시간을 기다리는데, 도중에 Next가 트리거되면 페이드 아웃으로 넘어감. 아직은 컷씬 도중에 Next를 트리거하는게 없지만 성우녹음 등을 하면 필요해질듯.
-                    for (var f = 0f; f < targetText.Length * DisplayTimePerCharacter; f += Time.deltaTime)
+                    if(AutoDialogue)
                     {
-                        yield return null;
-                        if(_isNextTriggered) break;
+                        // 일단 글자수 만큼의 시간을 기다리는데, 도중에 Next가 트리거되면 페이드 아웃으로 넘어감. 아직은 컷씬 도중에 자동으로 Next를 트리거하는게 없지만 성우녹음 등을 하면 필요해질듯.
+                        for (var f = 0f; f < targetText.Length * DisplayTimePerCharacter; f += Time.deltaTime)
+                        {
+                            yield return null;
+                            if (_isNextTriggered) break;
+                        }
                     }
                     break;
                 default:
@@ -413,17 +432,10 @@ namespace OcDialogue.Samples
             
             if(SubtitleDisplayStyle == SubtitleDisplayStyle.FadeInOut)
             {
-                _canvasGroupTween.ChangeValues(1, 0, TextFadeOutTime);
-                _canvasGroupTween.Restart();
                 _textFadeTween.ChangeValues(textField.color, textField.color.SetA(0f), TextFadeOutTime);
                 _textFadeTween.Restart();
                 yield return _textFadeTween.WaitForCompletion();
                 yield return new WaitForSeconds(IntervalBetweenDisplay);
-            }
-            else
-            {
-                _canvasGroupTween.ChangeValues(1, 0, 0.2f);
-                _canvasGroupTween.Restart();
             }
         }
 

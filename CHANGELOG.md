@@ -3,6 +3,22 @@
 
 // TODO : ExportWizard 새로 만들기
 
+## [2.1.0] -2022-1-29
+### Added
+- 각 Balloon의 Description을 노드 아래에 표시함
+- 연결된 Balloon이 2개 이상인 경우, Edge에 우선 순위의 인덱스를 표시함
+- Graph View를 우클릭해서 Conversation에셋을 선택할 수 있는 메뉴 추가
+
+### Fixed
+- Conversation 에셋의 key를 변수가 아닌 이름을 직접 지정하는 프로퍼티로 설정하고 DelayedAttribute를 적용함
+- 한 번에 여러 노드를 선택해서 편집할 수 있도록 변경
+- 편집중이지 않은 Conversation 에셋의 이름 변경이 다이얼로그 에디터에 반영되지 않던 문제 해결
+- 다이얼로그 노드의 크기 고정
+- 다이얼로그 노드의 TextField를 Label로 변경함
+  - 노드를 통한 직접 수정이 불가능해짐
+  - 15글자 이상은 ...으로 생략
+
+
 ## [2.0.1] -2021-12-31
 ### Fixed
 - C# 버전에 따른 is not 키워드 컴파일 오류 수정

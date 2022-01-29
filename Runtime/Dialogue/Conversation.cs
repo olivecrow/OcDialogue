@@ -16,7 +16,25 @@ namespace OcDialogue
     {
         [ReadOnly]public string GUID;
         [ValueDropdown("GetCategoryList")]public string Category;
-        [InlineButton("ApplyName", ShowIf = "@name != key")]public string key;
+
+        [ShowInInspector][DelayedProperty][PropertyOrder(-1)]
+        public string key
+        {
+            get => name;
+            set
+            {
+                if (Application.isPlaying)
+                {
+                    Debug.LogWarning($"Conversation의 키값을 런타임에 변경할 수 없음");
+                    return;
+                }
+                var isNew = name != value;
+                name = value;
+#if UNITY_EDITOR
+                if (isNew) AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(this), value);
+#endif
+            }
+        }
         [InfoBox("Main NPC가 설정되어있지 않음", InfoMessageType.Warning, "@MainNPC == null")]
         [ValueDropdown("GetNPCList")]public OcNPC MainNPC;
         /// <summary> 에디터에서 참고용으로 사용되는 설명. 인게임에서는 등장하지 않음. </summary>
@@ -51,14 +69,6 @@ namespace OcDialogue
 
 #if UNITY_EDITOR
         public event Action onValidate;
-
-        void ApplyName()
-        {
-            name = key;
-            AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(this), key);
-            EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssets();
-        }
 
         public Balloon AddBalloon(Balloon.Type type)
         {

@@ -11,21 +11,24 @@ using UnityEngine.UIElements;
 
 namespace OcDialogue.Editor
 {
-    public class DialogueNode : Node
+    public sealed class DialogueNode : Node
     {
         public Balloon Balloon;
         public Port InputPort;
         public Port OutputPort;
-        public TextField TextField;
+        public Label TextField;
         public VisualElement CheckerIcon;
         public VisualElement SetterIcon;
         public VisualElement EventIcon;
         public VisualElement ImageIcon;
         public VisualElement WarningIcon;
+        public Label Description;
 
         public Action<Edge, int, int> OnEdgeConnected;
         public Action<Edge, int, int> OnEdgeDisconnected;
 
+        const int Number_Of_Subtitle_Text = 15;
+        
         public sealed override string title
         {
             get => base.title;
@@ -59,12 +62,15 @@ namespace OcDialogue.Editor
 
             if (Balloon.type != Balloon.Type.Entry)
             {
-                TextField = new TextField();
-                TextField.bindingPath = "text";
-                var so = new SerializedObject(balloon);
-                TextField.Bind(so);
-                TextField.multiline = true;
+                TextField = new Label();
                 mainContainer.Add(TextField);
+
+                Description = new Label();
+                Description.style.color = new Color(0, 1f, 0f, 0.5f);
+
+                style.maxWidth = 160;
+                
+                Add(Description);
                 CreateIcons();
             }
             
@@ -73,6 +79,8 @@ namespace OcDialogue.Editor
             outputContainer.parent.style.height = 15;
 
             RefreshTitle();
+            RefreshSubtitleLabel();
+            RefreshDescription();
             RefreshPorts();
             RefreshExpandedState();
         }
@@ -151,6 +159,19 @@ namespace OcDialogue.Editor
             if(WarningIcon != null) WarningIcon.style.unityBackgroundImageTintColor = rgbSum > 1.5f ? Color.red : Color.yellow;
         }
 
+        public void RefreshSubtitleLabel()
+        {
+            if(Balloon.type == Balloon.Type.Entry) return;
+            TextField.text = Balloon.text.Length > Number_Of_Subtitle_Text ? 
+                $"{Balloon.text.Substring(0, Number_Of_Subtitle_Text)}..." : Balloon.text;
+        }
+
+        public void RefreshDescription()
+        {
+            if(Balloon.type == Balloon.Type.Entry) return;
+            Description.text = Balloon.description;
+        }
+
         public void RefreshIcons()
         {
             if(Balloon.type == Balloon.Type.Entry) return;
@@ -164,7 +185,7 @@ namespace OcDialogue.Editor
         public override void OnSelected()
         {
             base.OnSelected();
-            Selection.activeObject = Balloon;
+            DialogueEditorWindow.Instance.GraphView.OnSelectionChanged();
         }
     }
 }
