@@ -6,6 +6,7 @@ using OcDialogue.DB;
 using Sirenix.OdinInspector;
 
 #if UNITY_EDITOR
+using OcDialogue.Cutscene;
 using UnityEditor;
 #endif
 using UnityEngine;
@@ -69,6 +70,7 @@ namespace OcDialogue
 
 #if UNITY_EDITOR
         public event Action onValidate;
+        public List<DialogueTrack> e_CutsceneReference;
 
         public Balloon AddBalloon(Balloon.Type type)
         {
@@ -253,6 +255,15 @@ namespace OcDialogue
             }
 
             Selection.activeObject = balloon;
+        }
+        [BoxGroup("유틸리티 메서드"), Button("DialogueTrack Asset 생성")]
+        void CreateTrackAsset()
+        {
+            var track = CreateInstance<DialogueTrack>();
+            track.name = $"{key}_Track";
+
+            var path = AssetDatabase.GetAssetPath(this).Replace($"{name}.asset", $"{track.name}.asset");
+            AssetDatabase.CreateAsset(track, path);
         }
 #endif
     }

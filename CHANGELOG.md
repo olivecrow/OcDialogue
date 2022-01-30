@@ -2,6 +2,15 @@
 모든 변경사항을 이 곳에 기록함.
 
 // TODO : ExportWizard 새로 만들기
+// TODO : 컷씬 기능 강화하기
+
+## [2.2.0] -2022-1-30
+### Added
+- 타임라인에서의 컷씬 지원을 위한 스크립트 추가
+  - DialogueTrack : 타임라인 내에서 쓰이는 트랙
+  - DialogueClip : 트랙 내에서 각각의 Balloon의 재생타이밍을 나타내는 클립
+  - DialogueClipBehaviour : 클립의 내부 기능. 시작과 종료, 페이드아웃 등의 이벤트를 호출함
+  - DisplayParameter : 컷씬의 대화 속도 등을 조절하는 파라미터.
 
 ## [2.1.0] -2022-1-29
 ### Added

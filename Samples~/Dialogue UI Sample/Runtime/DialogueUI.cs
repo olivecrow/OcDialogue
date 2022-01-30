@@ -5,6 +5,7 @@ using System.Linq;
 using DG.Tweening;
 using DG.Tweening.Core;
 using DG.Tweening.Plugins.Options;
+using OcDialogue.Cutscene;
 using OcDialogue.DB;
 using OcUtility;
 using Sirenix.OdinInspector;
@@ -42,23 +43,28 @@ namespace OcDialogue.Samples
 #if PACKAGE_LOCALIZATION
         [TitleGroup("일반 설정")] public LocalizedStringTable LocalizedStringTable;
 #endif
-        [TitleGroup("일반 설정")] public bool AutoDialogue;
-        [TitleGroup("일반 설정")] [Range(0f, 2f)][ShowIf(nameof(AutoDialogue))][Indent()] 
-        public float IntervalBetweenDisplay = 0.7f;
-        [TitleGroup("일반 설정")][ShowIf("@AutoDialogue && SubtitleDisplayStyle != OcDialogue.Samples.SubtitleDisplayStyle.TypeWriter")][Indent()] 
-        public float DisplayTimePerCharacter = 0.2f;
+        [TitleGroup("일반 설정")] public float CanvasFadeInDuration = 0.7f;
+        [TitleGroup("일반 설정")] public float CanvasFadeOutDuration = 0.9f;
 
         [TitleGroup("Subtitle")] public TextMeshProUGUI nameField;
         [TitleGroup("Subtitle")] public TextMeshProUGUI textField;
         [TitleGroup("Subtitle")] public Image SubtitleCompleteIcon;
         [TitleGroup("Subtitle")] public bool HideName;
+        
         [TitleGroup("Subtitle")] public SubtitleDisplayStyle SubtitleDisplayStyle;
         [TitleGroup("Subtitle")][Range(1, 100)][ShowIf(nameof(SubtitleDisplayStyle), SubtitleDisplayStyle.TypeWriter)][Indent()] 
         public float TypeWriteSpeed = 50;
+        
         [TitleGroup("Subtitle")] [Range(0f, 2f)][ShowIf(nameof(SubtitleDisplayStyle), SubtitleDisplayStyle.FadeInOut)][Indent()] 
-        public float TextFadeInTime = 0.7f;
+        public float TextFadeInDuration = 0.1f;
         [TitleGroup("Subtitle")] [Range(0f, 2f)][ShowIf(nameof(SubtitleDisplayStyle), SubtitleDisplayStyle.FadeInOut)][Indent()]
-        public float TextFadeOutTime = 0.95f;
+        public float TextFadeOutDuration = 0.2f;
+        [TitleGroup("Subtitle")] [Range(0f, 5f)][ShowIf(nameof(SubtitleDisplayStyle), SubtitleDisplayStyle.FadeInOut)][Indent()]
+        public float MinimumDisplayDuration = 2f;
+        [TitleGroup("Subtitle")] [Range(0f, 0.5f)][ShowIf(nameof(SubtitleDisplayStyle), SubtitleDisplayStyle.FadeInOut)][Indent()]
+        public float DisplayTimePerCharacter = 0.17f;
+
+        
         [TitleGroup("Subtitle")][Range(0f, 5f)] public float DoubleClickBlockTime = 0.15f;
         
         [TitleGroup("선택지")]public GameObject choiceArea;
@@ -76,20 +82,41 @@ namespace OcDialogue.Samples
         public List<ChoiceButton> ChoiceButtons { get; private set; }
         public string sceneName { get; private set; }
 
-        public event Action OnEnd;
+        public event Action OnConversationEnd;
+        public event Action OnBalloonEnd;
 
         TweenerCore<string, string, StringOptions> _textTween;
         TweenerCore<Color, Color, ColorOptions> _textFadeTween;
-        TweenerCore<float, float, FloatOptions> _canvasGroupTween;
+        TweenerCore<float, float, FloatOptions> _canvasGroupFadeTween;
         Coroutine _conversationCoroutine;
+        Coroutine _UIFadeOutCoroutine;
 #if PACKAGE_LOCALIZATION
         StringTable _table;
 #endif
-        
         bool _isNextTriggered;
         float _doubleClickTimer;
 
         const float Default_CutsceneTextInterval = 0.2f;
+
+        [RuntimeInitializeOnLoadMethod]
+        static void Init()
+        {
+            DialogueClipBehaviour.OnDialogueClipStart += (behaviour, conversation, director) =>
+            {
+                var track = director.playableAsset.outputs
+                    .FirstOrDefault(x => x.sourceObject is DialogueTrack).sourceObject as DialogueTrack;
+
+                DisplayBalloon("Dialogue UI", conversation, behaviour.balloon, 
+                    director.GetComponent<IDialogueUser>(), track.param);
+            };
+            DialogueClipBehaviour.OnDialogueClipFadeOut += (behaviour, conversation, director) => Stop();
+            DialogueClipBehaviour.OnDialogueClipEnd += (behaviour, conversation, director) =>
+            {
+                if (_instance._UIFadeOutCoroutine != null) return;
+                Stop();
+            };
+        }
+        
         void Reset()
         {
             canvasGroup = GetComponent<CanvasGroup>();
@@ -127,10 +154,10 @@ namespace OcDialogue.Samples
                 _textFadeTween.Kill();
             }
 
-            if (_canvasGroupTween != null)
+            if (_canvasGroupFadeTween != null)
             {
-                _canvasGroupTween.Complete();
-                _canvasGroupTween.Kill();
+                _canvasGroupFadeTween.Complete();
+                _canvasGroupFadeTween.Kill();
             }
         }
 
@@ -151,20 +178,63 @@ namespace OcDialogue.Samples
                 {
                     Instance.sceneName = sceneName;
                     Instance.User = user;
-                    Instance.OnEnd += onEnd;
                     Instance.StartConversation(conversation);
+                    Instance.OnConversationEnd = onEnd;
                     IsLoadAsyncOn = false;
                 };
             }
             else
             {
                 Instance.StartConversation(conversation);
+                Instance.OnConversationEnd = onEnd;
             }
         }
 
+        public static void DisplayBalloon(string sceneName, Conversation conversation, Balloon balloon, 
+            IDialogueUser user, DisplayParameter param, Action onEnd = null)
+        {
+            if (_instance == null && !IsLoadAsyncOn)
+            {
+                IsLoadAsyncOn = true;
+                var async = Addressables.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+                // 로딩이 완료되면 대화를 시작함.
+                async.Completed += handle =>
+                {
+                    Instance.sceneName = sceneName;
+                    Instance.User = user;
+                    Instance.DisplayBalloon(conversation, balloon);
+                    Instance.OnBalloonEnd = onEnd;
+                    applyParam();
+                    IsLoadAsyncOn = false;
+                };
+            }
+            else
+            {
+                Instance.DisplayBalloon(conversation, balloon);
+                Instance.OnBalloonEnd = onEnd;
+                applyParam();
+            }
+
+            void applyParam()
+            {
+                if(param == null) return;
+                Instance.CanvasFadeInDuration = param.canvasFadeInDuration;
+                Instance.CanvasFadeOutDuration = param.canvasFadeOutDuration;
+                Instance.TextFadeInDuration = param.textFadeInDuration;
+                Instance.TextFadeOutDuration = param.textFadeOutDuration;
+                Instance.DisplayTimePerCharacter = param.durationPerChar;
+                Instance.MinimumDisplayDuration = param.minimumDuration;
+            }
+        }
+
+        public static void Stop()
+        {
+            Instance.DelayedStop();
+        }
+        
+
         public void Next()
         {
-            if(AutoDialogue) return;
             if(_doubleClickTimer < DoubleClickBlockTime) return;
             if(SubtitleDisplayStyle == SubtitleDisplayStyle.TypeWriter)
             {
@@ -178,19 +248,59 @@ namespace OcDialogue.Samples
             if(Choices != null && Choices.Count > 0) return;
             _isNextTriggered = true;
             _doubleClickTimer = 0f;
+            
+            SubtitleCompleteIcon.gameObject.SetActive(false);
         }
-
+        
         void StartConversation(Conversation conversation)
         {
+            OnConversationEnd = null;
             if(_conversationCoroutine != null) StopCoroutine(_conversationCoroutine);
             Conversation = conversation;
+            PreProcess();
             _conversationCoroutine = StartCoroutine(Process());
+        }
+
+        void DisplayBalloon(Conversation conversation, Balloon balloon)
+        {
+            OnBalloonEnd = null;
+            if(_conversationCoroutine != null) StopCoroutine(_conversationCoroutine);
+            Conversation = conversation;
+            PreProcess();
+            _conversationCoroutine = StartCoroutine(PrintContents(balloon));
+        }
+
+        void DelayedStop()
+        {
+            if(_UIFadeOutCoroutine != null) StopCoroutine(_UIFadeOutCoroutine);
+            _UIFadeOutCoroutine = StartCoroutine(StopProcess());
         }
 
         void Choice(Balloon choice)
         {
             Balloon = choice;
             _isNextTriggered = true;
+            
+            choiceArea.SetActive(false);
+        }
+
+        void PreProcess()
+        {
+            if(_UIFadeOutCoroutine != null) StopCoroutine(_UIFadeOutCoroutine);
+            
+            choiceArea.SetActive(false);
+            SubtitleCompleteIcon.gameObject.SetActive(false);
+            
+            _doubleClickTimer = 0f;
+            _isNextTriggered = false;
+            
+            if(_canvasGroupFadeTween == null) 
+                _canvasGroupFadeTween = canvasGroup.DOFade(1f, CanvasFadeInDuration).SetAutoKill(false);
+            else
+            {
+                _canvasGroupFadeTween.ChangeValues(canvasGroup.alpha, 1f, 0.2f);
+                _canvasGroupFadeTween.Restart();
+            }
         }
 
         IEnumerator Process()
@@ -204,92 +314,88 @@ namespace OcDialogue.Samples
                 }
             }
 #endif
-            
-            _doubleClickTimer = 0f;
-            _isNextTriggered = false;
+
             Balloon = Conversation.Balloons.FirstOrDefault(x => x.type == Balloon.Type.Entry);
             if (Balloon == null)
             {
-                Debug.LogWarning($"엔트리 노드가 없음 ㅅㅂ | Conversation : {Conversation.key}");
+                Debug.LogWarning($"엔트리 노드가 없음 | Conversation : {Conversation.key}");
                 yield break;
             }
 
-            if(_canvasGroupTween == null) _canvasGroupTween = canvasGroup.DOFade(1f, 0.2f).SetAutoKill(false);
-            else
-            {
-                _canvasGroupTween.ChangeValues(canvasGroup.alpha, 1f, 0.2f);
-                _canvasGroupTween.Restart();
-            }
             
             while (true)
             {
-                choiceArea.SetActive(false);
-                Choices?.Clear();
-                SubtitleCompleteIcon.gameObject.SetActive(false);
-
                 var children = Balloon.linkedBalloons;
                 if(children.Count == 0) break;
 
-                var linkedBalloons = children.Where(x => x.type == Balloon.Type.Dialogue || x.type == Balloon.Type.Action).ToList();
+                var linkedBalloons = 
+                    children.Where(x => x.type == Balloon.Type.Dialogue || x.type == Balloon.Type.Action)
+                        .ToList();
                 var shouldStop = true;
+                Balloon nextBalloon = null;
                 foreach (var balloon in linkedBalloons)
                 {
                     if(balloon.useChecker && !balloon.checker.IsTrue()) continue;
-                    Balloon = balloon;
+                    nextBalloon = balloon;
                     shouldStop = false;
                     break;
                 }
                 if(shouldStop) break;
-                Choices = Balloon.linkedBalloons.Where(x => x.type == Balloon.Type.Choice && (!x.useChecker || (x.useChecker && x.checker.IsTrue()))).ToList();
-                yield return StartCoroutine(PrintContents());
+                yield return StartCoroutine(PrintContents(nextBalloon));
             }
-            OnEnd?.Invoke();
+            OnConversationEnd?.Invoke();
             SceneManager.UnloadSceneAsync(sceneName);
             _conversationCoroutine = null;
         }
 
 
-        IEnumerator PrintContents()
+        IEnumerator PrintContents(Balloon balloon)
         {
-            if (Balloon.useEvent)
+            Balloon = balloon;
+            if (balloon.useEvent)
             {
                 if (User != null)
                 {
-                    if(Balloon.signal != null) User.SignalReceiver.GetReaction(Balloon.signal).Invoke();
-                    else Debug.LogError($"[Dialogue UI] 이벤트를 실행하려 했으나 Balloon에 에셋이 없음. Conversation : {Conversation.key} | Balloon Text : {Balloon.text}"
-                        .ToRichText(Color.cyan));
-                }else Debug.LogError($"[Dialogue UI] 이벤트를 실행하려 했으나 리시버가 없음. Conversation : {Conversation.key} | Balloon Text : {Balloon.text}"
+                    if(balloon.signal != null) User.SignalReceiver.GetReaction(balloon.signal).Invoke();
+                    else
+                    {
+                        Debug.LogError($"[Dialogue UI] 이벤트를 실행하려 했으나 Balloon에 에셋이 없음. " +
+                                       $"Conversation : {Conversation.key} | Balloon Text : {balloon.text}"
+                            .ToRichText(Color.cyan));
+                    }
+                }else Debug.LogError($"[Dialogue UI] 이벤트를 실행하려 했으나 리시버가 없음. " +
+                                     $"Conversation : {Conversation.key} | Balloon Text : {balloon.text}"
                     .ToRichText(Color.cyan));
             }
             
             // setter실행
-            if (Balloon.useSetter)
+            if (balloon.useSetter)
             {
-                foreach (var setter in Balloon.setters)
+                foreach (var setter in balloon.setters)
                 {
                     setter.Execute();
                 }
             }
 
-            if (Balloon.useImage)
+            if (balloon.useImage)
             {
-                if (Balloon.displayTargetImage == null)
+                if (balloon.displayTargetImage == null)
                 {
                     Debug.LogError($"[Dialogue UI] 표시하려는 이미지가 비어있음".ToRichText(Color.cyan));
                 }
                 else
                 {
-                    switch (Balloon.imageViewerSize)
+                    switch (balloon.imageViewerSize)
                     {
                         case ImageViewerSize.FullSize:
-                            fullSizeImage.texture = Balloon.displayTargetImage;
+                            fullSizeImage.texture = balloon.displayTargetImage;
                             fullSizeImage.gameObject.SetActive(true);
                             break;
                         case ImageViewerSize.FloatingSize:
-                            floatingImage.texture = Balloon.displayTargetImage;
+                            floatingImage.texture = balloon.displayTargetImage;
                             floatingImageRoot.gameObject.SetActive(true);
                             
-                            if(Balloon.imageSizeOverride.sqrMagnitude < 1)
+                            if(balloon.imageSizeOverride.sqrMagnitude < 1)
                             {
                                 floatingImageRoot.offsetMin = -new Vector2(floatingImage.texture.width * 0.5f,
                                     floatingImage.texture.height * 0.5f);
@@ -298,9 +404,9 @@ namespace OcDialogue.Samples
                             }
                             else
                             {
-                                floatingImageRoot.offsetMin = -new Vector2(Balloon.imageSizeOverride.x * 0.5f,
+                                floatingImageRoot.offsetMin = -new Vector2(balloon.imageSizeOverride.x * 0.5f,
                                     floatingImage.texture.height * 0.5f);
-                                floatingImageRoot.offsetMax = new Vector2(Balloon.imageSizeOverride.y * 0.5f,
+                                floatingImageRoot.offsetMax = new Vector2(balloon.imageSizeOverride.y * 0.5f,
                                     floatingImage.texture.height * 0.5f);
                             }
                             break;
@@ -314,11 +420,15 @@ namespace OcDialogue.Samples
                 floatingImageRoot.gameObject.SetActive(false);
             }
             
-            if(Balloon.type == Balloon.Type.Action) yield break;
+            if(balloon.type == Balloon.Type.Action)
+            {
+                OnBalloonEnd?.Invoke();
+                yield break;
+            }
 
             // TODO: 여기서 로컬라이징.
 #if PACKAGE_LOCALIZATION
-            var targetText = _table == null ? Balloon.text : GetLocalizedString(Balloon);
+            var targetText = _table == null ? balloon.text : GetLocalizedString(balloon);
             if (_table == null)
             {
                 Debug.LogWarning("Localization 패키지가 감지되었으나, LocalizationTable _table 이 없음");
@@ -331,7 +441,7 @@ namespace OcDialogue.Samples
             
             if (!HideName)
             {
-                var actorName = Balloon.actor == null || Balloon.actor.name == "System" ? "" : Balloon.actor.name;
+                var actorName = balloon.actor == null || balloon.actor.name == "System" ? "" : balloon.actor.name;
                 nameField.text = actorName;
             }
 
@@ -343,21 +453,23 @@ namespace OcDialogue.Samples
                 case SubtitleDisplayStyle.TypeWriter:
                     textField.text = "";
                     var duration = targetText.Length / TypeWriteSpeed;
-                    if(_textTween == null) _textTween = textField.DOText(targetText, duration).SetEase(Ease.Linear).SetAutoKill(false);
+                    if(_textTween == null) 
+                        _textTween = textField.DOText(targetText, duration).SetEase(Ease.Linear).SetAutoKill(false);
                     else
                     {
                         _textTween.ChangeValues("", targetText, duration);
                         _textTween.Restart();
                     }
-                    yield return _textTween;
+                    yield return _textTween.WaitForCompletion();
                     break;
                 case SubtitleDisplayStyle.FadeInOut:
                     textField.alpha = 0f;
                     textField.text = targetText;
-                    if (_textFadeTween == null) _textFadeTween = textField.DOFade(1, TextFadeInTime).SetAutoKill(false).SetEase(Ease.OutCubic);
+                    if (_textFadeTween == null) 
+                        _textFadeTween = textField.DOFade(1, TextFadeInDuration).SetAutoKill(false).SetEase(Ease.OutCubic);
                     else
                     {
-                        _textFadeTween.ChangeValues(textField.color, textField.color.SetA(1), TextFadeInTime);
+                        _textFadeTween.ChangeValues(textField.color, textField.color.SetA(1), TextFadeInDuration);
                         _textFadeTween.Restart();
                     }
                     yield return _textFadeTween.WaitForCompletion();
@@ -368,15 +480,16 @@ namespace OcDialogue.Samples
                         DisplayTimePerCharacter = Default_CutsceneTextInterval;
                     }
 
-                    if(AutoDialogue)
+                    var waitTime = MinimumDisplayDuration + targetText.Length * DisplayTimePerCharacter;
+                    
+                    // 일단 글자수 만큼의 시간을 기다리는데, 도중에 Next가 트리거되면 페이드 아웃으로 넘어감.
+                    // 아직은 컷씬 도중에 자동으로 Next를 트리거하는게 없지만 성우녹음 등을 하면 필요해질듯.
+                    for (var f = 0f; f < waitTime; f += Time.deltaTime)
                     {
-                        // 일단 글자수 만큼의 시간을 기다리는데, 도중에 Next가 트리거되면 페이드 아웃으로 넘어감. 아직은 컷씬 도중에 자동으로 Next를 트리거하는게 없지만 성우녹음 등을 하면 필요해질듯.
-                        for (var f = 0f; f < targetText.Length * DisplayTimePerCharacter; f += Time.deltaTime)
-                        {
-                            yield return null;
-                            if (_isNextTriggered) break;
-                        }
+                        yield return null;
+                        if (_isNextTriggered) break;
                     }
+                    
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -387,15 +500,16 @@ namespace OcDialogue.Samples
             
             // 선택지.
             yield return new WaitForSeconds(ChoiceWaitTime);
+            Choices = Balloon.linkedBalloons
+                .Where(x => x.type == Balloon.Type.Choice && (!x.useChecker || (x.useChecker && x.checker.IsTrue())))
+                .ToList();
+            
             if(Choices == null || Choices.Count == 0)
             {
-                // 선택지가 없는 경우. 자동 넘김이 아닐 경우에만 완료 아이콘을 활성화하고 Next호출을 대기함.
-                if (!AutoDialogue)
-                {
-                    SubtitleCompleteIcon.gameObject.SetActive(true);
-                    while (!_isNextTriggered) yield return null;
-                    _isNextTriggered = false;
-                }
+                // 선택지가 없는 경우. 완료 아이콘을 활성화하고 Next호출을 대기함.
+                SubtitleCompleteIcon.gameObject.SetActive(true);
+                while (!_isNextTriggered) yield return null;
+                _isNextTriggered = false;
             }
             else
             {
@@ -432,17 +546,37 @@ namespace OcDialogue.Samples
             
             if(SubtitleDisplayStyle == SubtitleDisplayStyle.FadeInOut)
             {
-                _textFadeTween.ChangeValues(textField.color, textField.color.SetA(0f), TextFadeOutTime);
+                _textFadeTween.ChangeValues(textField.color, textField.color.SetA(0f), TextFadeOutDuration);
                 _textFadeTween.Restart();
                 yield return _textFadeTween.WaitForCompletion();
-                yield return new WaitForSeconds(IntervalBetweenDisplay);
             }
+            
+            OnBalloonEnd?.Invoke();
+        }
+
+        IEnumerator StopProcess()
+        {
+            OnConversationEnd?.Invoke();
+            
+            _textFadeTween.ChangeValues(textField.color, textField.color.SetA(0f), TextFadeOutDuration);
+            _textFadeTween.Restart();
+            yield return _textFadeTween.WaitForCompletion();
+
+            _canvasGroupFadeTween.ChangeValues(canvasGroup.alpha, 0f, CanvasFadeOutDuration);
+            _canvasGroupFadeTween.Restart();
+            yield return _canvasGroupFadeTween.WaitForCompletion();
+            
+            SceneManager.UnloadSceneAsync(Instance.sceneName);
+            _conversationCoroutine = null;
+            _UIFadeOutCoroutine = null;
         }
 
 #if PACKAGE_LOCALIZATION
         public string GetLocalizedString(Balloon balloon)
         {
-            return _table == null ? balloon.text : _table.GetEntry($"{Conversation.Category}/{Conversation.key}/{balloon.GUID}").GetLocalizedString();
+            return _table == null ? 
+                balloon.text : 
+                _table.GetEntry($"{Conversation.Category}/{Conversation.key}/{balloon.GUID}").GetLocalizedString();
         }
 #endif
     }

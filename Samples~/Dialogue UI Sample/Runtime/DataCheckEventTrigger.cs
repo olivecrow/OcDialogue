@@ -20,6 +20,7 @@ namespace OcDialogue.Samples
         }
 
         public TriggerType triggerType;
+        public string DialogueSceneName => dialogueSceneName;
         public SignalReceiver SignalReceiver => signalReceiver;
         public Conversation Conversation => conversation;
 

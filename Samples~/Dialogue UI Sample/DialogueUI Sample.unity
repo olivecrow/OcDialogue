@@ -1578,17 +1578,19 @@ MonoBehaviour:
   LocalizedStringTable:
     m_TableReference:
       m_TableCollectionName: 
-  AutoDialogue: 0
-  IntervalBetweenDisplay: 0.7
-  DisplayTimePerCharacter: 0.2
+  CanvasFadeInDuration: 0.7
+  CanvasFadeOutDuration: 0.9
   nameField: {fileID: 1973912195}
   textField: {fileID: 717020263}
   SubtitleCompleteIcon: {fileID: 313808420}
   HideName: 0
-  SubtitleDisplayStyle: 1
+  SubtitleDisplayStyle: 2
   TypeWriteSpeed: 50
-  TextFadeInTime: 0.7
-  TextFadeOutTime: 0.95
+  TextFadeInTime: 0.1
+  TextFadeOutTime: 0.2
+  MinimumDisplayTime: 2
+  DisplayTimePerCharacter: 0.2
+  IntervalBetweenDisplay: 0.7
   DoubleClickBlockTime: 0.15
   choiceArea: {fileID: 1003114757}
   choiceButtonTemplate: {fileID: 112729038}

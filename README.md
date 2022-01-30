@@ -1,11 +1,11 @@
 # README.md
 
-## Oc Dialogue 2.1.0
+## Oc Dialogue 2.2.0
 
 이 패키지는 데이터를 포함한 대화 시스템임
 기본적으로, 유니티에서 셰이더그래프용으로 작성된 그래픽 API를 이용함
 
-### 작성된 유니티 버전 : 2021.2.3
+### 작성된 유니티 버전 : 2021.2.9
 
 ### 설치 방법
 유니티의 패키지 매니페스트 파일에
@@ -18,3 +18,14 @@ Assets 폴더 하위에 Resources폴더를 만들고 DB Manager를 생성해야�
 이후 원하는 디렉토리 아무곳에나 ItemDatabase, NPC Database 등을 생성하고, DB Manager에 참조시킴.
 
 기본적으로 추가적인 스크립터블 오브젝트 에셋이 생성되기 때문에, 각각 디렉토리를 나눠서 저장하는게 좋음
+
+### 타임라인에서 사용하기
+1. 타임라인 윈도우에서 우클릭 -> OcDialogue.Cutscene -> DialogueTrack 을 선택해서 트랙 생성
+2. 트랙에 원하는 Conversation을 바인딩
+3. 트랙 라인에서 우클릭 -> Query Conversation => 각각의 Balloon에 대한 클립이 생성됨
+- 클립은 시작, 페이드아웃, 종료 시점에 이벤트를 호출함
+  - 시작 : DialogueClipBehaviour.OnStart
+  - 페이드 아웃 : DialogueClipBehaviour.OnFadeOut
+  - 종료 : DialogueClipBehaviour.OnEnd
+- Dialogue UI Sample에서 바로 사용할 수 있음
+  - 각각의 클립은 StartConversation이 아닌, 개별 Balloon을 출력하는 DisplayBalloon으로 표시됨

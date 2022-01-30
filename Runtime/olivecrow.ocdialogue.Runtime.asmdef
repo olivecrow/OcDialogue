@@ -20,6 +20,21 @@
             "name": "com.unity.localization",
             "expression": "1.0.0",
             "define": "PACKAGE_LOCALIZATION"
+        },
+        {
+            "name": "com.unity.timeline",
+            "expression": "",
+            "define": "PACKAGE_TIMELINE"
+        },
+        {
+            "name": "com.unity.textmeshpro",
+            "expression": "",
+            "define": "PACKAGE_TEXTMESHPRO"
+        },
+        {
+            "name": "com.unity.addressables",
+            "expression": "",
+            "define": "PACKAGE_ADDRESSABLES"
         }
     ],
     "noEngineReferences": false
