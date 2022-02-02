@@ -12,12 +12,12 @@ namespace OcDialogue.Cutscene
     [TrackBindingType(typeof(Conversation))]
     public class DialogueTrack : TrackAsset, IDialogueUser
     {
-        public string DialogueSceneName => sceneName;
+        public string DialogueSceneName => UISceneName;
         public SignalReceiver SignalReceiver => _signalReceiver;
         public Conversation Conversation => conversation;
         public Conversation conversation;
 
-        public string sceneName = "Dialogue UI";
+        public string UISceneName = "Dialogue UI";
         public DisplayParameter param;
         public float MinimumClipDuration => 
             param == null ? 0f : param.textFadeInDuration + param.textFadeOutDuration;
@@ -47,16 +47,17 @@ namespace OcDialogue.Cutscene
         {
             if (!UnityEditor.EditorApplication.isPlaying)
             {
-                UnityEditor.EditorUtility.SetDirty(this);
                 e_directorSceneName = director.gameObject.scene.name;
                 e_gaoName = director.gameObject.name;
                 conversation = director.GetGenericBinding(this) as Conversation;
                 if(conversation != null)
                 {
-                    UnityEditor.EditorUtility.SetDirty(conversation);
                     if (!conversation.e_CutsceneReference.Contains(this))
+                    {
                         conversation.e_CutsceneReference.Add(this);
-                    UnityEditor.AssetDatabase.SaveAssets();
+                        UnityEditor.EditorUtility.SetDirty(conversation);
+                        UnityEditor.AssetDatabase.SaveAssetIfDirty(conversation);
+                    }
                 }
             }
             base.GatherProperties(director, driver);

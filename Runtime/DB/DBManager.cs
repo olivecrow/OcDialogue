@@ -27,6 +27,13 @@ namespace OcDialogue.DB
         static void EditorInit()
         {
             _instance = Resources.Load<DBManager>("DB Manager");
+            Application.quitting += Release;
+        }
+
+        static void Release()
+        {
+            _runtimeInitialized = false;
+            Application.quitting -= Release;
         }
 #endif
         
@@ -44,11 +51,6 @@ namespace OcDialogue.DB
             _runtimeInitialized = true;
             OnRuntimeInitialized?.Invoke();
             OnRuntimeInitialized = null;
-        }
-
-        void OnDestroy()
-        {
-            _runtimeInitialized = false;
         }
     }
 }

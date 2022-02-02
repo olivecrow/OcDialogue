@@ -101,7 +101,7 @@ namespace OcDialogue.Samples
         [RuntimeInitializeOnLoadMethod]
         static void Init()
         {
-            DialogueClipBehaviour.OnDialogueClipStart += (behaviour, conversation, director) =>
+            DialogueClipBehaviour.OnStart += (behaviour, conversation, director) =>
             {
                 var track = director.playableAsset.outputs
                     .FirstOrDefault(x => x.sourceObject is DialogueTrack).sourceObject as DialogueTrack;
@@ -109,8 +109,8 @@ namespace OcDialogue.Samples
                 DisplayBalloon("Dialogue UI", conversation, behaviour.balloon, 
                     director.GetComponent<IDialogueUser>(), track.param);
             };
-            DialogueClipBehaviour.OnDialogueClipFadeOut += (behaviour, conversation, director) => Stop();
-            DialogueClipBehaviour.OnDialogueClipEnd += (behaviour, conversation, director) =>
+            DialogueClipBehaviour.OnFadeOut += (behaviour, conversation, director) => Stop();
+            DialogueClipBehaviour.OnEnd += (behaviour, conversation, director) =>
             {
                 if (_instance._UIFadeOutCoroutine != null) return;
                 Stop();
@@ -229,6 +229,7 @@ namespace OcDialogue.Samples
 
         public static void Stop()
         {
+            if(Instance == null) return;
             Instance.DelayedStop();
         }
         

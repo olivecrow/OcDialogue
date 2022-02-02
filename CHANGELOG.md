@@ -4,6 +4,12 @@
 // TODO : ExportWizard 새로 만들기
 // TODO : 컷씬 기능 강화하기
 
+## [2.2.1] -2022-2-2
+### Fixed
+- 타임라인 뷰에서 편집 중, DialogueClipBehaviour의 이벤트가 호출되지 않도록 변경
+- DialogueTrack에서 매번 에셋의 저장이 이루어지던 문제 해결
+- Dialogue UI Sample이 최신 버전의 샘플을 반영하고 있지 않던 문제 해결
+
 ## [2.2.0] -2022-1-30
 ### Added
 - 타임라인에서의 컷씬 지원을 위한 스크립트 추가
