@@ -4,6 +4,22 @@
 // TODO : ExportWizard 새로 만들기
 // TODO : 컷씬 기능 강화하기
 
+## [2.2.2] -2022-2-5
+### Added
+- 컷씬을 관리하는 기본 클래스인 CutsceneBehaviour 추가.
+  - MonoBehaviour를 상속하기때문에, PlayableDirector를 가지는 게임 오브젝트에 부착해서 사용하면 됨.
+  - 추가로 기능을 작성하려면 해당 클래스를 상속받아서 사용하면 됨.
+  - 대부분의 컷씬 조작 기능을 static으로 만들어서 인스턴스에 접근하지 않고 사용할 수 있음.
+- 컷씬과 관련된 멤버들에 각자의 참조를 추가함.
+  - DialogueClip, DialogueClipBehaviour, DialogueTrack, CutsceneBehaviour 등.
+  
+### Fixed
+- DialogueDisplayParameter 변경
+  - DialogueDisplayParameter를 ScriptableObject로 만들고, 기본 에셋을 OcDialogue>Dialogue Display Parameter에서 수정할 수 있도록 함.
+  - 파라미터를 가지는 주체가 DialogueTrack에서 CutsceneBehaviour로 변경됨.
+- DialogueClipBehaviour의 OnStart, OnFadeOut, OnEnd를 CutsceneBehaviour의 OnClipStart, OnClipFadeOut, OnClipEnd로 변경함.
+- 변경된 스크립트에 맞게 Dialogue UI Sample을 변경함.
+
 ## [2.2.1] -2022-2-2
 ### Fixed
 - 타임라인 뷰에서 편집 중, DialogueClipBehaviour의 이벤트가 호출되지 않도록 변경

@@ -10,86 +10,107 @@ namespace OcDialogue.Cutscene
     [Serializable]
     public class DialogueClipBehaviour : PlayableBehaviour
     {
-        public static event Action<DialogueClipBehaviour, Conversation, PlayableDirector> OnStart;
-        public static event Action<DialogueClipBehaviour, Conversation, PlayableDirector> OnFadeOut;
-        public static event Action<DialogueClipBehaviour, Conversation, PlayableDirector> OnEnd;
-        public Balloon balloon;
-        [ShowInInspector]public string subtitle => balloon == null ? "" : balloon.text;
+        public Conversation Conversation { get; private set; }
+        public Balloon Balloon { get; private set; }
+        public CutsceneBehaviour Cutscene { get; private set; }
+        public PlayableDirector Director { get; private set; }
         public DialogueTrack Track { get; private set; }
+        public DialogueClip Clip { get; private set; }
+        public ClipPlayState PlayState => _playState;
+        public double LeftTime => __duration - __time;
+        public double NormalizedTime => __duration == 0 ? 1 : __time / __duration;
+        
         public bool hasToPause;
-
-        PlayableDirector director;
-        Conversation conversation;
-        DisplayParameter param => Track.param;
-        bool clipPlayed;
-        bool pauseScheduled;
-        bool fadeOutInvoked;
+        
+        ClipPlayState _playState;
+        bool _pauseScheduled;
+        bool _fadeOutInvoked;
         double __duration;
         double __time;
-        double LeftTime => __duration - __time;
 
-#if UNITY_EDITOR
-        [UnityEditor.InitializeOnLoadMethod]
-        static void Init()
-        {
-            Application.quitting += () =>
-            {
-                OnStart = null;
-                OnEnd = null;
-            };
-        }
-#endif
+        event Action<DialogueClipBehaviour> OnStart;
+        event Action<DialogueClipBehaviour> OnFadeOut;
+        event Action<DialogueClipBehaviour> OnEnd;
         
-
-        public override void OnPlayableCreate(Playable playable)
+        public void Init(CutsceneBehaviour cutscene, DialogueClip clip, DialogueTrack track)
         {
-            director = playable.GetGraph().GetResolver() as PlayableDirector;
-            Track = director.playableAsset.outputs.FirstOrDefault(x => x.sourceObject as DialogueTrack)
-                .sourceObject as DialogueTrack;
+            Cutscene = cutscene;
+            Director = cutscene.director;
+            Clip = clip;
+            Track = track;
+
+            Conversation = clip.Conversation;
+            Balloon = clip.Balloon;
+        }
+
+        public void AssignCallbacks(
+            Action<DialogueClipBehaviour> onClipStart,
+            Action<DialogueClipBehaviour> onClipFadeOut,
+            Action<DialogueClipBehaviour> onClipEnd)
+        {
+            OnStart = onClipStart;
+            OnFadeOut = onClipFadeOut;
+            OnEnd = onClipEnd;
         }
 
         public override void ProcessFrame(Playable playable, FrameData info, object playerData)
         {
             if(!Application.isPlaying) return;
-            if(!clipPlayed && info.weight > 0f)
+            if(_playState == ClipPlayState.None && info.weight > 0f)
             {
-                if(hasToPause)
-                {
-                    pauseScheduled = true;
-                }
-                clipPlayed = true;
+                if(hasToPause) _pauseScheduled = true;
+                _playState = ClipPlayState.IsPlaying;
                 __duration = playable.GetDuration();
-                conversation = playerData as Conversation;
-                OnStart?.Invoke(this, conversation, director);
+                OnStart?.Invoke(this);
             }
-
-            __time = playable.GetTime();
-            if (!fadeOutInvoked && LeftTime < param.textFadeOutDuration)
+            
+            if(_playState == ClipPlayState.IsPlaying)
             {
-                fadeOutInvoked = true;
-                OnFadeOut?.Invoke(this, conversation, director);
+                __time = playable.GetTime();
+                
+                if (_pauseScheduled)
+                {
+                    if(NormalizedTime >= Cutscene.EffectiveParam.autoPauseTime)
+                    {
+                        CutsceneBehaviour.Pause();
+                    }
+                }
+                else
+                {
+                    // 일시정지가 이뤄지는 대화에선 페이드아웃이 실행되면 안됨.
+                    if (!_fadeOutInvoked && LeftTime < Cutscene.EffectiveParam.textFadeOutDuration)
+                    {
+                        _fadeOutInvoked = true;
+                        OnFadeOut?.Invoke(this);
+                    }    
+                }
+                
             }
         }
 
         public override void OnBehaviourPause(Playable playable, FrameData info)
         {
-            if (pauseScheduled)
+            // 이름은 일시정지때 호출될 것 같지만, 실제로는 클립이 끝날때도 호출됨.
+            // 물론 director.Pause를 통해 일시정지하면 일시정지떄때도 호출하지만,
+            // CutsceneBehaviour에서 일시정지를 Speed = 0으로 하는 식으로 하기때문에 그 일시정지로는 호출되지 않음.
+            if(!CutsceneBehaviour.IsCutscenePaused && _playState == ClipPlayState.IsPlaying)
             {
-                pauseScheduled = false;
-                director.Pause();
-            }
-            else
-            {
-                if(clipPlayed)
-                {
-                    OnEnd?.Invoke(this, conversation, director);
-                }
+                _pauseScheduled = false;
+                _playState = ClipPlayState.Played;
+                OnEnd?.Invoke(this);
             }
         }
 
         public override void OnPlayableDestroy(Playable playable)
         {
-            clipPlayed = false;
+            _playState = ClipPlayState.None;
         }
+    }
+
+    public enum ClipPlayState
+    {
+        None,
+        IsPlaying,
+        Played
     }
 }

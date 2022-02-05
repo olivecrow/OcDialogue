@@ -40,7 +40,7 @@ namespace OcDialogue.Editor.Cutscene
                 return false;
             }
 
-            var param = dialogueTrack.param;
+            var param = context.director.GetComponent<CutsceneBehaviour>().EffectiveParam;
 
             double time = 0;
             Balloon balloon = conversation.Balloons[0];
@@ -56,7 +56,8 @@ namespace OcDialogue.Editor.Cutscene
 
                         var actorName = balloon.actor == null ? "" : $"{balloon.actor.name} :";
 
-                        dialogueClip.template.balloon = balloon;
+                        dialogueClip.Balloon = balloon;
+                        dialogueClip.Conversation = conversation;
                         clip.displayName = $"{actorName} {balloon.text}";
                         clip.start = time;
                         var duration = param.minimumDuration + balloon.text.Length * param.durationPerChar;

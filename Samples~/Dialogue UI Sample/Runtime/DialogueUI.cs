@@ -93,6 +93,7 @@ namespace OcDialogue.Samples
 #if PACKAGE_LOCALIZATION
         StringTable _table;
 #endif
+        bool _isWaitingToRead;
         bool _isNextTriggered;
         float _doubleClickTimer;
 
@@ -101,16 +102,13 @@ namespace OcDialogue.Samples
         [RuntimeInitializeOnLoadMethod]
         static void Init()
         {
-            DialogueClipBehaviour.OnStart += (behaviour, conversation, director) =>
+            CutsceneBehaviour.OnClipStart += clipBehaviour =>
             {
-                var track = director.playableAsset.outputs
-                    .FirstOrDefault(x => x.sourceObject is DialogueTrack).sourceObject as DialogueTrack;
-
-                DisplayBalloon("Dialogue UI", conversation, behaviour.balloon, 
-                    director.GetComponent<IDialogueUser>(), track.param);
+                DisplayBalloon("Dialogue UI", clipBehaviour.Conversation, clipBehaviour.Balloon, 
+                    clipBehaviour.Cutscene, clipBehaviour.Cutscene.EffectiveParam);
             };
-            DialogueClipBehaviour.OnFadeOut += (behaviour, conversation, director) => Stop();
-            DialogueClipBehaviour.OnEnd += (behaviour, conversation, director) =>
+            CutsceneBehaviour.OnClipFadeOut += clipBehaviour => Stop();
+            CutsceneBehaviour.OnClipEnd += clipBehaviour =>
             {
                 if (_instance._UIFadeOutCoroutine != null) return;
                 Stop();
@@ -191,7 +189,7 @@ namespace OcDialogue.Samples
         }
 
         public static void DisplayBalloon(string sceneName, Conversation conversation, Balloon balloon, 
-            IDialogueUser user, DisplayParameter param, Action onEnd = null)
+            IDialogueUser user, DialogueDisplayParameter param, Action onEnd = null)
         {
             if (_instance == null && !IsLoadAsyncOn)
             {
@@ -244,9 +242,25 @@ namespace OcDialogue.Samples
                     _textTween.Complete();
                     return;
                 }
+            }else if (SubtitleDisplayStyle == SubtitleDisplayStyle.FadeInOut)
+            {
+                if (!_textFadeTween.IsComplete())
+                {
+                    _textFadeTween.Complete();
+                }
+                if(_isWaitingToRead)
+                {
+                    _isNextTriggered = true;
+                    return;
+                }
             }
 
             if(Choices != null && Choices.Count > 0) return;
+            if (CutsceneBehaviour.IsCutscenePlaying)
+            {
+                CutsceneBehaviour.SkipToNextClip();
+            }
+
             _isNextTriggered = true;
             _doubleClickTimer = 0f;
             
@@ -287,7 +301,11 @@ namespace OcDialogue.Samples
 
         void PreProcess()
         {
-            if(_UIFadeOutCoroutine != null) StopCoroutine(_UIFadeOutCoroutine);
+            if(_UIFadeOutCoroutine != null)
+            {
+                StopCoroutine(_UIFadeOutCoroutine);
+                _UIFadeOutCoroutine = null;
+            }
             
             choiceArea.SetActive(false);
             SubtitleCompleteIcon.gameObject.SetActive(false);
@@ -461,7 +479,10 @@ namespace OcDialogue.Samples
                         _textTween.ChangeValues("", targetText, duration);
                         _textTween.Restart();
                     }
+
+                    _isWaitingToRead = true;
                     yield return _textTween.WaitForCompletion();
+                    _isWaitingToRead = false;
                     break;
                 case SubtitleDisplayStyle.FadeInOut:
                     textField.alpha = 0f;
@@ -485,11 +506,14 @@ namespace OcDialogue.Samples
                     
                     // 일단 글자수 만큼의 시간을 기다리는데, 도중에 Next가 트리거되면 페이드 아웃으로 넘어감.
                     // 아직은 컷씬 도중에 자동으로 Next를 트리거하는게 없지만 성우녹음 등을 하면 필요해질듯.
+                    _isWaitingToRead = true;
                     for (var f = 0f; f < waitTime; f += Time.deltaTime)
                     {
                         yield return null;
                         if (_isNextTriggered) break;
                     }
+
+                    _isWaitingToRead = false;
                     
                     break;
                 default:
@@ -500,7 +524,6 @@ namespace OcDialogue.Samples
 
             
             // 선택지.
-            yield return new WaitForSeconds(ChoiceWaitTime);
             Choices = Balloon.linkedBalloons
                 .Where(x => x.type == Balloon.Type.Choice && (!x.useChecker || (x.useChecker && x.checker.IsTrue())))
                 .ToList();
@@ -514,6 +537,7 @@ namespace OcDialogue.Samples
             }
             else
             {
+                yield return new WaitForSeconds(ChoiceWaitTime);
                 choiceArea.SetActive(true);
                 if (ChoiceButtons == null)
                 {
