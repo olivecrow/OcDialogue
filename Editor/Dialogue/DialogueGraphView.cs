@@ -155,6 +155,11 @@ namespace OcDialogue.Editor
                     EditorGUIUtility.PingObject(Conversation);
                     Selection.activeObject = Conversation;
                 });
+                evt.menu.AppendAction("Select Dialogue Asset", a =>
+                {
+                    EditorGUIUtility.PingObject(DialogueEditorWindow.Instance.Asset);
+                    Selection.activeObject = DialogueEditorWindow.Instance.Asset;
+                });
             }
             else
             {

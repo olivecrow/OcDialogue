@@ -78,8 +78,19 @@ namespace OcDialogue.Cutscene
             PostEnd();
         }
 
+        /// <summary> bindingOverride를 기준으로 리바인드함. 기본적으로 재생 직전에 한 번 호출됨. </summary>
+        public void Rebind()
+        {
+            foreach (var kv in bindingOverride)
+            {
+                director.SetGenericBinding(kv.Key, kv.Value);
+            }
+        }
+
+        [EnableIf("Application.isPlaying")][Button]
         public void Play()
         {
+            Rebind();
             PrePlay();
             _isCutscenePlaying = true;
             _activeCutscene = this;

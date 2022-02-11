@@ -4,6 +4,20 @@
 // TODO : ExportWizard 새로 만들기
 // TODO : 컷씬 기능 강화하기
 
+## [2.2.3] -2022-2-11
+### Fixed
+- 다이얼로그 에디터 수정사항
+  - 에디터 윈도우에서 새 Conversation 생성시, balloon의 LinkedBalloons가 null이라서 발생하던 오류 해결
+  - 카테고리에 따른 Conversation의 목록이 제대로 출력되지 않던 문제 해결
+  - 현재의 Conversation에 속하지 않은 Balloon 선택시, 오류가 발생하던 문제 해결
+
+- Balloon의 TextArea 크기 늘림.
+- CutsceneBehaviour에 바인딩 오버라이드를 위한 딕셔너리만 있고 리바인드를 하지 않던 문제 해결
+- 
+### Added
+- Balloon의 인스펙터에 TextMesh Pro의 Sprite Atlas용 키워드를 삽입할 수 있는 버튼 추가
+- CutsceneBehaviour의 인스펙터에 게임 플레이 도중에 보여지는 플레이 버튼 추가
+
 ## [2.2.2] -2022-2-5
 ### Added
 - 컷씬을 관리하는 기본 클래스인 CutsceneBehaviour 추가.

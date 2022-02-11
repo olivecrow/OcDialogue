@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
+using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Timeline;
@@ -15,7 +16,7 @@ namespace OcDialogue.Editor
     {
         Balloon[] _targets;
         
-        DialogueNode[] _nodes;
+        List<DialogueNode> _nodes;
 
         protected override void OnEnable()
         {
@@ -29,7 +30,7 @@ namespace OcDialogue.Editor
             base.OnInspectorGUI();
             if (_nodes != null)
             {
-                for (int i = 0; i < _nodes.Length; i++)
+                for (int i = 0; i < _nodes.Count; i++)
                 {
                     var node = _nodes[i];
                     node.RefreshTitle();
@@ -39,17 +40,40 @@ namespace OcDialogue.Editor
                 }
                 
             }
+
+            if (GUILayout.Button("Insert TMP Sprite Keyword"))
+            {
+                TMPSpriteSearchWindow.Open(InsertTMP_SpriteAtlas_Keyword);
+            }
         }
 
         void FindNode()
         {
             if(DialogueEditorWindow.Instance == null) return;
             if(DialogueEditorWindow.Instance.GraphView == null) return;
-            
-            _nodes = new DialogueNode[targets.Length];
-            for (int i = 0; i < _nodes.Length; i++)
+            var conv = DialogueEditorWindow.Instance.Conversation;
+            var balloonOfCurrentConversation = _targets.Where(x => conv.Balloons.Contains(x));
+
+            var count = balloonOfCurrentConversation.Count();
+            _nodes = new List<DialogueNode>();
+            for (int i = 0; i < count; i++)
             {
-                _nodes[i] = DialogueEditorWindow.Instance.GraphView.Nodes.Find(x => x.Balloon.GUID == _targets[i].GUID);  
+                _nodes.Add(
+                    DialogueEditorWindow.Instance.GraphView.Nodes
+                        .Find(x => x.Balloon.GUID == balloonOfCurrentConversation.ElementAt(i).GUID)
+                    );  
+            }
+        }
+
+        void InsertTMP_SpriteAtlas_Keyword(TMP_SpriteAsset spriteAsset, Sprite sprite)
+        {
+            foreach (var character in spriteAsset.spriteCharacterTable)
+            {
+                if(character.name != sprite.name) continue;
+                foreach (var balloon in _targets)
+                {
+                    balloon.text += $"<sprite=\"{spriteAsset.name}\" name=\"{sprite.name}\">";
+                }
             }
         }
     }

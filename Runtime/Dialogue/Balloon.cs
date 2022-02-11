@@ -31,7 +31,7 @@ namespace OcDialogue
 
         [InfoBox("타입이 Action일땐 텍스트가 참고용 설명으로만 쓰이고 대화에서 나타나지 않음\n오로지 Checker, Setter, Event, Image용도로만 쓰임", 
             VisibleIf = "@type == Balloon.Type.Action")]
-        [HideIf("type", Type.Entry), TextArea]
+        [HideIf("type", Type.Entry), TextArea(3, 5)]
         public string text;
 
         

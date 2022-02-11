@@ -56,6 +56,7 @@ namespace OcDialogue.Cutscene
         public override void ProcessFrame(Playable playable, FrameData info, object playerData)
         {
             if(!Application.isPlaying) return;
+            
             if(_playState == ClipPlayState.None && info.weight > 0f)
             {
                 if(hasToPause) _pauseScheduled = true;

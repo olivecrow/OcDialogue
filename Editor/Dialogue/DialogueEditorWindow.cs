@@ -2,12 +2,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Localization.Plugins.XLIFF.V12;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace OcDialogue.Editor
 {
@@ -64,6 +66,7 @@ namespace OcDialogue.Editor
             if(_instance != null) _instance.Close();
             _instance = this;
             _edgeLabels = new Dictionary<Edge, Label>();
+            
         }
 
         void OnDisable()
@@ -80,10 +83,6 @@ namespace OcDialogue.Editor
             if (ConversationField != null)
             {
                 if(ConversationField.text != Conversation.key)ConversationField.SetValueWithoutNotify(Conversation.key);
-                for (int i = 0; i < ConversationField.choices.Count; i++)
-                {
-                    ConversationField.choices[i] = Asset.Conversations[i].key;
-                }
             }
         }
 
@@ -101,7 +100,6 @@ namespace OcDialogue.Editor
                 
             }
         }
-
         void CreateGUI()
         {
             if (Asset == null)
@@ -239,6 +237,7 @@ namespace OcDialogue.Editor
             RemoveConversationButton.style.backgroundColor = new Color(0.8f, 0f, 0f);
             ConversationSelectToolbar.Add(RemoveConversationButton);
         }
+
         /// <summary> DropDown에서 다른 Conversation으로 변경되었을때 호출됨. 근데 Conversation의 key를 변경해도 호출됨...? </summary>
         void OnConversationChanged()
         {
@@ -258,6 +257,7 @@ namespace OcDialogue.Editor
                 // create priority label
                 foreach (var balloon in Conversation.Balloons)
                 {
+                    if (balloon.linkedBalloons == null) continue;
                     if(balloon.linkedBalloons.Count < 2) continue;
                     for (int i = 0; i < balloon.linkedBalloons.Count; i++)
                     {
@@ -272,8 +272,6 @@ namespace OcDialogue.Editor
                         _edgeLabels[edge] = indexLabel;
                     }
                 }
-                
-                Selection.activeObject = Conversation;
             }
             else
             {
@@ -299,6 +297,12 @@ namespace OcDialogue.Editor
             Asset.RemoveConversation(Conversation);
             GenerateConversationToolbar(0);
         }
-        
+
+        public void ForceRepaint()
+        {
+            // rootVisualElement.Clear();
+            CreateGUI();
+            Repaint();
+        }
     }
 }
