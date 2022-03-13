@@ -167,7 +167,7 @@ namespace OcDialogue.DB
             "" :
             string.IsNullOrWhiteSpace(detail) ? $"< {TargetData.name} > 을(를)" : $"< {TargetData.name} >의 {detail} (을)를";
         [HideInInspector] public string e_address;
-        public void UpdateExpression()
+        public void OnDataApplied()
         {
             e_address = TargetData == null ? "" : TargetData.TotalAddress.Replace(TargetData.Address, "");
         }

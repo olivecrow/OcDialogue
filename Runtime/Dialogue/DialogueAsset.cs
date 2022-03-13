@@ -19,7 +19,7 @@ namespace OcDialogue
         public string DefaultDialogueUISceneName = "Dialogue UI";
         public string[] Categories;
 
-        public IDialogueActorDB DialogueNPCDB
+        IDialogueActorDB DialogueNPCDB
         {
             get
             {
@@ -34,6 +34,13 @@ namespace OcDialogue
         public DialogueAsset()
         {
             Categories = new[] {"Main"};
+        }
+
+        public ValueDropdownList<OcNPC> GetNPCDropDown()
+        {
+            if (_dialogueActorDB == null) return null;
+
+            return _dialogueActorDB.GetOdinDropDown();
         }
 
 #if UNITY_EDITOR
@@ -57,8 +64,6 @@ namespace OcDialogue
 
             var path = folderPath + $"/{conv.key}.asset";
             AssetDatabase.CreateAsset(conv, path);
-            EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssets();
 
             return conv;
         }
@@ -73,16 +78,12 @@ namespace OcDialogue
             }
 
             Conversations = new List<Conversation>();
-            EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssets();
         }
 
         public void RemoveConversation(Conversation conv)
         {
             Conversations.Remove(conv);
             AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(conv));
-            EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssets();
         }
         
         [BoxGroup("유틸리티 메서드"), Button("GUID로 Balloon선택")]

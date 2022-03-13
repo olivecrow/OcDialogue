@@ -10,7 +10,14 @@ namespace OcDialogue.DB
     [CreateAssetMenu(fileName = "DB Manager", menuName = "Oc Dialogue/DB/DB Manager", order = 0)]
     public class DBManager : ScriptableObject
     {
-        public static DBManager Instance => _instance;
+        public static DBManager Instance
+        {
+            get
+            {
+                if (_instance == null) _instance = Resources.Load<DBManager>("DB Manager");
+                return _instance;
+            }
+        }
         static DBManager _instance;
         
         public static event Action OnRuntimeInitialized;

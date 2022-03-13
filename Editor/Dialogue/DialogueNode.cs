@@ -182,6 +182,14 @@ namespace OcDialogue.Editor
             WarningIcon.SetVisible(Balloon.IsWarningOn());
         }
 
+        public void RefreshAll()
+        {
+            RefreshTitle();
+            RefreshDescription();
+            RefreshIcons();
+            RefreshSubtitleLabel();
+        }
+
         public override void OnSelected()
         {
             base.OnSelected();

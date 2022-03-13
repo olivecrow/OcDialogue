@@ -298,7 +298,7 @@ namespace OcDialogue.DB
 
             (parent as IDataRowUser).DataRowContainer.DeleteRow(name);
         }
-        public void LoadFromEditorPreset()
+        internal void LoadFromEditorPreset()
         {
             RuntimeValue = new PrimitiveValue()
             {
@@ -309,7 +309,7 @@ namespace OcDialogue.DB
                 StringValue = _editorPresetValue.StringValue,
             };
         }
-        public void EditorPresetToDefault()
+        internal void EditorPresetToDefault()
         {
             _editorPresetValue.BoolValue   = _initialValue.BoolValue;
             _editorPresetValue.IntValue    = _initialValue.IntValue;
@@ -317,7 +317,7 @@ namespace OcDialogue.DB
             _editorPresetValue.StringValue = _initialValue.StringValue;
         }
 
-        public void RuntimeValueToEditorPresetValue()
+        internal void RuntimeValueToEditorPresetValue()
         {
             _runtimeValue.BoolValue   = _editorPresetValue.BoolValue;
             _runtimeValue.IntValue    = _editorPresetValue.IntValue;

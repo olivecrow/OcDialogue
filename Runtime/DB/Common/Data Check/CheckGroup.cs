@@ -50,7 +50,7 @@ namespace OcDialogue.DB
             for (int i = 0; i < Checkables.Count; i++)
             {
                 var checkableText = Checkables[i].ToExpression(useRichText);
-                if (useRichText) checkableText = checkableText.ToRichText(ColorExtension.Random(Checkables[i].GetHashCode(), 0.5f));
+                if (useRichText) checkableText = checkableText.DRT(Checkables[i]);
                 sb.Append(checkableText);
 
                 if (i != Checkables.Count - 1) sb.Append($" {condition.ToConditionString()} ");

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using OcDialogue.DB;
+using OcUtility;
 using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
@@ -102,7 +103,7 @@ namespace OcDialogue.Editor
             }
             return change;
         }
-
+        
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             DialogueNode selected = null;
@@ -389,7 +390,9 @@ namespace OcDialogue.Editor
         {
             base.HandleEvent(evt);
             if (evt.originalMousePosition != Vector2.zero) 
-                _lastMousePosition = (evt.originalMousePosition - (Vector2) viewTransform.position) / viewTransform.scale.x + new Vector2(0, -DefaultNodeSize.y * 0.2f);
+                _lastMousePosition = 
+                    (evt.originalMousePosition - (Vector2) viewTransform.position) / 
+                    viewTransform.scale.x + new Vector2(0, -DefaultNodeSize.y * 0.2f);
         }
 
         public void OnSelectionChanged()

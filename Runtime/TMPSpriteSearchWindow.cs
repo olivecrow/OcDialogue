@@ -1,11 +1,13 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using OcUtility;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
 
-namespace OcDialogue.Editor
+namespace OcDialogue
 {
     public class TMPSpriteSearchWindow : EditorWindow
     {
@@ -14,6 +16,8 @@ namespace OcDialogue.Editor
         Sprite _sprite;
         Action<TMP_SpriteAsset,Sprite> OnApply;
         SerializedObject so;
+
+        Vector2 _scrollPos;
         public static void Open(Action<TMP_SpriteAsset,Sprite> onApply)
         {
             var window = GetWindow<TMPSpriteSearchWindow>(true);
@@ -36,25 +40,47 @@ namespace OcDialogue.Editor
             if (_spriteAsset != null)
             {
                 var texturePath = AssetDatabase.GetAssetPath(_spriteAsset.spriteSheet);
+                var texture = _spriteAsset.spriteSheet as Texture2D;
                 var sprites = AssetDatabase.LoadAllAssetRepresentationsAtPath(texturePath).Cast<Sprite>();
+
+                _scrollPos = EditorGUILayout.BeginScrollView(
+                    _scrollPos, false, false, 
+                    GUILayout.MaxWidth(position.width));
+                var width = texture.width;
+                var height = texture.height;
                 foreach (var character in _spriteAsset.spriteCharacterTable)
                 {
                     var sprite = sprites.FirstOrDefault(x => x.name == character.name);
                     if(sprite == null) continue;
-                    var content = new GUIContent(character.name, sprite.texture);
-
-                    var selected = GUILayout.Toggle(_selected == character, content, GUILayout.Height(64));
-
+                    
+                    GUILayout.Label(sprite.name);
+                    var skin = new GUIStyle(GUI.skin.button);
+                    skin.normal.background = GUI.skin.box.normal.background;
+                    skin.fixedWidth = 64;
+                    skin.fixedHeight = 64;
+                    var backgroundColor = GUI.backgroundColor;
+                    if(_selected == character)
+                    {
+                        GUI.backgroundColor = Color.cyan;
+                    }
+                    var rect = EditorGUILayout.GetControlRect(false, 64, GUILayout.Width(64));
+                    var selected = GUI.Button(rect, "", skin);
+                    
+                    var sR = sprite.rect;
+                    var normalizedPos = new Vector2(sR.x / width, sR.y / height);
+                    var normalizedSize = new Vector2(sR.width / width, sR.height / height);
+                    var normalizedCoord = new Rect(normalizedPos, normalizedSize);
+                    GUI.DrawTextureWithTexCoords(rect, sprite.texture, normalizedCoord);
+                    EditorGUILayout.Space();
+                    
+                    GUI.backgroundColor = backgroundColor;
                     if (selected)
                     {
                         _selected = character;
                         _sprite = sprite;
                     }
-                    else
-                    {
-                        if (_selected == character) _selected = null;
-                    }
                 }
+                EditorGUILayout.EndScrollView();
             }
 
             so?.ApplyModifiedProperties();
@@ -68,3 +94,4 @@ namespace OcDialogue.Editor
         
     }
 }
+#endif

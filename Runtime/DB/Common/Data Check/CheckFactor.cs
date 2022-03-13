@@ -98,7 +98,7 @@ namespace OcDialogue.DB
             set => detail = value;
         }
 
-        public void UpdateExpression()
+        public void OnDataApplied()
         {
             address = TargetData == null ? "" : TargetData.TotalAddress;
 
@@ -213,17 +213,17 @@ namespace OcDialogue.DB
             if (TargetData == null) return "";
             var addDetail = string.IsNullOrWhiteSpace(detail) ? "" : $".{detail}";
             return useRichText ? 
-                $"{TargetData.Address.ToRichText(ColorExtension.Random(TargetData.GetHashCode()))}{addDetail.ToRichText(Color.cyan)} " +
-                $"{op.ToOperationString()} {TargetValue.ToString().ToRichText(new Color(1f, 1f, 0.7f))}" :
+                $"{TargetData.Address.DRT(TargetData)}{addDetail.Rich(Color.cyan)} " +
+                $"{op.ToOperationString()} {TargetValue.ToString().Rich(new Color(1f, 1f, 0.7f))}" :
                 $"{TargetData.Address}{addDetail} {op.ToOperationString()} {TargetValue}";
         }
 
         void PrintResult()
         {
-            var result = IsTrue() ? "True".ToRichText(Color.green) : "False".ToRichText(Color.red);
+            var result = IsTrue() ? "True".Rich(Color.green) : "False".Rich(Color.red);
             var prefix = Application.isPlaying
-                ? "(Runtime)".ToRichText(Color.cyan) 
-                : "(Editor)".ToRichText(Color.yellow);
+                ? "(Runtime)".Rich(Color.cyan) 
+                : "(Editor)".Rich(Color.yellow);
             Printer.Print($"[DataChecker] {prefix} {ToExpression()} ? => {result}");
         }
 #endif

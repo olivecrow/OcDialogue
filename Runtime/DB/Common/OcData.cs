@@ -1,10 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using OcDialogue.DB;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
+[assembly:InternalsVisibleTo("OcDialogue.Editor.Tests")]
 namespace OcDialogue
 {
     public abstract class OcData : ScriptableObject

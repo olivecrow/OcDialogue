@@ -108,8 +108,6 @@ namespace OcDialogue
             balloon.name = balloon.GUID;
             Balloons.Add(balloon);
             AssetDatabase.AddObjectToAsset(balloon, this);
-            EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssets();
             
             return balloon;
         }
@@ -119,8 +117,6 @@ namespace OcDialogue
             if(!Balloons.Contains(balloon)) return;
             Balloons.Remove(balloon);
             AssetDatabase.RemoveObjectFromAsset(balloon);
-            EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssets();
         }
 
         public void AddLinkData(LinkData linkData)
@@ -144,7 +140,7 @@ namespace OcDialogue
             LinkData.Remove(target);
             
             EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssets();
+            AssetDatabase.SaveAssetIfDirty(this);
         }
 
         /// <summary> Conversations 필드에서 대화 이름을 드롭다운으로 보여주기위한 리스트를 반환함. (Odin Inspector용) </summary>
@@ -160,7 +156,7 @@ namespace OcDialogue
         }
 
         /// <summary> MainActor 필드에서 NPC이름을 드롭다운으로 보여주기위한 리스트를 반환함. (Odin Inspector용) </summary>
-        ValueDropdownList<OcNPC> GetNPCList() => DialogueAsset.Instance.DialogueNPCDB.GetOdinDropDown();
+        ValueDropdownList<OcNPC> GetNPCList() => DialogueAsset.Instance.GetNPCDropDown();
 
 
         [BoxGroup("유틸리티 메서드")]
@@ -201,8 +197,6 @@ namespace OcDialogue
         void RemoveAssetObject(ScriptableObject so)
         {
             AssetDatabase.RemoveObjectFromAsset(so);
-            EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssets();
         }
 
         [BoxGroup("유틸리티 메서드"), Button("사용하지 않는 이미지 참조 해제")]

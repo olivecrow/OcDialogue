@@ -76,11 +76,11 @@ namespace OcDialogue.DB
         [Button("결과 출력")]
         void PrintResult()
         {
-            var result = IsTrue() ? "True".ToRichText(Color.green) : "False".ToRichText(Color.red);
+            var result = IsTrue() ? "True".Rich(Color.green) : "False".Rich(Color.red);
             var prefix = Application.isPlaying
-                ? "(Runtime)".ToRichText(Color.cyan) 
-                : "(Editor)".ToRichText(Color.yellow);
-            Printer.Print($"[DataChecker] {prefix} {ToExpression().ToRichText(Color.cyan)} => {result}");
+                ? "(Runtime)".Rich(Color.cyan) 
+                : "(Editor)".Rich(Color.yellow);
+            Printer.Print($"[DataChecker] {prefix} {ToExpression().Rich(Color.cyan)} => {result}");
         }
 
         public bool HasUnusedCheckables()

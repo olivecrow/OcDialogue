@@ -6,6 +6,7 @@ using OcDialogue.DB;
 using OcUtility;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
+using TMPro;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -22,6 +23,12 @@ namespace OcDialogue
             Dialogue,
             Choice,
             Action
+        }
+
+        public enum ChoiceCheckerReaction
+        {
+            Disable,
+            Hide
         }
         [ReadOnly] public string GUID;
         [ReadOnly] public Type type;
@@ -44,7 +51,8 @@ namespace OcDialogue
 
         [ValueDropdown("GetBalloonText")]
         public List<Balloon> linkedBalloons;
-        
+        [ShowIf("@type == Type.Choice && useChecker")]
+        public ChoiceCheckerReaction choiceCheckerReaction;
         [HideIf("type", Type.Entry)] public bool useChecker;
 
         [InfoBox("Check Factor가 하나도 없음", InfoMessageType.Error, "@checker != null && checker.factors != null && checker.factors.Length == 0")]
@@ -83,10 +91,10 @@ namespace OcDialogue
         public Vector2 imageSizeOverride;
 
 #if UNITY_EDITOR
-        public string description;
+        [TextArea]public string description;
 
         /// <summary> actor필드에서 NPC이름을 드롭다운으로 보여주기위한 리스트를 반환함. (Odin Inspector용) </summary>
-        ValueDropdownList<OcNPC> GetNPCList() => DialogueAsset.Instance.DialogueNPCDB.GetOdinDropDown();
+        ValueDropdownList<OcNPC> GetNPCList() => DialogueAsset.Instance.GetNPCDropDown();
 
         ValueDropdownList<Balloon> GetBalloonText()
         {
@@ -199,6 +207,16 @@ namespace OcDialogue
             }
             
             Debug.Log($"[Balloon] 상위 Balloon중, 이미지를 사용하는 Balloon을 찾지 못 함.");
+        }
+
+        [Button]
+        void AppendTMPSprite()
+        {
+            TMPSpriteSearchWindow.Open(InsertTMP_SpriteAtlas_Keyword);
+        }
+        void InsertTMP_SpriteAtlas_Keyword(TMP_SpriteAsset spriteAsset, Sprite sprite)
+        {
+            text += $"<sprite=\"{spriteAsset.name}\" name=\"{sprite.name}\">";
         }
 #endif
 

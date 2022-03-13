@@ -4,6 +4,20 @@
 // TODO : ExportWizard 새로 만들기
 // TODO : 컷씬 기능 강화하기
 
+## [2.2.4] -2022-3-13
+### Fixed
+- 다이얼로그 에디터 수정사항
+  - Conversation의 이름 변경시, 에디터에 변경사항이 곧바로 적용되지 않던 문제 해결
+  - 툴바에 현재 Conversation을 선택하는 버튼 추가
+  - 편집과정 최적화
+  - Balloon에 ChoiceCheckerReaction enum 추가
+    - 값으로만 존재하며, 실제 적용은 직접 해야함.
+  - TMP Sprite Asset Window를 제대로 쓸 수 없던 문제 해결
+- CutsceneBehaviour 인스펙터 오류 해결
+- 일반 인스펙터에서 DataSetter의 ExplicitToggle의 레이아웃이 밖으로 벗어나던 문제 해결
+- UpdateExpression -> OnDataApplied로 메서드 이름 변경
+- OcUtility 의존성 버전 업데이트 (1.1.12 -> 1.4.8)
+
 ## [2.2.3] -2022-2-11
 ### Fixed
 - 다이얼로그 에디터 수정사항

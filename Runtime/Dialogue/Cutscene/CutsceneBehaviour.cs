@@ -87,7 +87,7 @@ namespace OcDialogue.Cutscene
             }
         }
 
-        [EnableIf("Application.isPlaying")][Button]
+        [EnableIf("@EditorApplication.isPlaying")][Button]
         public void Play()
         {
             Rebind();
@@ -214,6 +214,7 @@ namespace OcDialogue.Cutscene
 
         bool IsSignalReceiverRequired()
         {
+            if (director == null) return false;
             if(_dialogueTrack == null) _dialogueTrack = director.playableAsset.outputs
                 .FirstOrDefault(x => x.outputTargetType == typeof(Conversation))
                 .sourceObject as DialogueTrack;

@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using OcUtility;
 using Sirenix.OdinInspector.Editor;
+using Sirenix.Utilities.Editor;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Localization.Plugins.XLIFF.V12;
@@ -21,13 +23,14 @@ namespace OcDialogue.Editor
 
         public Toolbar CategoryToolbar;
         public List<ToolbarToggle> CategoryToggles;
-        
+
         public Toolbar ConversationSelectToolbar;
 #if UNITY_2021_2_OR_NEWER
         public DropdownField ConversationField;
 #else
         public PopupField<string> ConversationField;
 #endif
+        public Button SelectConversationButton;
         public Button AddConversationButton;
         public Button RemoveConversationButton;
         
@@ -58,6 +61,7 @@ namespace OcDialogue.Editor
         public static void Open()
         {
             DialogueEditorWindow wnd = GetWindow<DialogueEditorWindow>(false, "다이얼로그 에디터", true);
+            wnd.Show();
             wnd.minSize = new Vector2(720, 480);
         }
         
@@ -80,9 +84,55 @@ namespace OcDialogue.Editor
             if(Conversation == null) return;
             if (EditorUtility.IsDirty(Asset) || EditorUtility.IsDirty(Conversation)) titleContent.text = "다이얼로그 에디터*";
             else titleContent.text = "다이얼로그 에디터";
+
+            if(CategoryToggles.Count != Asset.Categories.Length) RefreshCategory();
+            for (int i = 0; i < CategoryToggles.Count; i++)
+            {
+                if(CategoryToggles[i].text == Asset.Categories[i]) continue;
+                RefreshCategory();
+                break;
+            }
+
+            for (int i = 0; i < GraphView.Nodes.Count; i++)
+            {
+                var node = GraphView.Nodes[i];
+                node.RefreshAll();
+            }
             if (ConversationField != null)
             {
-                if(ConversationField.text != Conversation.key)ConversationField.SetValueWithoutNotify(Conversation.key);
+                if(ConversationField.text != Conversation.key)
+                {
+                    ConversationField.SetValueWithoutNotify(Conversation.key);
+                    ConversationField.choices = ConversationDropDownChoices;
+                }
+            }
+        }
+
+        void RefreshCategory()
+        {
+            CategoryToolbar.Clear();
+            CategoryToggles = new List<ToolbarToggle>();
+            foreach (var category in Asset.Categories)
+            {
+                var toggle = new ToolbarToggle();
+                toggle.text = category;
+                if (category == _currentCategory) toggle.value = true;
+                else toggle.value = false;
+                toggle.RegisterValueChangedCallback(e =>
+                {
+                    CheckCategoryToggles(toggle, e.newValue);
+                });
+                CategoryToggles.Add(toggle);
+                CategoryToolbar.Add(toggle);
+            }
+        }
+
+        void OnFocus()
+        {
+            if (ConversationField != null)
+            {
+                ConversationField.SetValueWithoutNotify(Conversation.key);
+                ConversationField.choices = ConversationDropDownChoices;
             }
         }
 
@@ -141,20 +191,7 @@ namespace OcDialogue.Editor
                 _currentCategory = Asset.Categories[0];
             }
             
-            CategoryToggles = new List<ToolbarToggle>();
-            foreach (var category in Asset.Categories)
-            {
-                var toggle = new ToolbarToggle();
-                toggle.text = category;
-                if (category == _currentCategory) toggle.value = true;
-                else toggle.value = false;
-                toggle.RegisterValueChangedCallback(e =>
-                {
-                    CheckCategoryToggles(toggle, e.newValue);
-                });
-                CategoryToggles.Add(toggle);
-                CategoryToolbar.Add(toggle);
-            }
+            RefreshCategory();
         }
 
         void CheckCategoryToggles(ToolbarToggle t, bool isOn)
@@ -210,6 +247,7 @@ namespace OcDialogue.Editor
                     }
                     // Debug.Log($"Generate Conversation Toolbar : key : {s}");
                     OnConversationChanged();
+                    Selection.activeObject = Asset.Conversations.Find(x => x.key == s);
                     return Conversation == null ? null : Conversation.key;
                 });
 
@@ -231,11 +269,19 @@ namespace OcDialogue.Editor
             AddConversationButton = new Button(AddConversation);
             AddConversationButton.text = "+";
             ConversationSelectToolbar.Add(AddConversationButton);
+            
+            SelectConversationButton = new Button(() => Selection.activeObject = Conversation);
+            SelectConversationButton.text = "Select";
+            ConversationSelectToolbar.Add(SelectConversationButton);
 
             RemoveConversationButton = new Button(RemoveConversation);
             RemoveConversationButton.text = "Remove";
             RemoveConversationButton.style.backgroundColor = new Color(0.8f, 0f, 0f);
             ConversationSelectToolbar.Add(RemoveConversationButton);
+        }
+        void RefreshConversationChoices()
+        {
+            if (ConversationField != null) ConversationField.choices = ConversationDropDownChoices;
         }
 
         /// <summary> DropDown에서 다른 Conversation으로 변경되었을때 호출됨. 근데 Conversation의 key를 변경해도 호출됨...? </summary>
@@ -287,6 +333,8 @@ namespace OcDialogue.Editor
             
             var targetConvList = Asset.Conversations.Where(x => x.Category == _currentCategory).ToList();
             var idx = targetConvList.IndexOf(conv);
+
+            Selection.activeObject = conv;
             GenerateConversationToolbar(idx);
         }
 

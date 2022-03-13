@@ -178,7 +178,7 @@ namespace OcDialogue.DB
         }
 
         
-        public void EditorPresetToDefault()
+        internal void EditorPresetToDefault()
         {
             foreach (var dataRow in DataRows)
             {
@@ -186,7 +186,7 @@ namespace OcDialogue.DB
             }
         }
 
-        public void RuntimeValuesToPreset()
+        internal void RuntimeValuesToPreset()
         {
             foreach (var dataRow in DataRows)
             {

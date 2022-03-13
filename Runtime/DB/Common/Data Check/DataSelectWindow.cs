@@ -93,7 +93,7 @@ namespace OcDialogue.DB
                 if(DataSelectable != null)
                 {
                     DataSelectable.TargetData = Selector.ValidData;
-                    DataSelectable.UpdateExpression();
+                    DataSelectable.OnDataApplied();
                 }
                 OnDataSelected?.Invoke(Selector.ValidData);
                 Close();

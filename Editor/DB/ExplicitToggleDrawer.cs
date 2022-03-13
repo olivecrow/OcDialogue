@@ -18,26 +18,25 @@ namespace OcDialogue.Editor
         {
             var value = ValueEntry.SmartValue;
             var valueText = value ? 
-                Attribute.trueLabel.ToRichText(Color.green) : Attribute.falseLabel.ToRichText(Color.red);
-            // var valueText = value ? Attribute.trueLabel : Attribute.falseLabel;
+                Attribute.trueLabel.Rich(Color.green) : Attribute.falseLabel.Rich(Color.red);
+            
             var guiStyle = new GUIStyle(GUI.skin.button) {richText = true, alignment = TextAnchor.MiddleCenter};
 
-            var rect = EditorGUILayout.GetControlRect();
-
-            GUIHelper.PushLabelWidth(rect.width);
-            GUIHelper.PushContextWidth(rect.width);
-            if (label != null) rect = EditorGUI.PrefixLabel(rect, label);
+            // GUIHelper.PushLabelWidth(rect.width);
+            // GUIHelper.PushContextWidth(rect.width);
             
-            
-            if (GUI.Button(rect, valueText, guiStyle))
+            EditorGUILayout.BeginHorizontal();
+            if(label != null) GUILayout.Label(label);
+            if (GUILayout.Button(valueText, guiStyle))
             {
                 value = !value;
             }
-
+            EditorGUILayout.EndHorizontal();
+            
             ValueEntry.SmartValue = value;
             
-            GUIHelper.PopLabelWidth();
-            GUIHelper.PopContextWidth();
+            // GUIHelper.PopLabelWidth();
+            // GUIHelper.PopContextWidth();
         }
     }
 }
