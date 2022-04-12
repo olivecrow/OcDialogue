@@ -62,7 +62,7 @@ namespace OcDialogue.Cutscene
         void InternalEnd()
         {
             PreEnd();
-            DialogueTrack.Release();
+            if(_dialogueTrack != null)_dialogueTrack.Release();
             OnEnd.Invoke();
             _isCutscenePlaying = false;
             _isCutscenePaused = false;
@@ -111,15 +111,20 @@ namespace OcDialogue.Cutscene
         {
             if (ActiveCutscene == null)
             {
-                Printer.Print($"현재 재생중인 컷씬이 없음", LogType.Warning);
+                Debug.Log($"현재 재생중인 컷씬이 없음");
                 return;
             }
-            
+            if(ActiveCutscene.DialogueTrack == null)
+            {
+                Debug.Log($"현재 컷씬에는 DialogueClip이 없음");
+                return;
+            }
+
             var currentClipIndex = ActiveCutscene.DialogueTrack.GetCurrentClipIndex();
 
             if (currentClipIndex + 1 > ActiveCutscene.DialogueTrack.ClipCount - 1)
             {
-                Stop();
+                return;
             }
             else
             {
@@ -128,6 +133,29 @@ namespace OcDialogue.Cutscene
             }
         }
 
+        [Button]
+        public static void Skip()
+        {
+            if (ActiveCutscene == null)
+            {
+                Debug.Log($"현재 재생중인 컷씬이 없음");
+                return;
+            }
+
+            if (ActiveCutscene.director.time > 10)
+            {
+                if(ActiveCutscene.director.time > ActiveCutscene.director.duration - 3) return;
+                ActiveCutscene.director.time = ActiveCutscene.director.duration - 3;
+            }
+            else
+            {
+                if(ActiveCutscene.director.time > ActiveCutscene.director.duration * 0.95) return;
+                ActiveCutscene.director.time = ActiveCutscene.director.duration * 0.95;
+            }
+            
+        }
+
+        [Button]
         public static void Stop()
         {
             if (ActiveCutscene == null)

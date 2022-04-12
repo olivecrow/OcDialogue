@@ -2,7 +2,15 @@
 모든 변경사항을 이 곳에 기록함.
 
 // TODO : ExportWizard 새로 만들기
-// TODO : 컷씬 기능 강화하기
+
+### [2.3.1] -2022-04-12
+- Cutscene
+  - CutsceneBehaviour의 InternalEnd에 있던 DialogueTrack관련 Null 오류 해결
+  - CutsceneBehaviour에서 타임라인의 time을 마지막에 가까운 지점으로 변경하는 정적 메서드인 Skip 추가
+  - Skip, Stop을 인스펙터에 버튼으로 표시
+  - SkipToNextClip에서 마지막 클립이면 Stop을 실행하던 부분을 return으로 바꿈.
+    - 그 자리에서 바로 끝내기보단 남은 컷씬 보여주는게 나을 것 같아서 바꿨는데, 나중에 문제가 있거나 별로면 다시 Stop이나 Skip을 넣기.
+- 빌드 오류로 인한 OcUtility 종속성 버전 변경 (1.5.1 버전 이상) 
 
 ## [2.3.0] -2022-04-12
 - OcUtility 1.5.0 이상에 대한 종속성 설정.
