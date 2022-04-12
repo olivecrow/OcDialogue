@@ -203,7 +203,7 @@ namespace MyDB
             {
                 var factor = new CheckFactor();
                 factor.TargetData = dataRow;
-                factor.UpdateExpression();
+                factor.OnDataApplied();
                 factorList.Add(factor);
             }
 

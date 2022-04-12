@@ -4,6 +4,33 @@
 // TODO : ExportWizard 새로 만들기
 // TODO : 컷씬 기능 강화하기
 
+## [2.3.0] -2022-04-12
+- OcUtility 1.5.0 이상에 대한 종속성 설정.
+- Dialogue
+  - Editor
+    - Priority 라벨 위치 및 GUI 생성 부분 개선
+    - Priority 라벨이 포함된 구성요소를 한꺼번에 삭제할때 오류가 발생하던 문제 해결
+    - 노드 및 엣지 생성, 삭제를 SetDirty로만 처리해서 처리시간 감소시킴
+    - 스크립트가 다시 컴파일 돼도 이전의 Conversation을 계속 유지하도록 변경
+    - 복사, 붙여넣기, 복제 기능을 단축키로도 이용할 수 있도록 추가.
+    - NPC Dropdown이 출력되지 않던 문제 해결.
+  - Runtime
+    - Action 타입 Balloon에 ActionType 및 SubEntryDataType enum 추가.
+      - 커스텀 데이터를 이용한 엔트리로써 사용가능함
+    - Balloon의 DisplayTargetImage를 Sprite로 변경
+- DB
+  - string 비교를 string.CompareOrdinal로 변경.
+  - 유니티의 검색시스템을 이용해서 데이터 선택을 도와주는 DataSearch 애트리뷰트 추가.
+  - DataRow의 description을 UNITY_EDITOR전처리기 밖으로 옮김.
+  - DataRowContainer에서 DataRow 순서 변경 가능하게 바꿈.
+  - DataRow에 자기 자신을 Ping할 수 있는 버튼 추가.
+- Cutscene
+  - DialogueTrack을 사용하는 타임라인 에셋에 대한 에디터 단위 테스트 추가.
+  - BindingOverride가 불필요하다 생각돼서 삭제함. 만약 구현할거면 여기가 아니라 이 패키지를 사용하는 프로젝트에서 직접 구현하는게 나음.
+  - DialogueDisplayParameter가 불필요하다 생각돼서 삭제함. 그냥 컷씬용 DialogueUI를 따로 두는게 나을듯.
+  - CutsceneBehaviour의 Awake에서 Null처리가 없어서 DialogueTrack이 없으면 오류가 나던 문제 해결.
+- 오류가 나지 않도록 Samples 업데이트.
+
 ## [2.2.4] -2022-3-13
 ### Fixed
 - 다이얼로그 에디터 수정사항

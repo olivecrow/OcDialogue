@@ -14,7 +14,8 @@ namespace OcDialogue.Editor.Cutscene
     [MenuEntry("Custom Actions/Query Conversation")]
     public class ConversationQueryAction : TimelineAction
     {
-        
+        const double durationPerChar = 0.15;
+        const double minimumDuration = 2;
         public override ActionValidity Validate(ActionContext context)
         {
             var dialogueTrack = context.tracks.FirstOrDefault(x => x is DialogueTrack);
@@ -39,9 +40,7 @@ namespace OcDialogue.Editor.Cutscene
                 Debug.Log($"Conversation 바인딩이 비어있음");
                 return false;
             }
-
-            var param = context.director.GetComponent<CutsceneBehaviour>().EffectiveParam;
-
+            
             double time = 0;
             Balloon balloon = conversation.Balloons[0];
             while (true)
@@ -60,7 +59,8 @@ namespace OcDialogue.Editor.Cutscene
                         dialogueClip.Conversation = conversation;
                         clip.displayName = $"{actorName} {balloon.text}";
                         clip.start = time;
-                        var duration = param.minimumDuration + balloon.text.Length * param.durationPerChar;
+                        // TODO : 나중에 더빙 추가하면 음성 파일을 기준으로 한 길이를 넣기.
+                        var duration = minimumDuration + balloon.text.Length * durationPerChar;
                         clip.duration = duration;
                         time += duration;
                         break;

@@ -51,20 +51,20 @@ namespace OcDialogue
 
         public Balloon FindBalloon(string guid)
         {
-            return Balloons.Find(x => x.GUID == guid);
+            return Balloons.Find(x => string.CompareOrdinal(x.GUID, guid) == 0);
         }
 
         public List<Balloon> FindInputBalloons(Balloon balloon)
         {
             return (from linkData in LinkData 
-                where linkData.to == balloon.GUID 
+                where string.CompareOrdinal(linkData.to, balloon.GUID) == 0 
                 select FindBalloon(linkData.@from)).ToList();
         }
 
         public List<Balloon> FindLinkedBalloons(Balloon balloon)
         {
             return (from linkData in LinkData 
-                where linkData.@from == balloon.GUID 
+                where string.CompareOrdinal(linkData.@from, balloon.GUID) == 0 
                 select FindBalloon(linkData.to)).ToList();
         }
 
@@ -128,11 +128,11 @@ namespace OcDialogue
 
         public void RemoveLinkData(string from, string to)
         {
-            var target = LinkData.Find(x => x.@from == from && x.to == to);
+            var target = LinkData.Find(x => string.CompareOrdinal(@from, from) == 0 && string.CompareOrdinal(x.to, to) == 0);
             if(target == null) return;
 
-            var rootBalloon = Balloons.Find(x => x.GUID == from);
-            var targetBalloon = Balloons.Find(x => x.GUID == to);
+            var rootBalloon = Balloons.Find(x => string.CompareOrdinal(x.GUID,from) == 0);
+            var targetBalloon = Balloons.Find(x => string.CompareOrdinal(x.GUID, to) == 0);
             
             // 여러 노드와 엣지를 선택 후 삭제하면 이미 삭제되어 빈 노드가 전달될 수 있으므로 둘 다 있을때만 실행함.
             if(rootBalloon != null && targetBalloon != null) rootBalloon.linkedBalloons.Remove(targetBalloon);
@@ -140,7 +140,6 @@ namespace OcDialogue
             LinkData.Remove(target);
             
             EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssetIfDirty(this);
         }
 
         /// <summary> Conversations 필드에서 대화 이름을 드롭다운으로 보여주기위한 리스트를 반환함. (Odin Inspector용) </summary>
@@ -183,8 +182,8 @@ namespace OcDialogue
             }
             foreach (var linkData in LinkData)
             {
-                var rootBalloon = Balloons.Find(x => x.GUID == linkData.@from);
-                var targetBalloon = Balloons.Find(x => x.GUID == linkData.to);
+                var rootBalloon = Balloons.Find(x => string.CompareOrdinal(x.GUID, linkData.@from) == 0);
+                var targetBalloon = Balloons.Find(x => string.CompareOrdinal(x.GUID, linkData.to) == 0);
                 
                 if(rootBalloon.linkedBalloons.Contains(targetBalloon)) continue;
                 
@@ -220,8 +219,10 @@ namespace OcDialogue
                     removeList.Add(linkData);
                     continue;
                 }
-                if(LinkData.Any(x => x.@from == linkData.@from && x.to == linkData.to && x != linkData)) removeList.Add(linkData);
-                if(restoreList.Count(x => x.@from == linkData.@from && x.to == linkData.to) == 0) 
+                if(LinkData.Any(x => string.CompareOrdinal(x.@from, linkData.@from) == 0 && 
+                                     string.CompareOrdinal(x.to, linkData.to) == 0 && x != linkData)) removeList.Add(linkData);
+                if(restoreList.Count(x => string.CompareOrdinal(x.@from, linkData.@from) == 0 && 
+                                          string.CompareOrdinal(x.to, linkData.to) == 0) == 0) 
                     restoreList.Add(linkData);
             }
 
@@ -241,7 +242,7 @@ namespace OcDialogue
         [BoxGroup("유틸리티 메서드"), Button("GUID로 Balloon선택")]
         void SelectBalloonFromGUID(string guid)
         {
-            var balloon = Balloons.Find(x => x.GUID == guid);
+            var balloon = Balloons.Find(x => string.CompareOrdinal(x.GUID, guid) == 0);
             if (balloon == null)
             {
                 Debug.Log($"[{guid}] 해당 GUID를 가진 Balloon이 없음");

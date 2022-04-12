@@ -6,6 +6,7 @@ using OcUtility;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using UnityEditor;
+using UnityEditor.Search;
 using UnityEngine;
 
 namespace OcDialogue.DB
@@ -135,6 +136,7 @@ namespace OcDialogue.DB
         }
         [ValueDropdown(nameof(GetCategory))]public string Category;
         [EnumToggleButtons]public DataSelectionType dataSelectionType;
+
         [ValueDropdown(nameof(GetData))][OnValueChanged(nameof(UpdateDataContainer))]
         [SerializeField]
         OcData Data;

@@ -17,7 +17,7 @@ namespace OcDialogue.DB
         [InlineButton(nameof(EditorPresetToDefault), "프리셋 초기화")]
 #endif
         public OcData Parent;
-        [TableList(IsReadOnly = true, AlwaysExpanded = true, NumberOfItemsPerPage = 50, ShowPaging = true, DrawScrollView = false)]
+        [TableList(AlwaysExpanded = true, NumberOfItemsPerPage = 50, ShowPaging = true, DrawScrollView = false)]
         public List<DataRow> DataRows;
         public event Action<DataRow> OnRuntimeValueChanged; 
         public void GenerateRuntimeData()
@@ -41,7 +41,7 @@ namespace OcDialogue.DB
         {
             foreach (var kv in dict)
             {
-                var data = DataRows.Find(x => x.name == kv.Key);
+                var data = DataRows.Find(x => string.CompareOrdinal(x.name, kv.Key) == 0);
                 if (data == null)
                 {
                     Printer.Print($"[DataRowContainer]Overwrite) 해당 키를 가진 데이터를 찾을 수 없음 | key : {kv.Key}");
@@ -100,12 +100,12 @@ namespace OcDialogue.DB
 
         public bool HasKey(string key)
         {
-            return DataRows.Any(x => x.Name == key);
+            return DataRows.Any(x => string.CompareOrdinal(x.Name, key) == 0);
         }
 
         public DataRow Get(string key)
         {
-            return DataRows.FirstOrDefault(x => x.Name == key);
+            return DataRows.FirstOrDefault(x => string.CompareOrdinal(x.Name, key) == 0);
         }
         
         #if UNITY_EDITOR
@@ -138,18 +138,18 @@ namespace OcDialogue.DB
             row.SetParent(Parent);
             row.name = key;
             DataRows.Add(row);
-            OcDataUtility.Repaint();
+            // OcDataUtility.Repaint();
 
             AssetDatabase.AddObjectToAsset(row, Parent);
             EditorUtility.SetDirty(Parent);
-            EditorApplication.delayCall += AssetDatabase.SaveAssets;
+            // EditorApplication.delayCall += AssetDatabase.SaveAssets;
 
             return row;
         }
         [HorizontalGroup("btn"),Button, GUIColor(1,0,0)]
         public void DeleteRow(string key)
         {
-            var row = DataRows.FirstOrDefault(x => x.name == key);
+            var row = DataRows.FirstOrDefault(x => string.CompareOrdinal(x.name, key) == 0);
             if (row == null)
             {
                 Debug.LogWarning($"해당 키값의 DataRow가 없어서 삭제에 실패함 : {key}");
@@ -161,7 +161,7 @@ namespace OcDialogue.DB
 
             AssetDatabase.RemoveObjectFromAsset(row);
             EditorUtility.SetDirty(Parent);
-            AssetDatabase.SaveAssets();
+            // AssetDatabase.SaveAssets();
         }
         [HorizontalGroup("btn"),Button]
         public void MatchParent()

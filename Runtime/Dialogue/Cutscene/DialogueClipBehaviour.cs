@@ -31,7 +31,7 @@ namespace OcDialogue.Cutscene
         event Action<DialogueClipBehaviour> OnStart;
         event Action<DialogueClipBehaviour> OnFadeOut;
         event Action<DialogueClipBehaviour> OnEnd;
-        
+
         public void Init(CutsceneBehaviour cutscene, DialogueClip clip, DialogueTrack track)
         {
             Cutscene = cutscene;
@@ -71,7 +71,8 @@ namespace OcDialogue.Cutscene
                 
                 if (_pauseScheduled)
                 {
-                    if(NormalizedTime >= Cutscene.EffectiveParam.autoPauseTime)
+                    // 일시정지가 이뤄지는 대화에선 마지막에 도달할때 즈음에 일시정지함.
+                    if(NormalizedTime >= Cutscene.autoPauseNormalizedTime)
                     {
                         CutsceneBehaviour.Pause();
                     }
@@ -79,7 +80,8 @@ namespace OcDialogue.Cutscene
                 else
                 {
                     // 일시정지가 이뤄지는 대화에선 페이드아웃이 실행되면 안됨.
-                    if (!_fadeOutInvoked && LeftTime < Cutscene.EffectiveParam.textFadeOutDuration)
+                    // 남은 시간이 페이드아웃 시간 이하가 되면 페이드아웃을 시작함.
+                    if (!_fadeOutInvoked && LeftTime < Cutscene.balloonFadeOutDuration)
                     {
                         _fadeOutInvoked = true;
                         OnFadeOut?.Invoke(this);

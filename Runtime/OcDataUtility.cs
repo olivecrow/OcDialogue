@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using OcUtility;
 #if UNITY_EDITOR
@@ -59,8 +60,8 @@ namespace OcDialogue
         {
             return op switch
             {
-                CheckFactor.Operator.Equal    => source == value,
-                CheckFactor.Operator.NotEqual => source != value,
+                CheckFactor.Operator.Equal    => string.CompareOrdinal(source, value) == 0,
+                CheckFactor.Operator.NotEqual => string.CompareOrdinal(source, value) != 0,
                 _ => false
             };
         }
@@ -113,7 +114,7 @@ namespace OcDialogue
             }
             return targetValue;
         }
-        
+
 #if UNITY_EDITOR
         /// <summary> Selection을 재설정해서 현재 인스펙터를 다시 그림. </summary>
         public static void Repaint()

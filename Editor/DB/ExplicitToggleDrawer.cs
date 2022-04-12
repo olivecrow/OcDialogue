@@ -21,10 +21,6 @@ namespace OcDialogue.Editor
                 Attribute.trueLabel.Rich(Color.green) : Attribute.falseLabel.Rich(Color.red);
             
             var guiStyle = new GUIStyle(GUI.skin.button) {richText = true, alignment = TextAnchor.MiddleCenter};
-
-            // GUIHelper.PushLabelWidth(rect.width);
-            // GUIHelper.PushContextWidth(rect.width);
-            
             EditorGUILayout.BeginHorizontal();
             if(label != null) GUILayout.Label(label);
             if (GUILayout.Button(valueText, guiStyle))
@@ -34,9 +30,6 @@ namespace OcDialogue.Editor
             EditorGUILayout.EndHorizontal();
             
             ValueEntry.SmartValue = value;
-            
-            // GUIHelper.PopLabelWidth();
-            // GUIHelper.PopContextWidth();
         }
     }
 }

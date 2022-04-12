@@ -71,8 +71,8 @@ namespace OcDialogue.Samples
         [TitleGroup("선택지")]public ChoiceButton choiceButtonTemplate;
         [TitleGroup("선택지")][Range(0f, 1f)] public float ChoiceWaitTime = 0.25f;
 
-        [TitleGroup("이미지 뷰어")] public RawImage fullSizeImage;
-        [TitleGroup("이미지 뷰어")] public RawImage floatingImage;
+        [TitleGroup("이미지 뷰어")] public Image fullSizeImage;
+        [TitleGroup("이미지 뷰어")] public Image floatingImage;
         [TitleGroup("이미지 뷰어")] public RectTransform floatingImageRoot;
         
         public Conversation Conversation { get; private set; }
@@ -105,7 +105,7 @@ namespace OcDialogue.Samples
             CutsceneBehaviour.OnClipStart += clipBehaviour =>
             {
                 DisplayBalloon("Dialogue UI", clipBehaviour.Conversation, clipBehaviour.Balloon, 
-                    clipBehaviour.Cutscene, clipBehaviour.Cutscene.EffectiveParam);
+                    clipBehaviour.Cutscene);
             };
             CutsceneBehaviour.OnClipFadeOut += clipBehaviour => Stop();
             CutsceneBehaviour.OnClipEnd += clipBehaviour =>
@@ -189,7 +189,7 @@ namespace OcDialogue.Samples
         }
 
         public static void DisplayBalloon(string sceneName, Conversation conversation, Balloon balloon, 
-            IDialogueUser user, DialogueDisplayParameter param, Action onEnd = null)
+            IDialogueUser user, Action onEnd = null)
         {
             if (_instance == null && !IsLoadAsyncOn)
             {
@@ -202,7 +202,6 @@ namespace OcDialogue.Samples
                     Instance.User = user;
                     Instance.DisplayBalloon(conversation, balloon);
                     Instance.OnBalloonEnd = onEnd;
-                    applyParam();
                     IsLoadAsyncOn = false;
                 };
             }
@@ -210,18 +209,6 @@ namespace OcDialogue.Samples
             {
                 Instance.DisplayBalloon(conversation, balloon);
                 Instance.OnBalloonEnd = onEnd;
-                applyParam();
-            }
-
-            void applyParam()
-            {
-                if(param == null) return;
-                Instance.CanvasFadeInDuration = param.canvasFadeInDuration;
-                Instance.CanvasFadeOutDuration = param.canvasFadeOutDuration;
-                Instance.TextFadeInDuration = param.textFadeInDuration;
-                Instance.TextFadeOutDuration = param.textFadeOutDuration;
-                Instance.DisplayTimePerCharacter = param.durationPerChar;
-                Instance.MinimumDisplayDuration = param.minimumDuration;
             }
         }
 
@@ -407,26 +394,26 @@ namespace OcDialogue.Samples
                     switch (balloon.imageViewerSize)
                     {
                         case ImageViewerSize.FullSize:
-                            fullSizeImage.texture = balloon.displayTargetImage;
+                            fullSizeImage.sprite = balloon.displayTargetImage;
                             fullSizeImage.gameObject.SetActive(true);
                             break;
                         case ImageViewerSize.FloatingSize:
-                            floatingImage.texture = balloon.displayTargetImage;
+                            floatingImage.sprite = balloon.displayTargetImage;
                             floatingImageRoot.gameObject.SetActive(true);
                             
                             if(balloon.imageSizeOverride.sqrMagnitude < 1)
                             {
-                                floatingImageRoot.offsetMin = -new Vector2(floatingImage.texture.width * 0.5f,
-                                    floatingImage.texture.height * 0.5f);
-                                floatingImageRoot.offsetMax = new Vector2(floatingImage.texture.width * 0.5f,
-                                    floatingImage.texture.height * 0.5f);
+                                floatingImageRoot.offsetMin = -new Vector2(floatingImage.sprite.bounds.size.x * 0.5f,
+                                    floatingImage.sprite.bounds.size.y * 0.5f);
+                                floatingImageRoot.offsetMax = new Vector2(floatingImage.sprite.bounds.size.x * 0.5f,
+                                    floatingImage.sprite.bounds.size.y * 0.5f);
                             }
                             else
                             {
                                 floatingImageRoot.offsetMin = -new Vector2(balloon.imageSizeOverride.x * 0.5f,
-                                    floatingImage.texture.height * 0.5f);
+                                    floatingImage.sprite.bounds.size.y * 0.5f);
                                 floatingImageRoot.offsetMax = new Vector2(balloon.imageSizeOverride.y * 0.5f,
-                                    floatingImage.texture.height * 0.5f);
+                                    floatingImage.sprite.bounds.size.y * 0.5f);
                             }
                             break;
                         default: goto case ImageViewerSize.FloatingSize;

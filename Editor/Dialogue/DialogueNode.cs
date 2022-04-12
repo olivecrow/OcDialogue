@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Text;
 using OcUtility;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
@@ -26,6 +28,13 @@ namespace OcDialogue.Editor
 
         public Action<Edge, int, int> OnEdgeConnected;
         public Action<Edge, int, int> OnEdgeDisconnected;
+
+        
+        public override bool IsCopiable()
+        {
+            if (Balloon == null) return false;
+            return Balloon.type != Balloon.Type.Entry;
+        }
 
         const int Number_Of_Subtitle_Text = 15;
         
@@ -195,5 +204,7 @@ namespace OcDialogue.Editor
             base.OnSelected();
             DialogueEditorWindow.Instance.GraphView.OnSelectionChanged();
         }
+
+        
     }
 }

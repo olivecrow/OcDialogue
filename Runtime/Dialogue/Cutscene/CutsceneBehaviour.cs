@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using OcUtility;
 using Sirenix.OdinInspector;
@@ -26,27 +27,17 @@ namespace OcDialogue.Cutscene
         static bool _isCutscenePaused;
         static CutsceneBehaviour _activeCutscene;
 
-        public string DialogueSceneName => EffectiveParam.DialogueSceneName;
+        public string DialogueSceneName => dialogueSceneName;
         public SignalReceiver SignalReceiver => signalReceiver;
         public Conversation Conversation => _dialogueTrack.Conversation;
+        [FoldoutGroup("Dialogue")]public string dialogueSceneName = "Dialogue UI";
+        [FoldoutGroup("Dialogue")][Range(0.5f, 0.99f)]public double autoPauseNormalizedTime = 0.95;
+        [FoldoutGroup("Dialogue")][Range(0, 5)]public double balloonFadeOutDuration = 1;
         [InfoBox("이 대화에는 SignalReceiver가 필요함", InfoMessageType.Error, VisibleIf = "IsSignalReceiverRequired")]
         public SignalReceiver signalReceiver;
 
         public PlayableDirector director;
         
-        [FoldoutGroup("Params")][GUIColor(2,1,2)]
-        [ShowInInspector][InlineEditor(Expanded = true)][HideIf(nameof(overrideParam))]
-        public DialogueDisplayParameter EffectiveParam => overrideParam ? param : DialogueDisplayParameter.Instance;
-        
-        [HorizontalGroup("Params/Header")][ReadOnly][GUIColor(2,1,2)]
-        public bool overrideParam;
-        
-        [FoldoutGroup("Params")][ShowIf(nameof(overrideParam))][InlineEditor(Expanded = true)][GUIColor(2,1,2)]
-        public DialogueDisplayParameter param;
-        
-        [InlineButton(nameof(QueryBindings), "Query")]
-        public OcDictionary<Object, GameObject> bindingOverride;
-
         [FoldoutGroup("OnAwake")] public UnityEvent OnAwake;
         [FoldoutGroup("OnPlay")] public UnityEvent OnPlay;
         [FoldoutGroup("OnEnd")] public UnityEvent OnEnd;
@@ -56,10 +47,11 @@ namespace OcDialogue.Cutscene
         protected virtual void Awake()
         {
             OnAwake?.Invoke();
+            
             _dialogueTrack = director.playableAsset.outputs
                 .FirstOrDefault(x => x.outputTargetType == typeof(Conversation))
                 .sourceObject as DialogueTrack;
-            _dialogueTrack.Init(this,
+            _dialogueTrack?.Init(this,
                 dialogueClipBehaviour => OnClipStart?.Invoke(dialogueClipBehaviour), 
                 dialogueClipBehaviour => OnClipFadeOut?.Invoke(dialogueClipBehaviour), 
                 dialogueClipBehaviour => OnClipEnd?.Invoke(dialogueClipBehaviour));
@@ -78,19 +70,10 @@ namespace OcDialogue.Cutscene
             PostEnd();
         }
 
-        /// <summary> bindingOverride를 기준으로 리바인드함. 기본적으로 재생 직전에 한 번 호출됨. </summary>
-        public void Rebind()
-        {
-            foreach (var kv in bindingOverride)
-            {
-                director.SetGenericBinding(kv.Key, kv.Value);
-            }
-        }
 
         [EnableIf("@EditorApplication.isPlaying")][Button]
         public void Play()
         {
-            Rebind();
             PrePlay();
             _isCutscenePlaying = true;
             _activeCutscene = this;
@@ -107,7 +90,7 @@ namespace OcDialogue.Cutscene
                 Printer.Print($"현재 재생중인 컷씬이 없음", LogType.Warning);
                 return;
             }
-            // ActiveCutscene.director.Pause();
+            // ActiveCutscene.director.Pause() 말고 Speed 를 0으로 해서 쓰기.
             ActiveCutscene.director.playableGraph.GetRootPlayable(0).SetSpeed(0);
             _isCutscenePaused = true;
         }
@@ -119,7 +102,7 @@ namespace OcDialogue.Cutscene
                 Printer.Print($"현재 재생중인 컷씬이 없음", LogType.Warning);
                 return;
             }
-            // ActiveCutscene.director.Resume();
+            // ActiveCutscene.director.Resume() 말고 Speed를 1로 해서 쓰기.
             ActiveCutscene.director.playableGraph.GetRootPlayable(0).SetSpeed(1);
             _isCutscenePaused = false;
         }
@@ -154,18 +137,6 @@ namespace OcDialogue.Cutscene
             }
             ActiveCutscene.director.Stop();
         }
-        
-        void QueryBindings()
-        {
-            var dict = new OcDictionary<Object, GameObject>();
-            foreach (var output in director.playableAsset.outputs)
-            {
-                var exist = bindingOverride.ContainsKey(output.sourceObject) ? bindingOverride[output.sourceObject] : null;
-                dict[output.sourceObject] = exist;
-            }
-
-            bindingOverride = dict;
-        }
 
         protected virtual void PrePlay(){}
         protected virtual void PostPlay(){}
@@ -197,19 +168,6 @@ namespace OcDialogue.Cutscene
         void Reset()
         {
             director = GetComponent<PlayableDirector>();
-        }
-
-        [Button("Override")][HorizontalGroup("Params/Header")][DisableIf(nameof(overrideParam))]
-        void OverrideParameter()
-        {
-            overrideParam = true;
-            param = ScriptableObject.CreateInstance<DialogueDisplayParameter>();
-            UnityEditor.EditorUtility.CopySerialized(DialogueDisplayParameter.Instance, param);
-        }
-        [Button("Cancel")][HorizontalGroup("Params/Header")][EnableIf(nameof(overrideParam))]
-        void CancelParameterOverride()
-        {
-            overrideParam = false;
         }
 
         bool IsSignalReceiverRequired()

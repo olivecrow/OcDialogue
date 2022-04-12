@@ -49,18 +49,18 @@ namespace OcDialogue.Editor
             Asset.Conversations.Where(x => x.Category == _currentCategory).Select(x => x.key).ToList();
 
         Dictionary<Edge, Label> _edgeLabels;
-
         string _currentCategory;
         static Dictionary<string, int> _lastViewConversation;
-
         static DialogueEditorWindow()
         {
             _lastViewConversation = new Dictionary<string, int>();
+            
         }
         [MenuItem("OcDialogue/다이얼로그 에디터")]
         public static void Open()
         {
             DialogueEditorWindow wnd = GetWindow<DialogueEditorWindow>(false, "다이얼로그 에디터", true);
+            
             wnd.Show();
             wnd.minSize = new Vector2(720, 480);
         }
@@ -70,7 +70,6 @@ namespace OcDialogue.Editor
             if(_instance != null) _instance.Close();
             _instance = this;
             _edgeLabels = new Dictionary<Edge, Label>();
-            
         }
 
         void OnDisable()
@@ -131,7 +130,7 @@ namespace OcDialogue.Editor
         {
             if (ConversationField != null)
             {
-                ConversationField.SetValueWithoutNotify(Conversation.key);
+                // ConversationField.SetValueWithoutNotify(Conversation.key);
                 ConversationField.choices = ConversationDropDownChoices;
             }
         }
@@ -143,11 +142,12 @@ namespace OcDialogue.Editor
                 var edge = kv.Key;
                 var label = kv.Value;
                 var zoom = GraphView.viewTransform.scale.x;
-                var offset = new Vector3(15 , 30);
+
+                var start = edge.output.worldTransform.GetPosition() + new Vector3(85, -20) * zoom;
+                var end = edge.input.worldTransform.GetPosition() + new Vector3(-20, -45) * zoom;
+                var lerp = Vector3.Lerp(start, end, 0.1f);
                 
-                label.transform.position =
-                    (edge.input.worldTransform.GetPosition() - (GraphView.viewTransform.position + offset)) / zoom;
-                
+                label.transform.position = (lerp - GraphView.viewTransform.position + new Vector3(0, -8, 0)) / zoom;
             }
         }
         void CreateGUI()
@@ -177,7 +177,8 @@ namespace OcDialogue.Editor
             }
 
             GenerateCategoryToolbar();
-            GenerateConversationToolbar(0);
+            var lastConvIndex = Conversation == null ? 0 : ConversationDropDownChoices.IndexOf(Conversation.key);
+            GenerateConversationToolbar(lastConvIndex);
         }
 
         void GenerateCategoryToolbar()
@@ -247,7 +248,7 @@ namespace OcDialogue.Editor
                     }
                     // Debug.Log($"Generate Conversation Toolbar : key : {s}");
                     OnConversationChanged();
-                    Selection.activeObject = Asset.Conversations.Find(x => x.key == s);
+                    // 여기서 Selection에 Conversation을 선택하도록 하면 시도때도없이 선택돼서 짜증나니까 넣지 말 것.
                     return Conversation == null ? null : Conversation.key;
                 });
 
@@ -294,34 +295,45 @@ namespace OcDialogue.Editor
                 _lastViewConversation[_currentCategory] = targetConvList.IndexOf(Conversation);
                 if(GraphView != null && rootVisualElement.Contains(GraphView)) rootVisualElement.Remove(GraphView);
                 GraphView = new DialogueGraphView(Conversation);
+                GraphView.OnChanged += OnGraphViewChanged;
                 rootVisualElement.Add(GraphView);
                 GraphView.StretchToParentSize();
                 GraphView.SendToBack();
                 
                 _edgeLabels.Clear();
-                
-                // create priority label
-                foreach (var balloon in Conversation.Balloons)
-                {
-                    if (balloon.linkedBalloons == null) continue;
-                    if(balloon.linkedBalloons.Count < 2) continue;
-                    for (int i = 0; i < balloon.linkedBalloons.Count; i++)
-                    {
-                        var inputNode = GraphView.FindNode(balloon.linkedBalloons[i]);
-                        var edge = GraphView.edges.First(x => x.input == inputNode.InputPort);
-                        var indexLabel = new Label(i.ToString());
-                        indexLabel.style.unityFontStyleAndWeight = new StyleEnum<FontStyle>(FontStyle.Bold);
-                        indexLabel.style.color = new Color(0.5f, 0.8f, 1f);
-                        indexLabel.style.position = new StyleEnum<Position>(Position.Absolute);
-
-                        edge.Add(indexLabel);
-                        _edgeLabels[edge] = indexLabel;
-                    }
-                }
+                RefreshPriorityLabel();
             }
             else
             {
                 if(GraphView != null && rootVisualElement.Contains(GraphView)) rootVisualElement.Remove(GraphView);
+            }
+        }
+
+        void RefreshPriorityLabel()
+        {
+            foreach (var edgeLabel in _edgeLabels)
+            {
+                edgeLabel.Key.Remove(edgeLabel.Value);
+                
+            }
+
+            _edgeLabels.Clear();
+            foreach (var balloon in Conversation.Balloons)
+            {
+                if (balloon.linkedBalloons == null) continue;
+                if(balloon.linkedBalloons.Count < 2) continue;
+                for (int i = 0; i < balloon.linkedBalloons.Count; i++)
+                {
+                    var inputNode = GraphView.FindNode(balloon.linkedBalloons[i]);
+                    var edge = GraphView.edges.First(x => x.input == inputNode.InputPort);
+                    var label = new Label(i.ToString());
+                    label.style.unityFontStyleAndWeight = new StyleEnum<FontStyle>(FontStyle.Bold);
+                    label.style.color = new Color(0.5f, 0.8f, 1f);
+                    label.style.position = new StyleEnum<Position>(Position.Absolute);
+
+                    edge.Add(label);
+                    _edgeLabels[edge] = label;
+                }
             }
         }
 
@@ -346,6 +358,23 @@ namespace OcDialogue.Editor
             GenerateConversationToolbar(0);
         }
 
+        void OnGraphViewChanged(DialogueGraphViewChange change)
+        {
+            if (change.built_in.elementsToRemove != null)
+            {
+                RefreshPriorityLabel();
+            }
+
+            if (change.built_in.elementsToRemove != null)
+            {
+                RefreshPriorityLabel();
+            }
+
+            if (change.createdNode != null)
+            {
+                RefreshPriorityLabel();
+            }
+        }
         public void ForceRepaint()
         {
             // rootVisualElement.Clear();

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using OcDialogue.DB;
 using OcUtility;
 using Sirenix.OdinInspector;
@@ -15,7 +16,7 @@ using UnityEngine.Timeline;
 
 namespace OcDialogue
 {
-    public class Balloon : ScriptableObject
+    public class Balloon : ScriptableObject, IOcDataSelectable
     {
         public enum Type
         {
@@ -30,6 +31,26 @@ namespace OcDialogue
             Disable,
             Hide
         }
+
+        public enum ActionType
+        {
+            None,
+            SubEntry
+        }
+
+        public enum SubEntryDataType
+        {
+            String,
+            OcData
+        }
+        public OcData TargetData
+        {
+            get => subEntryTriggerData;
+            set => subEntryTriggerData = value;
+        }
+
+        public string Detail { get; }
+        
         [ReadOnly] public string GUID;
         [ReadOnly] public Type type;
 
@@ -85,13 +106,26 @@ namespace OcDialogue
         [InfoBox("이미지가 없음", InfoMessageType.Error, "@displayTargetImage == null")]
         [InlineButton("QueryImageFromPreviousBalloon", "앞에꺼 사용")]
         [ShowIf("useImage")] 
-        public Texture2D displayTargetImage;
+        public Sprite displayTargetImage;
         
         [Indent()][ShowIf("@useImage && imageViewerSize == ImageViewerSize.FloatingSize")] 
         public Vector2 imageSizeOverride;
+        
+        [TextArea]public string description;
+
+        [Indent()][ShowIf("type", Type.Action)]public ActionType actionType;
+        [Indent()][ShowIf("type", Type.Action)]public SubEntryDataType subEntryDataType;
+
+        [Indent(2)] [ShowIf("@type == Type.Action && subEntryDataType == SubEntryDataType.String")]
+        public string subEntryTrigger;
+
+        [Indent(2)] [ShowIf("@type == Type.Action && subEntryDataType == SubEntryDataType.OcData")][InlineButton("OpenDataSelectWindow", "선택")]
+        public OcData subEntryTriggerData;
+
+        
+        public void OnDataApplied() { }
 
 #if UNITY_EDITOR
-        [TextArea]public string description;
 
         /// <summary> actor필드에서 NPC이름을 드롭다운으로 보여주기위한 리스트를 반환함. (Odin Inspector용) </summary>
         ValueDropdownList<OcNPC> GetNPCList() => DialogueAsset.Instance.GetNPCDropDown();
@@ -130,11 +164,11 @@ namespace OcDialogue
             switch (imageViewerSize)
             {
                 case ImageViewerSize.FullSize:
-                    if (displayTargetImage.height < 800 || displayTargetImage.width < 1000) return true;
-                    if (displayTargetImage.height > displayTargetImage.width * 0.7f) return true;
+                    if (displayTargetImage.bounds.size.y < 800 || displayTargetImage.bounds.size.x < 1000) return true;
+                    if (displayTargetImage.bounds.size.y > displayTargetImage.bounds.size.x * 0.7f) return true;
                     break;
                 case ImageViewerSize.FloatingSize:
-                    if (displayTargetImage.height >= 1080 || displayTargetImage.width >= 1920) return true;
+                    if (displayTargetImage.bounds.size.y >= 1080 || displayTargetImage.bounds.size.x >= 1920) return true;
                     break;
             }
 
@@ -218,7 +252,11 @@ namespace OcDialogue
         {
             text += $"<sprite=\"{spriteAsset.name}\" name=\"{sprite.name}\">";
         }
-#endif
 
+        void OpenDataSelectWindow()
+        {
+            DataSelectWindow.Open(this, null);
+        }
+#endif
     }
 }

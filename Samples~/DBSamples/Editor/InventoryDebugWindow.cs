@@ -204,7 +204,8 @@ namespace MyDB.Editor
                 return ac switch
                 {
                     AccessoryType.Amulet => new Color(0.6f, 0.7f, 0.5f),
-                    AccessoryType.Other => new Color(0.5f, 0.5f, 0.5f)
+                    AccessoryType.Other => new Color(0.5f, 0.5f, 0.5f),
+                    _ => Color.gray
                 };
             }
 

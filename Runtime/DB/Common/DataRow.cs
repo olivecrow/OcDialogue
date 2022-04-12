@@ -57,7 +57,7 @@ namespace OcDialogue.DB
             set => _runtimeValue = value;
         }
         public event Action<DataRow> OnRuntimeValueChanged;
-        [ShowInInspector, TableColumnWidth(150, false), PropertyOrder(-1)][DelayedProperty]
+        [ShowInInspector, TableColumnWidth(250, false), PropertyOrder(-1)][DelayedProperty][InlineButton("Ping", "O")]
         public string Name
         {
             get => name;
@@ -78,9 +78,9 @@ namespace OcDialogue.DB
         [DisableIf("@UnityEditor.EditorApplication.isPlaying")]
         [TableColumnWidth(110, false)]
         PrimitiveValue _editorPresetValue;
-
-        [PropertyOrder(10)] public string description;
+        
 #endif
+        [PropertyOrder(10)] public string description;
         public object TargetValue
         {
             get
@@ -297,6 +297,10 @@ namespace OcDialogue.DB
             }
 
             (parent as IDataRowUser).DataRowContainer.DeleteRow(name);
+        }
+        void Ping()
+        {
+            EditorGUIUtility.PingObject(this);
         }
         internal void LoadFromEditorPreset()
         {

@@ -38,9 +38,35 @@ namespace OcDialogue
 
         public ValueDropdownList<OcNPC> GetNPCDropDown()
         {
-            if (_dialogueActorDB == null) return null;
+            if (DialogueNPCDB == null) return null;
 
-            return _dialogueActorDB.GetOdinDropDown();
+            return DialogueNPCDB.GetOdinDropDown();
+        }
+
+        public Balloon FindBalloon(string guid)
+        {
+            foreach (var conversation in Conversations)
+            {
+                foreach (var balloon in conversation.Balloons)
+                {
+                    if (string.CompareOrdinal(balloon.GUID, guid) == 0) return balloon;
+                }
+            }
+
+            return null;
+        }
+        
+        public Balloon FindBalloon(string category, string guid)
+        {
+            foreach (var conversation in Conversations.Where(x => string.CompareOrdinal(x.Category, category) == 0))
+            {
+                foreach (var balloon in conversation.Balloons)
+                {
+                    if (string.CompareOrdinal(balloon.GUID, guid) == 0) return balloon;
+                }
+            }
+
+            return null;
         }
 
 #if UNITY_EDITOR
@@ -91,7 +117,7 @@ namespace OcDialogue
         {
             foreach (var conversation in Conversations)
             {
-                var balloon = conversation.Balloons.Find(x => x.GUID == guid);
+                var balloon = conversation.Balloons.Find(x => string.CompareOrdinal(x.GUID, guid) == 0);
                 if (balloon == null) continue;
 
                 Selection.activeObject = balloon;

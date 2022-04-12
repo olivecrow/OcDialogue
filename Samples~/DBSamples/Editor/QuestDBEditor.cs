@@ -162,6 +162,7 @@ namespace MyDB.Editor
                 beforeQuestNode.Balloon.checker.factors[0].StringValue = QuestState.None.ToString();
                 beforeQuestNode.RefreshIcons();
                 beforeQuestNode.Balloon.text = "퀘스트 수락 전";
+                beforeQuestNode.Balloon.description = "퀘스트 수락 전";
                 
                 var acceptQuestNode = graphView.CreateBalloonAndNode(Balloon.Type.Dialogue, 
                     sourceRect.position + new Vector2(sourceRect.width * 2 + 200f, sourceRect.position.y - sourceRect.height));
@@ -178,6 +179,7 @@ namespace MyDB.Editor
                 acceptQuestNode.Balloon.setters[0].StringValue = QuestState.WorkingOn.ToString();
                 acceptQuestNode.RefreshIcons();
                 acceptQuestNode.Balloon.text = "퀘스트 수락";
+                acceptQuestNode.Balloon.description = "퀘스트 수락";
             
                 var workingOnQuestNode = graphView.CreateLinkedNode(selected, Balloon.Type.Dialogue);
                 workingOnQuestNode.Balloon.useChecker = true;
@@ -192,6 +194,7 @@ namespace MyDB.Editor
                 workingOnQuestNode.Balloon.checker.factors[1].BoolValue = false;
                 workingOnQuestNode.RefreshIcons();
                 workingOnQuestNode.Balloon.text = "퀘스트 진행중.";
+                workingOnQuestNode.Balloon.description = "퀘스트 진행중.";
             
                 var clearableQuestNode = graphView.CreateLinkedNode(selected, Balloon.Type.Dialogue);
                 clearableQuestNode.Balloon.useChecker = true;
@@ -206,6 +209,7 @@ namespace MyDB.Editor
                 clearableQuestNode.Balloon.checker.factors[1].BoolValue = true;
                 clearableQuestNode.RefreshIcons();
                 clearableQuestNode.Balloon.text = "퀘스트 진행중. 클리어 가능.";
+                clearableQuestNode.Balloon.description = "퀘스트 진행중. 클리어 가능.";
                 
                 
                 var clearQuestNode = graphView.CreateBalloonAndNode(Balloon.Type.Dialogue, 
@@ -223,6 +227,7 @@ namespace MyDB.Editor
                 clearQuestNode.Balloon.setters[0].StringValue = QuestState.Done.ToString();
                 clearQuestNode.RefreshIcons();
                 clearQuestNode.Balloon.text = "퀘스트 완료";
+                clearQuestNode.Balloon.description = "퀘스트 완료";
                 
             
                 var finishQuestNode = graphView.CreateLinkedNode(selected, Balloon.Type.Dialogue);
@@ -234,6 +239,7 @@ namespace MyDB.Editor
                 finishQuestNode.Balloon.checker.factors[0].StringValue = QuestState.Done.ToString();
                 finishQuestNode.RefreshIcons();
                 finishQuestNode.Balloon.text = "퀘스트 완료 후";
+                finishQuestNode.Balloon.description = "퀘스트 완료 후";
             };
         }
 
