@@ -13,9 +13,29 @@ namespace OcDialogue.Cutscene
 {
     public class CutsceneBehaviour : MonoBehaviour, IDialogueUser
     {
-        public static bool IsCutscenePlaying => _isCutscenePlaying;
-        public static bool IsCutscenePaused => _isCutscenePaused;
-        public static CutsceneBehaviour ActiveCutscene => _activeCutscene;
+        public static bool IsCutscenePlaying { get; private set; }
+
+        public static bool IsCutscenePaused { get; private set; }
+
+        public virtual bool IsSkipToEndAvailable
+        {
+            get
+            {
+                if (director.state != PlayState.Playing) return false;
+                if (!IsCutscenePlaying) return false;
+                if (ActiveCutscene.director.time > 10)
+                {
+                    if (director.time > director.duration - 3) return false;
+                }
+                else
+                {
+                    if (director.time > director.duration * 0.95) return false;
+                }
+
+                return true;
+            }
+        }
+        public static CutsceneBehaviour ActiveCutscene { get; protected set; }
         public static event Action<CutsceneBehaviour> OnCutsceneStart;
         public static event Action<CutsceneBehaviour> OnCutsceneEnd;
         
@@ -23,13 +43,9 @@ namespace OcDialogue.Cutscene
         public static event Action<DialogueClipBehaviour> OnClipFadeOut;
         public static event Action<DialogueClipBehaviour> OnClipEnd;
 
-        static bool _isCutscenePlaying;
-        static bool _isCutscenePaused;
-        static CutsceneBehaviour _activeCutscene;
-
         public string DialogueSceneName => dialogueSceneName;
         public SignalReceiver SignalReceiver => signalReceiver;
-        public Conversation Conversation => _dialogueTrack.Conversation;
+        public Conversation Conversation => DialogueTrack.Conversation;
         [FoldoutGroup("Dialogue")]public string dialogueSceneName = "Dialogue UI";
         [FoldoutGroup("Dialogue")][Range(0.5f, 0.99f)]public double autoPauseNormalizedTime = 0.95;
         [FoldoutGroup("Dialogue")][Range(0, 5)]public double balloonFadeOutDuration = 1;
@@ -42,134 +58,122 @@ namespace OcDialogue.Cutscene
         [FoldoutGroup("OnPlay")] public UnityEvent OnPlay;
         [FoldoutGroup("OnEnd")] public UnityEvent OnEnd;
 
-        public DialogueTrack DialogueTrack => _dialogueTrack;
-        DialogueTrack _dialogueTrack;
+        public DialogueTrack DialogueTrack { get; private set; }
+
         protected virtual void Awake()
         {
             OnAwake?.Invoke();
             
-            _dialogueTrack = director.playableAsset.outputs
+            DialogueTrack = director.playableAsset.outputs
                 .FirstOrDefault(x => x.outputTargetType == typeof(Conversation))
                 .sourceObject as DialogueTrack;
-            _dialogueTrack?.Init(this,
+            DialogueTrack?.Init(this,
                 dialogueClipBehaviour => OnClipStart?.Invoke(dialogueClipBehaviour), 
                 dialogueClipBehaviour => OnClipFadeOut?.Invoke(dialogueClipBehaviour), 
                 dialogueClipBehaviour => OnClipEnd?.Invoke(dialogueClipBehaviour));
 
             director.stopped += playableDirector => InternalEnd();
         }
-
-        void InternalEnd()
-        {
-            PreEnd();
-            if(_dialogueTrack != null)_dialogueTrack.Release();
-            OnEnd.Invoke();
-            _isCutscenePlaying = false;
-            _isCutscenePaused = false;
-            _activeCutscene = null;
-            PostEnd();
-        }
-
+        
 
         [EnableIf("@EditorApplication.isPlaying")][Button]
         public void Play()
         {
+            if (IsCutscenePlaying)
+            {
+                if(ActiveCutscene != null) 
+                    Debug.LogWarning($"이미 재생중인 컷씬이 있음 : {ActiveCutscene.name} |=> return");
+                else 
+                    Debug.LogWarning($"현재 재생중인 컷씬은 없으나 isCutscenePlaying == true 상태임. |=> return");
+                
+                return;
+            }
             PrePlay();
-            _isCutscenePlaying = true;
-            _activeCutscene = this;
+            IsCutscenePlaying = true;
+            ActiveCutscene = this;
             director.Play();
             OnPlay.Invoke();
             OnCutsceneStart?.Invoke(this);
             PostPlay();
         }
 
-        public static void Pause()
+        public void Pause()
         {
-            if (ActiveCutscene == null)
-            {
-                Printer.Print($"현재 재생중인 컷씬이 없음", LogType.Warning);
-                return;
-            }
+            if(!IsCutscenePlaying) return;
             // ActiveCutscene.director.Pause() 말고 Speed 를 0으로 해서 쓰기.
-            ActiveCutscene.director.playableGraph.GetRootPlayable(0).SetSpeed(0);
-            _isCutscenePaused = true;
+            director.playableGraph.GetRootPlayable(0).SetSpeed(0);
+            IsCutscenePaused = true;
         }
 
-        public static void Resume()
+        public void Resume()
         {
-            if (ActiveCutscene == null)
-            {
-                Printer.Print($"현재 재생중인 컷씬이 없음", LogType.Warning);
-                return;
-            }
+            if(!IsCutscenePlaying) return;
             // ActiveCutscene.director.Resume() 말고 Speed를 1로 해서 쓰기.
-            ActiveCutscene.director.playableGraph.GetRootPlayable(0).SetSpeed(1);
-            _isCutscenePaused = false;
+            director.playableGraph.GetRootPlayable(0).SetSpeed(1);
+            IsCutscenePaused = false;
         }
 
-        public static void SkipToNextClip()
+        [Button]
+        public void SkipToNextClip()
         {
-            if (ActiveCutscene == null)
-            {
-                Debug.Log($"현재 재생중인 컷씬이 없음");
-                return;
-            }
-            if(ActiveCutscene.DialogueTrack == null)
+            if(DialogueTrack == null)
             {
                 Debug.Log($"현재 컷씬에는 DialogueClip이 없음");
                 return;
             }
 
-            var currentClipIndex = ActiveCutscene.DialogueTrack.GetCurrentClipIndex();
+            var currentClipIndex = DialogueTrack.GetCurrentClipIndex();
 
-            if (currentClipIndex + 1 > ActiveCutscene.DialogueTrack.ClipCount - 1)
+            if (currentClipIndex + 1 > DialogueTrack.ClipCount - 1)
             {
                 return;
             }
             else
             {
-                ActiveCutscene.director.time = ActiveCutscene.DialogueTrack.GetClipStartTime(currentClipIndex + 1);
+                director.time = DialogueTrack.GetClipStartTime(currentClipIndex + 1);
                 Resume();
             }
         }
 
         [Button]
-        public static void Skip()
+        public void SkipToEnd()
         {
-            if (ActiveCutscene == null)
-            {
-                Debug.Log($"현재 재생중인 컷씬이 없음");
-                return;
-            }
+            if(!IsSkipToEndAvailable) return;
 
-            if (ActiveCutscene.director.time > 10)
+            if (director.time > 10)
             {
-                if(ActiveCutscene.director.time > ActiveCutscene.director.duration - 3) return;
-                ActiveCutscene.director.time = ActiveCutscene.director.duration - 3;
+                director.time = director.duration - 3;
             }
             else
             {
-                if(ActiveCutscene.director.time > ActiveCutscene.director.duration * 0.95) return;
-                ActiveCutscene.director.time = ActiveCutscene.director.duration * 0.95;
+                director.time = director.duration * 0.95;
             }
             
         }
 
         [Button]
-        public static void Stop()
+        public void Stop()
         {
-            if (ActiveCutscene == null)
-            {
-                Printer.Print($"현재 재생중인 컷씬이 없음", LogType.Warning);
-                return;
-            }
-            ActiveCutscene.director.Stop();
+            director.Stop();
         }
 
         protected virtual void PrePlay(){}
         protected virtual void PostPlay(){}
         protected virtual void PreEnd(){}
         protected virtual void PostEnd(){}
+        
+        void InternalEnd()
+        {
+            PreEnd();
+            if(DialogueTrack != null)DialogueTrack.Release();
+            OnEnd.Invoke();
+            IsCutscenePlaying = false;
+            IsCutscenePaused = false;
+            if(ActiveCutscene == this) ActiveCutscene = null;
+            OnCutsceneEnd?.Invoke(this);
+            PostEnd();
+        }
+
 
 #if UNITY_EDITOR
         [UnityEditor.InitializeOnLoadMethod]
@@ -186,8 +190,8 @@ namespace OcDialogue.Cutscene
             OnClipStart = null;
             OnClipFadeOut = null;
             OnClipEnd = null;
-            _isCutscenePlaying = false;
-            _activeCutscene = null;
+            IsCutscenePlaying = false;
+            ActiveCutscene = null;
             
 
             Application.quitting -= Release;
@@ -201,10 +205,10 @@ namespace OcDialogue.Cutscene
         bool IsSignalReceiverRequired()
         {
             if (director == null) return false;
-            if(_dialogueTrack == null) _dialogueTrack = director.playableAsset.outputs
+            if(DialogueTrack == null) DialogueTrack = director.playableAsset.outputs
                 .FirstOrDefault(x => x.outputTargetType == typeof(Conversation))
                 .sourceObject as DialogueTrack;
-            if (_dialogueTrack == null) return false;
+            if (DialogueTrack == null) return false;
             if (Conversation == null) return false;
             if (signalReceiver != null) return false;
             foreach (var balloon in Conversation.Balloons)

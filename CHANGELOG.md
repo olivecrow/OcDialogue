@@ -3,6 +3,14 @@
 
 // TODO : ExportWizard 새로 만들기
 
+### [2.3.2] -2022-04-13
+- Cutscene
+  - InternalEnd에서 OnCutsceneEnd에 대한 이벤트가 호출되지 않던 문제 해결.
+  - 불필요하게 static으로 선언된 메서드를 일반 메서드로 변경.
+  - auto-setter로 변환 가능한 프로퍼티 정리.
+  - Skip 메서드와 SkipToNextClip 메서드의 혼란을 피하기 위해 Skip -> SkipToEnd로 변경
+  - IsSkipToEndAvailable 프로퍼티 추가. 상속받아서 사용할 경우, 오버라이드 해서 변경할 수 있음.
+
 ### [2.3.1] -2022-04-12
 - Cutscene
   - CutsceneBehaviour의 InternalEnd에 있던 DialogueTrack관련 Null 오류 해결

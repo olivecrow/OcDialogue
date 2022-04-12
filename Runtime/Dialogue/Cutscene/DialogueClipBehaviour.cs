@@ -74,7 +74,7 @@ namespace OcDialogue.Cutscene
                     // 일시정지가 이뤄지는 대화에선 마지막에 도달할때 즈음에 일시정지함.
                     if(NormalizedTime >= Cutscene.autoPauseNormalizedTime)
                     {
-                        CutsceneBehaviour.Pause();
+                        Cutscene.Pause();
                     }
                 }
                 else
