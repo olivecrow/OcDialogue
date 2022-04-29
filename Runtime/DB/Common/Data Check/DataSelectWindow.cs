@@ -136,6 +136,7 @@ namespace OcDialogue.DB
         }
         [ValueDropdown(nameof(GetCategory))]public string Category;
         [EnumToggleButtons]public DataSelectionType dataSelectionType;
+        public string filter;
 
         [ValueDropdown(nameof(GetData))][OnValueChanged(nameof(UpdateDataContainer))]
         [SerializeField]
@@ -175,7 +176,10 @@ namespace OcDialogue.DB
             var list = new ValueDropdownList<OcData>();
             foreach (var data in _DB.AllData)
             {
-                if(data.Address.Contains(Category)) list.Add(data);
+                if (!string.IsNullOrWhiteSpace(filter) && !data.TotalAddress.Contains(filter)) continue;
+                if(!data.Address.Contains(Category)) continue;
+                
+                list.Add(data);
             }
 
             return list;

@@ -3,6 +3,24 @@
 
 // TODO : ExportWizard 새로 만들기
 
+### [2.3.3] -2022-04-29
+- DialogueEditor
+  - 노드의 복사, 붙여넣기에 대한 안정성 증가 및 잘못된 LinkedBalloons 리스트가 포함되던 문제 해결
+  - DialogueAsset에 Conversation이 포함되지 않던 문제 해결.
+  - 최대 줌을 1.5로 늘림.
+
+- DB
+  - DataRowContainer에 Hierarchical Data 추가.
+    - bool 타입의 DataRow만 해당됨
+    - key는 단순히 에디터상에서 구분하기 쉽게 만든거고, 기능은 없음.
+  - DataRow Type에 Vector타입 추가. Vector4까지 저장 가능.
+
+- CutsceneBehaviour
+  - 일부 null 체크가 필요한 곳에 null 체크 추가.
+
+- Test
+  - DialogueAsset에 null인 Conversaion이 포함되었는지 확인하는 테스트 추가.
+
 ### [2.3.2] -2022-04-13
 - Cutscene
   - InternalEnd에서 OnCutsceneEnd에 대한 이벤트가 호출되지 않던 문제 해결.

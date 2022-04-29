@@ -65,7 +65,19 @@ namespace OcDialogue
                 _ => false
             };
         }
-
+        public static bool IsTrue(this Vector4 source, CheckFactor.Operator op, Vector4 value)
+        {
+            return op switch
+            {
+                CheckFactor.Operator.Equal        => source == value,
+                CheckFactor.Operator.NotEqual     => source != value,
+                CheckFactor.Operator.Greater      => source.sqrMagnitude >  value.sqrMagnitude,
+                CheckFactor.Operator.GreaterEqual => source.sqrMagnitude >= value.sqrMagnitude,
+                CheckFactor.Operator.Less         => source.sqrMagnitude <  value.sqrMagnitude,
+                CheckFactor.Operator.LessEqual    => source.sqrMagnitude <= value.sqrMagnitude,
+                _ => false
+            };
+        }
         /// <summary> DataRow의 Type인 기본타입에서 비교용 enum인 CompareFactor에 대응돠는 값을 반환함. </summary>
         // public static CompareFactor ToCompareFactor(this DataRow.Type type)
         // {

@@ -19,6 +19,11 @@ namespace OcDialogue.DB
         public OcData Parent;
         [TableList(AlwaysExpanded = true, NumberOfItemsPerPage = 50, ShowPaging = true, DrawScrollView = false)]
         public List<DataRow> DataRows;
+
+        [InfoBox("한 데이터가 true가 될때, 상위 인덱스를 전부 true로 만드는 기능\n" +
+                 "예를 들어 [0] stage1_clear, [1] stage2_clear 라는 데이터가 있을 경우, \n" +
+                 "stage2_clear가 true가 되면 0번의 stage1_clear는 자동으로 true가 됨")]
+        public OcDictionary<string, List<DataRow>> HierarchicalData;
         public event Action<DataRow> OnRuntimeValueChanged; 
         public void GenerateRuntimeData()
         {
@@ -28,6 +33,11 @@ namespace OcDialogue.DB
                 dataRow.OnRuntimeValueChanged += OnRuntimeValueChanged;
             }
 
+            foreach (var kv in HierarchicalData)
+            {
+                var list = kv.Value;
+                foreach (var data in list) data.OnRuntimeValueChanged += UpdateHierarchicalData;
+            }
 #if UNITY_EDITOR
             Application.quitting += () => OnRuntimeValueChanged = null;      
 #endif
@@ -106,6 +116,24 @@ namespace OcDialogue.DB
         public DataRow Get(string key)
         {
             return DataRows.FirstOrDefault(x => string.CompareOrdinal(x.Name, key) == 0);
+        }
+
+        void UpdateHierarchicalData(DataRow dataRow)
+        {
+            var targetList = HierarchicalData.FirstOrDefault(x => x.Value.Contains(dataRow));
+            if (targetList == null)
+            {
+                Debug.LogWarning($"해당 DataRow가 포함된 HierarchicalData를 찾을 수 없음 | DataRow : {dataRow.name}");
+                return;
+            }
+
+            var index = targetList.Value.IndexOf(dataRow);
+            var validData = targetList.Value.Take(index);
+            foreach (var data in validData)
+            {
+                Debug.Log($"[DataRowContainer] Update Hierarchical Data) {data.name} => true");
+                data.SetValue(true);
+            }
         }
         
         #if UNITY_EDITOR

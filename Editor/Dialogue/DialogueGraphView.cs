@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Xml.Serialization;
 using OcDialogue.DB;
@@ -35,6 +36,7 @@ namespace OcDialogue.Editor
 
         Vector2 _lastMousePosition;
         readonly Vector2 DefaultNodeSize = new Vector2(160, 200);
+        List<Balloon> _copyBuffer;
         public DialogueGraphView(Conversation conversation)
         {
             // Debug.Log("[GraphView] New Instanciated");
@@ -43,6 +45,7 @@ namespace OcDialogue.Editor
             CheckBalloons();
             DrawNodesAndEdges();
             RegisterCallback<ExecuteCommandEvent>(new EventCallback<ExecuteCommandEvent>(this.OnExecuteCommand));
+            _copyBuffer = new List<Balloon>();
         }
 
         /// <summary> 배경이나 줌 상태 등, 개괄적인 것을 초기화함. </summary>
@@ -465,54 +468,135 @@ namespace OcDialogue.Editor
 
         void CopyCallback()
         {
-            var selected = selection.FindAll(x => x is DialogueNode d && d.Balloon.type != Balloon.Type.Entry);
+            _copyBuffer.Clear();
+            var selected = selection
+                .FindAll(x => x is DialogueNode d && d.Balloon.type != Balloon.Type.Entry)
+                .Cast<DialogueNode>()
+                .ToList();
+
+            var guidMatch = new Dictionary<string, string>();
             
-            var sb = new StringBuilder();
             for (int i = 0; i < selected.Count; i++)
             {
-                var node = selected[i] as DialogueNode;
-                sb.Append(node.Balloon.GUID);
-                if (i < selected.Count - 1) sb.Append("%%");
+                var copy = ScriptableObject.CreateInstance<Balloon>();
+                EditorUtility.CopySerialized(selected[i].Balloon, copy);
+                var newGUID = Guid.NewGuid().ToString();
+                copy.GUID = newGUID;
+                guidMatch[selected[i].Balloon.GUID] = newGUID;
+                _copyBuffer.Add(copy);
+            }
+
+            try
+            {
+                foreach (var balloon in _copyBuffer)
+                {
+                    if (balloon.linkedBalloons.Count == 0) continue;
+                    var newLinked = new List<Balloon>();
+                    foreach (var linkedBalloon in balloon.linkedBalloons)
+                    {
+                        var newLinkedBalloon = _copyBuffer.First(x => x.GUID == guidMatch[linkedBalloon.GUID]);
+                        newLinked.Add(newLinkedBalloon);
+                    }
+
+                    balloon.linkedBalloons = newLinked;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                _copyBuffer.Clear();
+                throw;
             }
             
-            EditorGUIUtility.systemCopyBuffer = sb.ToString();
         }
 
         new void PasteCallback()
         {
-            var str = EditorGUIUtility.systemCopyBuffer;
-                
-            var split = str.Split("%%");
-            Balloon firstOriginal = null;
-            List<DialogueNode> created = new List<DialogueNode>();
-            for (int i = 0; i < split.Length; i++)
-            {
-                var guid = split[i];
-                    
-                var original = Conversation.FindBalloon(guid);
-                if(original == null)
-                {
-                    original = DialogueAsset.Instance.FindBalloon(guid);
-                    if(original == null) return;
-                }
-                if (i == 0) firstOriginal = original;
-                    
-                var offset = original.position - firstOriginal.position;
-                var position = _lastMousePosition + offset;
-                var node = CreateBalloonAndNode(original.type, position);
-                var newGUID = node.Balloon.GUID;
-                        
-                EditorUtility.CopySerialized(original, node.Balloon);
-                node.Balloon.name = newGUID;
-                node.Balloon.GUID = newGUID;
-                node.Balloon.position = position;
-                created.Add(node);
-            }
+            if(_copyBuffer.Count == 0) return;
+            
+            var firstOriginal = _copyBuffer[0];
+            var created = new List<DialogueNode>();
+            var guidMatch = new Dictionary<string, string>();
 
-            foreach (var node in created)
+            Undo.RecordObject(Conversation, "다이얼로그 에디터 Paste");
+            try
             {
-                if(node.Balloon.linkedBalloons.Count == 0) continue;
-                
+                for (int i = 0; i < _copyBuffer.Count; i++)
+                {
+                    var copy = ScriptableObject.CreateInstance<Balloon>();
+                    // copyBuffer에 있는 인스턴스를 템플릿으로 사용해서 복사함.
+                    EditorUtility.CopySerialized(_copyBuffer[i], copy);
+
+                    var offset = copy.position - firstOriginal.position;
+                    var position = _lastMousePosition + offset;
+                    var node = CreateNode(copy, position);
+                    var newGUID = Guid.NewGuid().ToString();
+
+                    node.Balloon.name = newGUID;
+                    node.Balloon.GUID = newGUID;
+                    
+                    created.Add(node);
+                    guidMatch[_copyBuffer[i].GUID] = newGUID;
+                }
+
+                foreach (var node in created)
+                {
+                    Conversation.Balloons.Add(node.Balloon);
+                    AssetDatabase.AddObjectToAsset(node.Balloon, Conversation);
+                }
+            }
+            catch (Exception e)
+            {
+                // 도중에 에러가 발생할 경우, Conversation에 추가된 balloon을 삭제하고, GraphView에서도 삭제함
+                Console.WriteLine(e);
+
+                foreach (var node in created)
+                {
+                    Conversation.RemoveBalloon(node.Balloon);
+                    if(Contains(node))RemoveElement(node);
+                }
+                Undo.ClearUndo(Conversation);
+                throw;
+            }
+            
+            var newLinkData = new List<LinkData>();
+
+            try
+            {
+                foreach (var node in created)
+                {
+                    if(node.Balloon.linkedBalloons.Count == 0) continue;
+
+                    var newLinked = new List<Balloon>();
+                    foreach (var linkedBalloon in node.Balloon.linkedBalloons)
+                    {
+                        var newLinkedBalloon = created.Select(x => x.Balloon).First(x => x.GUID == guidMatch[linkedBalloon.GUID]);
+                    
+                        newLinked.Add(newLinkedBalloon);
+                        var linkData = new LinkData(node.Balloon.GUID, newLinkedBalloon.GUID);
+                        newLinkData.Add(linkData);
+                        AddEdge(linkData);
+                    }
+
+                    node.Balloon.linkedBalloons = newLinked;
+                }
+
+
+                foreach (var linkData in newLinkData)
+                {
+                    Conversation.LinkData.Add(linkData);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                foreach (var node in created)
+                {
+                    Conversation.RemoveBalloon(node.Balloon);
+                    if(Contains(node))RemoveElement(node);
+                }
+                Undo.ClearUndo(Conversation);
+                throw;
             }
             
             ClearSelection();
@@ -520,7 +604,6 @@ namespace OcDialogue.Editor
             {
                 AddToSelection(node);   
             }
-            
         }
     }
 }

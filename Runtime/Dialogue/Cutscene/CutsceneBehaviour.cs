@@ -67,7 +67,7 @@ namespace OcDialogue.Cutscene
             DialogueTrack = director.playableAsset.outputs
                 .FirstOrDefault(x => x.outputTargetType == typeof(Conversation))
                 .sourceObject as DialogueTrack;
-            DialogueTrack?.Init(this,
+            if(DialogueTrack != null) DialogueTrack.Init(this,
                 dialogueClipBehaviour => OnClipStart?.Invoke(dialogueClipBehaviour), 
                 dialogueClipBehaviour => OnClipFadeOut?.Invoke(dialogueClipBehaviour), 
                 dialogueClipBehaviour => OnClipEnd?.Invoke(dialogueClipBehaviour));
@@ -205,6 +205,10 @@ namespace OcDialogue.Cutscene
         bool IsSignalReceiverRequired()
         {
             if (director == null) return false;
+            if (director.playableAsset == null) return false;
+            if (director.playableAsset.outputs == null) return false;
+            if (director.playableAsset.outputs.All(x => x.outputTargetType != typeof(Conversation))) return false;
+            
             if(DialogueTrack == null) DialogueTrack = director.playableAsset.outputs
                 .FirstOrDefault(x => x.outputTargetType == typeof(Conversation))
                 .sourceObject as DialogueTrack;

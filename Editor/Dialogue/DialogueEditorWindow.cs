@@ -70,19 +70,10 @@ namespace OcDialogue.Editor
                 return;
             }
             DialogueEditorWindow wnd = null;
-            try
-            {
-                wnd = GetWindow<DialogueEditorWindow>(false, "다이얼로그 에디터", true);
+            wnd = GetWindow<DialogueEditorWindow>(false, "다이얼로그 에디터", true);
             
-                wnd.Show();
-                wnd.minSize = new Vector2(720, 480);
-            }
-            catch (Exception e)
-            {
-                if(wnd != null)wnd.Close();
-                Console.WriteLine(e);
-                throw;
-            }
+            wnd.Show();
+            wnd.minSize = new Vector2(720, 480);
 
         }
         
@@ -172,6 +163,19 @@ namespace OcDialogue.Editor
             }
         }
         void CreateGUI()
+        {
+            try
+            {
+                GUI();
+            }
+            catch (Exception e)
+            {
+                Close();
+                throw;
+            }
+        }
+
+        void GUI()
         {
             if (Asset == null)
             {

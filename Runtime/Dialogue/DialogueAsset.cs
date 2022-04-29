@@ -72,6 +72,7 @@ namespace OcDialogue
 #if UNITY_EDITOR
         public Conversation AddConversation(int categoryIndex)
         {
+            Undo.RecordObject(this, "Add Conversation");
             var conv = CreateInstance<Conversation>();
             conv.key = OcDataUtility.CalculateDataName("New Conversation", Conversations.Select(x => x.key));
             conv.name = conv.key;
@@ -102,6 +103,7 @@ namespace OcDialogue
             if (!EditorUtility.DisplayDialog("!!! 다시 한 번 확인 !!!!",
                 "정말 이 에셋의 대화를 모두 삭제할거임? 에셋은 휴지통에도 안 남는다!!!!!", "삭제", "취소")) return;
             
+            Undo.RecordObject(this, "Remove All Conversation");
             var count = Conversations.Count;
             for (int i = 0; i < count; i++)
             {
@@ -114,6 +116,7 @@ namespace OcDialogue
 
         public void RemoveConversation(Conversation conv)
         {
+            Undo.RecordObject(this, "Remove Conversation");
             Conversations.Remove(conv);
             AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(conv));
         }

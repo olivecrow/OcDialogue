@@ -5,6 +5,7 @@ using System.Linq;
 using OcUtility;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Search;
 
 namespace OcDialogue.DB
 {

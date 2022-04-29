@@ -33,6 +33,25 @@ public class DialogueDBTest
     }
 
     [Test]
+    public void EmptyConversationTest()
+    {
+        Debug.Log($"DialogueAsset.Conversations에 null이 포함되어있는지 테스트 시작...");
+        if(DialogueAsset.Instance == null)
+        {
+            Debug.LogWarning($"DialogueAsset의 인스턴스 자체가 없음!");
+            return;
+        }
+
+        for (int i = 0; i < DialogueAsset.Instance.Conversations.Count; i++)
+        {
+            if(DialogueAsset.Instance.Conversations[i] != null) continue;
+            Debug.LogError($"{i} 번째 요소가 null 상태임");
+        }
+
+        Debug.Log($"-DialogueAsset.Conversations의 null 테스트 종료...");
+    }
+
+    [Test]
     public void EmptySubtitleTest()
     {
         Debug.Log($"Balloon에 대한 빈 말풍선 테스트 시작...");

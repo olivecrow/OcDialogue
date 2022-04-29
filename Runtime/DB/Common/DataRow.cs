@@ -94,6 +94,7 @@ namespace OcDialogue.DB
                         DataRowType.Int => _initialValue.IntValue,
                         DataRowType.Float => _initialValue.FloatValue,
                         DataRowType.String => _initialValue.StringValue,
+                        DataRowType.Vector => _initialValue.VectorValue,
                         _ => throw new ArgumentOutOfRangeException()
                     };              
                 }
@@ -104,6 +105,7 @@ namespace OcDialogue.DB
                     DataRowType.Int => _runtimeValue.IntValue,
                     DataRowType.Float => _runtimeValue.FloatValue,
                     DataRowType.String => _runtimeValue.StringValue,
+                    DataRowType.Vector => _runtimeValue.VectorValue,
                     _ => _runtimeValue.BoolValue
                 };
             }
@@ -135,20 +137,24 @@ namespace OcDialogue.DB
             switch (type)
             {
                 case DataRowType.Bool:
-                    if(!(value is bool b)) return;
+                    if(value is not bool b) return;
                     SetValue(b);
                     break;
                 case DataRowType.Int:
-                    if(!(value is int i)) return;
+                    if(value is not int i) return;
                     SetValue(i);
                     break;
                 case DataRowType.Float:
-                    if(!(value is float f)) return;
+                    if(value is not float f) return;
                     SetValue(f);
                     break;
                 case DataRowType.String:
-                    if(!(value is string s)) return;
+                    if(value is not string s) return;
                     SetValue(s);
+                    break;
+                case DataRowType.Vector:
+                    if(value is not Vector4 v) return;
+                    SetValue(v);
                     break;
             }
         }
@@ -218,6 +224,46 @@ namespace OcDialogue.DB
             if(!withoutNotify && isNew) OnRuntimeValueChanged?.Invoke(this);
         }
 
+        public void SetValue(Vector2 value, DataSetter.Operator op = DataSetter.Operator.Set, bool withoutNotify = false)
+        {
+            SetValue((Vector4)value, op, withoutNotify);
+        }
+        public void SetValue(Vector3 value, DataSetter.Operator op = DataSetter.Operator.Set, bool withoutNotify = false)
+        {
+            SetValue((Vector4)value, op, withoutNotify);
+        }
+        public void SetValue(Color value, DataSetter.Operator op = DataSetter.Operator.Set, bool withoutNotify = false)
+        {
+            SetValue((Vector4)value, op, withoutNotify);
+        }
+        public void SetValue(Quaternion value, DataSetter.Operator op = DataSetter.Operator.Set, bool withoutNotify = false)
+        {
+            SetValue(value.eulerAngles, op, withoutNotify);
+        }
+        
+        /// <summary> 런타임 Vector 값을 변경함. </summary>
+        public void SetValue(Vector4 value, DataSetter.Operator op = DataSetter.Operator.Set, bool withoutNotify = false)
+        {
+            var result = op switch
+            {
+                DataSetter.Operator.Set => value,
+                DataSetter.Operator.Add => _runtimeValue.VectorValue + value,
+                DataSetter.Operator.Multiply => _runtimeValue.VectorValue.Multiply(value),
+                DataSetter.Operator.Divide => 
+                    new Vector4(
+                        _runtimeValue.VectorValue.x * value.x, 
+                        _runtimeValue.VectorValue.y * value.y,
+                        _runtimeValue.VectorValue.z * value.z,
+                        _runtimeValue.VectorValue.w * value.w
+                        ),
+                _ => throw new ArgumentOutOfRangeException(nameof(op), op, null)
+            };
+            
+            var isNew = _runtimeValue.VectorValue != result;
+            _runtimeValue.VectorValue = result;
+            if(!withoutNotify && isNew) OnRuntimeValueChanged?.Invoke(this);
+        }
+
         public bool IsTrue(CheckFactor.Operator op, object value)
         {
 #if UNITY_EDITOR
@@ -229,6 +275,7 @@ namespace OcDialogue.DB
                     DataRowType.Int => _editorPresetValue.IntValue.IsTrue(op, (int) value),
                     DataRowType.Float => _editorPresetValue.FloatValue.IsTrue(op, (float) value),
                     DataRowType.String => _editorPresetValue.StringValue.IsTrue(op, (string) value),
+                    DataRowType.Vector => _editorPresetValue.VectorValue.IsTrue(op, (Vector4)value),
                     _ => false
                 };
             }
@@ -239,6 +286,7 @@ namespace OcDialogue.DB
                 DataRowType.Int => _runtimeValue.IntValue.IsTrue(op, (int) value),
                 DataRowType.Float => _runtimeValue.FloatValue.IsTrue(op, (float) value),
                 DataRowType.String => _runtimeValue.StringValue.IsTrue(op, (string) value),
+                DataRowType.Vector => _runtimeValue.VectorValue.IsTrue(op, (Vector4)value),
                 _ => false
             };
         }
@@ -275,6 +323,34 @@ namespace OcDialogue.DB
                 case DataRowType.String:
                     SetValue(value.ToString(), op);
                     break;
+                case DataRowType.Vector:
+                    switch (value)
+                    {
+                        case Vector4 v4:
+                            SetValue(v4, op);
+                            break;
+                        case Vector3 v3:
+                            SetValue(v3, op);
+                            break;
+                        case Vector2 v2:
+                            SetValue(v2);
+                            break;
+                        case Color c:
+                            SetValue(c);
+                            break;
+                        case Quaternion q:
+                            SetValue(q);
+                            break;
+                        default:
+                        {
+                            Debug.LogError($"[DataRow] 유효하지 않은 데이터타입 | type : {value.GetType()}");
+                            return;
+                        }
+                    }
+                    
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
         public override DataRowType GetValueType(string fieldName) => Type;
@@ -311,6 +387,7 @@ namespace OcDialogue.DB
                 IntValue = _editorPresetValue.IntValue,
                 FloatValue = _editorPresetValue.FloatValue,
                 StringValue = _editorPresetValue.StringValue,
+                VectorValue = _editorPresetValue.VectorValue,
             };
         }
         internal void EditorPresetToDefault()
@@ -319,6 +396,7 @@ namespace OcDialogue.DB
             _editorPresetValue.IntValue    = _initialValue.IntValue;
             _editorPresetValue.FloatValue  = _initialValue.FloatValue;
             _editorPresetValue.StringValue = _initialValue.StringValue;
+            _editorPresetValue.VectorValue = _initialValue.VectorValue;
         }
 
         internal void RuntimeValueToEditorPresetValue()
@@ -327,6 +405,7 @@ namespace OcDialogue.DB
             _runtimeValue.IntValue    = _editorPresetValue.IntValue;
             _runtimeValue.FloatValue  = _editorPresetValue.FloatValue;
             _runtimeValue.StringValue = _editorPresetValue.StringValue;
+            _runtimeValue.VectorValue = _editorPresetValue.VectorValue;
         }
 #endif
     }
@@ -336,6 +415,7 @@ namespace OcDialogue.DB
         Bool,
         Int,
         Float,
-        String
+        String,
+        Vector
     }
 }

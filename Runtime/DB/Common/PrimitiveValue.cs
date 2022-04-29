@@ -19,5 +19,7 @@ namespace OcDialogue
         public float FloatValue;
         [ShowIf("Type", DataRowType.String), HideLabel] 
         public string StringValue;
+        [ShowIf("Type", DataRowType.Vector), HideLabel]
+        public Vector4 VectorValue;
     }
 }
