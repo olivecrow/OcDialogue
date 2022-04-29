@@ -2,12 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using OcDialogue.DB;
 using OcUtility;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities.Editor;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
-using UnityEditor.Localization.Plugins.XLIFF.V12;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -59,10 +59,31 @@ namespace OcDialogue.Editor
         [MenuItem("OcDialogue/다이얼로그 에디터")]
         public static void Open()
         {
-            DialogueEditorWindow wnd = GetWindow<DialogueEditorWindow>(false, "다이얼로그 에디터", true);
+            if (DBManager.Instance == null)
+            {
+                Debug.LogWarning("[DialogueEditorWindow] Open) DBManager의 인스턴스가 없음");
+                return;
+            }
+            if (DialogueAsset.Instance == null)
+            {
+                Debug.LogWarning("[DialogueEditorWindow] Open) DialogueAsset의 인스턴스가 없음");
+                return;
+            }
+            DialogueEditorWindow wnd = null;
+            try
+            {
+                wnd = GetWindow<DialogueEditorWindow>(false, "다이얼로그 에디터", true);
             
-            wnd.Show();
-            wnd.minSize = new Vector2(720, 480);
+                wnd.Show();
+                wnd.minSize = new Vector2(720, 480);
+            }
+            catch (Exception e)
+            {
+                if(wnd != null)wnd.Close();
+                Console.WriteLine(e);
+                throw;
+            }
+
         }
         
         void OnEnable()
@@ -279,6 +300,7 @@ namespace OcDialogue.Editor
             RemoveConversationButton.text = "Remove";
             RemoveConversationButton.style.backgroundColor = new Color(0.8f, 0f, 0f);
             ConversationSelectToolbar.Add(RemoveConversationButton);
+
         }
         void RefreshConversationChoices()
         {

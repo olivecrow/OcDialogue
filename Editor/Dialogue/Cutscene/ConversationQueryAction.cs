@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using OcDialogue.Cutscene;
 using UnityEditor;
-using UnityEditor.Localization.Plugins.XLIFF.V12;
 using UnityEditor.Timeline.Actions;
 using UnityEngine;
 using UnityEngine.Playables;

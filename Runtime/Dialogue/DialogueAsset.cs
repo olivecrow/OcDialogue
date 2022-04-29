@@ -96,6 +96,12 @@ namespace OcDialogue
         [Button]
         public void RemoveAllConversation()
         {
+            if (!EditorUtility.DisplayDialog("잠깐!!!!!!!!!!!!",
+                "정말 이 에셋의 대화를 모두 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.", "삭제", "취소")) return;
+
+            if (!EditorUtility.DisplayDialog("!!! 다시 한 번 확인 !!!!",
+                "정말 이 에셋의 대화를 모두 삭제할거임? 에셋은 휴지통에도 안 남는다!!!!!", "삭제", "취소")) return;
+            
             var count = Conversations.Count;
             for (int i = 0; i < count; i++)
             {

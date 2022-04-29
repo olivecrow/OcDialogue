@@ -49,7 +49,7 @@ namespace OcDialogue.Editor
         void InitOutline()
         {
             // Debug.Log("[GraphView] InitOutline");
-            SetupZoom(ContentZoomer.DefaultMinScale, ContentZoomer.DefaultMaxScale);
+            SetupZoom(ContentZoomer.DefaultMinScale, 1.5f);
 
             this.AddManipulator(new ContentDragger());
             this.AddManipulator(new SelectionDragger());
@@ -214,7 +214,8 @@ namespace OcDialogue.Editor
         {
             var newBalloon = Conversation.AddBalloon(balloonType);
             var rect = source.GetPosition();
-            var node = CreateNode(newBalloon,  rect.position + new Vector2(rect.width + 50f, source.Balloon.linkedBalloons.Count * rect.height));
+            if (source.Balloon.linkedBalloons == null) source.Balloon.linkedBalloons = new List<Balloon>();
+            var node = CreateNode(newBalloon,  rect.position + new Vector2(rect.width + 10f, source.Balloon.linkedBalloons.Count * rect.height));
             var edge = source.OutputPort.ConnectTo(node.InputPort);
             
             var linkData = CreateLinkDataFromEdge(edge);
@@ -465,7 +466,7 @@ namespace OcDialogue.Editor
         void CopyCallback()
         {
             var selected = selection.FindAll(x => x is DialogueNode d && d.Balloon.type != Balloon.Type.Entry);
-
+            
             var sb = new StringBuilder();
             for (int i = 0; i < selected.Count; i++)
             {
@@ -473,7 +474,7 @@ namespace OcDialogue.Editor
                 sb.Append(node.Balloon.GUID);
                 if (i < selected.Count - 1) sb.Append("%%");
             }
-
+            
             EditorGUIUtility.systemCopyBuffer = sb.ToString();
         }
 
@@ -506,6 +507,12 @@ namespace OcDialogue.Editor
                 node.Balloon.GUID = newGUID;
                 node.Balloon.position = position;
                 created.Add(node);
+            }
+
+            foreach (var node in created)
+            {
+                if(node.Balloon.linkedBalloons.Count == 0) continue;
+                
             }
             
             ClearSelection();
