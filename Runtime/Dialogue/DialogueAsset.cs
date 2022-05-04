@@ -134,6 +134,20 @@ namespace OcDialogue
             }
             Debug.Log($"[{guid}] 해당 GUID를 가진 Balloon이 없음");
         }
+        
+        public IEnumerable<string> GetLocalizationKey()
+        {
+            // Key | ID | SharedComments
+            foreach (var conversation in Conversations)
+            {
+                foreach (var balloon in conversation.Balloons)
+                {
+                    yield return $"{conversation.Category}/{conversation.key}/{balloon.GUID}";
+                    yield return "";
+                    yield return $"{balloon.text}";
+                }
+            }
+        }
 #endif
         
     }

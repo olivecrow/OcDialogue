@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -9,10 +10,11 @@ using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Localization.Settings;
 
-// #if ENABLE_LOCALIZATION
-// using UnityEngine.Localization.Settings;
-// #endif
+#if ENABLE_LOCALIZATION
+using UnityEngine.Localization.Settings;
+#endif
 
 
 namespace OcDialogue.Editor
@@ -30,58 +32,34 @@ namespace OcDialogue.Editor
     }
     public class ExportWizard : OdinEditorWindow
     {
-        public enum ExportType
+        public enum ExportTarget
         {
-            Dialogue,
-            ItemDB,
-            QuestDB,
-            NPCDB,
-            EnemyDB
+            DialogueDB,
+            OtherDB
         }
 
-        [EnumToggleButtons]public ExportType type;
-        [FolderPath]public string folderPath;
+        [EnumToggleButtons]public ExportTarget exportTarget;
+        [ShowIf(nameof(exportTarget), ExportTarget.OtherDB)] [ValueDropdown(nameof(GetAvailableDBList))] public OcDB targetDB;
+
+        [FolderPath]public string folderPath = "Asset";
         [SuffixLabel("@labelPreview")]public string fileNamePrefix = "My Project";
         [Space]
         [LabelText("논리적인 순서 사용")] public bool useLogicalOrder = true;
         [Space]
-        [ShowIf(nameof(type), ExportType.Dialogue)] public string conversationFieldName = "대화 분류";
-        [ShowIf(nameof(type), ExportType.Dialogue)] public string actorFieldName = "인물";
-        [ShowIf(nameof(type), ExportType.Dialogue)] public string choiceType_actorName = "(선택지)";
-        [ShowIf(nameof(type), ExportType.Dialogue)] public string subtitleFieldName = "대사";
+        [ShowIf(nameof(exportTarget), ExportTarget.DialogueDB)] public string conversationFieldName = "대화 분류";
+        [ShowIf(nameof(exportTarget), ExportTarget.DialogueDB)] public string actorFieldName = "인물";
+        [ShowIf(nameof(exportTarget), ExportTarget.DialogueDB)] public string choiceType_actorName = "(선택지)";
+        [ShowIf(nameof(exportTarget), ExportTarget.DialogueDB)] public string subtitleFieldName = "대사";
         
         [Space]
-        [ShowIf(nameof(type), ExportType.ItemDB)] [LabelText("타입별로 따로 저장")] public bool separateByItemType;
+        [ShowIf(nameof(exportTarget), ExportTarget.DialogueDB)] public string categoryFieldName = "분류";
+        [ShowIf(nameof(exportTarget), ExportTarget.DialogueDB)] public string guidFieldName = "GUID";
+        [ShowIf(nameof(exportTarget), ExportTarget.DialogueDB)] public string commentFieldName = "비고";
 
-        [ShowIf(nameof(type), ExportType.ItemDB)] [ShowIf(nameof(separateByItemType))] 
-        [LabelText("추출할 타입")] [Indent()] [EnumToggleButtons]
-        public ExportItemTypeFlags exportItemTypeFlags;
-        [ShowIf(nameof(type), ExportType.ItemDB)] [ShowIf(nameof(separateByItemType))] 
-        [LabelText("변수 필드 포함")] public bool includeFields;
-        [ShowIf(nameof(type), ExportType.ItemDB)] [LabelText("타입 분류를 파일로 Export")] public bool exportItemTypeTerms;
-        [ShowIf(nameof(type), ExportType.ItemDB)] public string itemNameFieldName = "아이템";
-        [ShowIf(nameof(type), ExportType.ItemDB)] public string itemTypeFieldName = "대분류";
-        [ShowIf(nameof(type), ExportType.ItemDB)] public string itemSubtypeFieldName = "소분류";
-        [ShowIf(nameof(type), ExportType.ItemDB)] public string itemDescFieldName = "아이템 설명";
-        [Space]
-        
-        [ShowIf(nameof(type), ExportType.QuestDB)] public string questNameFieldName = "타이틀";
-        [ShowIf(nameof(type), ExportType.QuestDB)] public string questDescriptionFieldName = "퀘스트 설명";
-        
-        [ShowIf(nameof(type), ExportType.QuestDB)] public string npcNameFieldName = "이름";
-        [ShowIf(nameof(type), ExportType.QuestDB)] public string npcGenderFieldName = "성별";
-        [ShowIf(nameof(type), ExportType.QuestDB)] public string npcDescriptionFieldName = "NPC 설명";
-        
-        [ShowIf(nameof(type), ExportType.QuestDB)] public string enemyNameFieldName = "이름";
-        [ShowIf(nameof(type), ExportType.QuestDB)] public string enemyDescriptionFieldName = "몬스터 설명";
-        
-        [Space]
-        public string categoryFieldName = "분류";
-        public string guidFieldName = "GUID";
-        public string commentFieldName = "비고";
-
-        string labelPreview => $"{fileNamePrefix}_{type}.csv";
+        string _fileName => $"{fileNamePrefix}_{(exportTarget == ExportTarget.DialogueDB ? "Dialogue" : targetDB == null ? "null" : targetDB.name)}";
+        string labelPreview => $"{_fileName}.csv";
         const string key_pathPrefs = "OcDialogue_ExportPath";
+        const string key_prefixPrefs = "OcDialogue_ExportPrefix";
         
         [MenuItem("OcDialogue/Export Wizard")]
         static void Open()
@@ -94,43 +72,105 @@ namespace OcDialogue.Editor
         {
             base.OnEnable();
             folderPath = EditorPrefs.GetString(key_pathPrefs);
+            fileNamePrefix = EditorPrefs.HasKey(key_prefixPrefs) ? EditorPrefs.GetString(key_prefixPrefs) : "My Project";
         }
 
         [Button]
         void Export()
         {
-            // switch (type)
-            // {
-            //     case ExportType.Dialogue:
-            //         ExportDialogue();
-            //         break;
-            //     case ExportType.ItemDB:
-            //         ExportItemDB();
-            //         break;
-            //     case ExportType.QuestDB:
-            //         ExportQuestDB();
-            //         break;
-            //     case ExportType.NPCDB:
-            //         ExportNPCDB();
-            //         break;
-            //     case ExportType.EnemyDB:
-            //         ExportEnemyDB();
-            //         break;
-            // }
-            // EditorPrefs.SetString(key_pathPrefs, folderPath);
+            switch (exportTarget)
+            {
+                case ExportTarget.DialogueDB:
+                    ExportDialogue();
+                    break;
+                case ExportTarget.OtherDB:
+                    ExportTargetDB();
+                    break;
+            }
+            EditorPrefs.SetString(key_pathPrefs, folderPath);
+            EditorPrefs.SetString(key_prefixPrefs, fileNamePrefix);
         }
 
-        // [Button("번역용 CSV 테이블 Export")]
-        // void ExportLocalizationTemplate()
-        // {
-        //     var keys = new List<string>();
-        //     keys.Add("Key");
-        //     keys.Add("Id");
-        //     keys.AddRange(LocalizationSettings.AvailableLocales.Locales.Select(x => x.Identifier.ToString()));
-        //     var writer = new CSVWriter(keys.ToArray());
-        //
-        //     writer.Save(folderPath, $"{fileNamePrefix}_Localization Template");
-        // }
+        [Button("번역용 CSV 테이블 Export")]
+        void ExportLocalizationTemplate()
+        {
+            if (exportTarget == ExportTarget.OtherDB && targetDB == null)
+            {
+                Debug.LogWarning($"선택된 DB가 없음");
+                return;
+            }
+            
+            var fileName = exportTarget == ExportTarget.DialogueDB ?
+                $"{fileNamePrefix}_Dialogue Localization" : $"{fileNamePrefix}_{targetDB.name} Localization";
+            var path = $"{folderPath}/{fileName}.csv";
+            if (File.Exists(path))
+            {
+                if(!EditorUtility.DisplayDialog("이미 파일이 존재함", "이미 존재하는 파일을 덮어씌우시겠습니까?", "덮어쓰기", "취소")) return;
+            }
+            var keys = new List<string>();
+            keys.Add("Key");
+            keys.Add("Id");
+            keys.Add("Shared Comments");
+            keys.AddRange(LocalizationSettings.AvailableLocales.Locales.Select(x => x.Identifier.ToString()));
+            var koreanTableName = LocalizationSettings.AvailableLocales.Locales.
+                FirstOrDefault(x => x.Identifier.ToString().Contains("Korean"))!.Identifier;
+            var indexOfKorean = keys.IndexOf(x => x == koreanTableName.ToString());
+            var writer = new CSVWriter(keys.ToArray());
+
+            switch (exportTarget)
+            {
+                case ExportTarget.DialogueDB:
+
+                    Debug.Log($"Dialogue DB에 대해선 따로 번역 테이블 생성이 없음. 그냥 Export한다음에 빈 테이블에 붙여넣을것.");
+                    return;
+                case ExportTarget.OtherDB:
+                    var editor = UnityEditor.Editor.CreateEditor(targetDB) as IDBEditor;
+                    foreach (var data in editor.GetLocalizationData())
+                    {
+                        var row = new string[keys.Count];
+                        row[0] = data.key;
+                        row[indexOfKorean] = data.korean;
+                        writer.Add(row);
+                    }
+                    break;
+            }
+
+            writer.Save(folderPath, fileName);
+            
+            EditorPrefs.SetString(key_pathPrefs, folderPath);
+            EditorPrefs.SetString(key_prefixPrefs, fileNamePrefix);
+        }
+
+        [Button("빈 Localization 테이블 생성하기")]
+        void ExportEmptyLocalizationTable()
+        {
+            if (File.Exists($"{folderPath}/New Empty Localization table.csv"))
+            {
+                Debug.LogWarning($"이미 {folderPath}에 빈 LocalizationTable이 존재함");
+                return;
+            }
+            var keys = new List<string>();
+            keys.Add("Key");
+            keys.Add("Id");
+            keys.Add("Shared Comments");
+            keys.AddRange(LocalizationSettings.AvailableLocales.Locales.Select(x => x.Identifier.ToString()));
+            var writer = new CSVWriter(keys.ToArray());
+            writer.Save(folderPath, "New Empty Localization Table");
+        }
+
+        void ExportTargetDB()
+        {
+            var editor = UnityEditor.Editor.CreateEditor(targetDB) as IDBEditor;
+            var key = editor.GetCSVFields();
+
+            var writer = new CSVWriter(key);
+            foreach (var data in editor.GetCSVData())
+            {
+                writer.Add(data);
+            }
+            
+            writer.Save(folderPath, $"{fileNamePrefix}_{targetDB.name}");
+        }
 
 
         #region Dialogue
@@ -144,6 +184,7 @@ namespace OcDialogue.Editor
             }
             var key = new []
             {
+                categoryFieldName,
                 conversationFieldName,
                 guidFieldName,
                 actorFieldName,
@@ -177,7 +218,7 @@ namespace OcDialogue.Editor
                 }
             }
             
-            writer.Save(folderPath, $"{fileNamePrefix}_{type}");
+            writer.Save(folderPath, _fileName);
 
             void addData(Conversation conversation, Balloon balloon)
             {
@@ -187,7 +228,8 @@ namespace OcDialogue.Editor
                         return;
                     case Balloon.Type.Dialogue:
                         writer.Add(
-                            $"{conversation.Category}/{conversation.key}/{balloon.GUID}",
+                            conversation.Category,
+                            $"{conversation.Category}/{conversation.key}",
                             balloon.GUID,
                             balloon.actor == null ? "" : balloon.actor.name,
                             balloon.text,
@@ -196,6 +238,7 @@ namespace OcDialogue.Editor
                         break;
                     case Balloon.Type.Choice:
                         writer.Add(
+                            conversation.Category,
                             $"{conversation.Category}/{conversation.key}/{balloon.GUID}",
                             balloon.GUID,
                             choiceType_actorName,
@@ -241,250 +284,17 @@ namespace OcDialogue.Editor
 
         #endregion
 
-        //
-        // #region ItemDB
-        //
-        // void ExportItemDB()
-        // {
-        //     if (ItemDatabase.Instance == null)
-        //     {
-        //         Debug.LogWarning($"아이템 데이터베이스의 인스턴스가 없음.");
-        //         return;
-        //     }
-        //
-        //     if (exportItemTypeTerms)
-        //     {
-        //         var writer = new CSVWriter("대분류", "소분류");
-        //         var typeNames = Enum.GetNames(typeof(ItemType));
-        //         foreach (var typeName in typeNames)
-        //         {
-        //             var itemType = (ItemType)Enum.Parse(typeof(ItemType), typeName);
-        //             var subTypeNames = Enum.GetNames(ItemDatabase.GetSubType(itemType));
-        //             for (int i = 0; i < subTypeNames.Length; i++)
-        //             {
-        //                 if(i == 0) writer.Add(typeName, subTypeNames[i]);
-        //                 else writer.Add("", subTypeNames[i]);
-        //             }
-        //         }
-        //         writer.Save(folderPath, $"{fileNamePrefix}_ItemTypes");
-        //     }
-        //
-        //
-        //     if (separateByItemType)
-        //     {
-        //         var typeNames = Enum.GetNames(typeof(ItemType));
-        //         var key = new []
-        //         {
-        //             guidFieldName,
-        //             itemSubtypeFieldName,
-        //             itemNameFieldName,
-        //             itemDescFieldName,
-        //             commentFieldName
-        //         };
-        //
-        //         foreach (var itemType in typeNames)
-        //         {
-        //             var asEnum = (ItemType)Enum.Parse(typeof(ItemType), itemType);
-        //             if(!exportItemTypeFlags.HasFlag(typeEnumToFlag(asEnum))) continue;
-        //             var t = getItemType((ItemType)Enum.Parse(typeof(ItemType), itemType));
-        //             var tKey = new List<string>(key);
-        //             
-        //             var fields = t.GetFields(
-        //                 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-        //             if(includeFields)
-        //                 foreach (var fieldInfo in fields)
-        //                 {
-        //                     if(fieldInfo.Name == "subtype" || fieldInfo.Name == "description" || 
-        //                        fieldInfo.Name == "GUID" || fieldInfo.Name == "itemName") continue;
-        //                     if(fieldInfo.IsNotSerialized) continue;
-        //                     if(fieldInfo.IsDefined(typeof(CompilerGeneratedAttribute))) continue;
-        //                     tKey.Add($"M_{fieldInfo.Name}");
-        //                 }
-        //             
-        //             var writer = new CSVWriter(tKey.ToArray());
-        //             foreach (var itemBase in ItemDatabase.Instance.Items)
-        //             {
-        //                 if(itemBase.type.ToString() != itemType) continue;
-        //                 var rowData = new List<string>()
-        //                 {
-        //                     itemBase.GUID.ToString(),
-        //                     itemBase.SubTypeString,
-        //                     itemBase.itemName,
-        //                     itemBase.description,
-        //                     ""
-        //                 };
-        //                 
-        //                 foreach (var fieldInfo in fields)
-        //                 {
-        //                     if(!tKey.Contains($"M_{fieldInfo.Name}")) continue;
-        //                     var casted = cast(itemBase);
-        //                     var value = fieldInfo.GetValue(casted);
-        //                     rowData.Add(value == null ? "" : value.ToString());
-        //                 }
-        //                 
-        //                 writer.Add(rowData.ToArray());
-        //                 
-        //             }
-        //             writer.Save(folderPath, $"{fileNamePrefix}_{type}_{itemType}");
-        //         }
-        //     }
-        //     else
-        //     {
-        //         var key = new[]
-        //         {
-        //             guidFieldName,
-        //             itemTypeFieldName,
-        //             itemSubtypeFieldName,
-        //             itemNameFieldName,
-        //             itemDescFieldName,
-        //             commentFieldName
-        //         };
-        //         var writer = new CSVWriter(key);
-        //         foreach (var itemBase in ItemDatabase.Instance.Items.OrderBy(x => x.type))
-        //         {
-        //             writer.Add(
-        //                 itemBase.GUID.ToString(),
-        //                 itemBase.type.ToString(),
-        //                 itemBase.SubTypeString,
-        //                 itemBase.itemName,
-        //                 itemBase.description,
-        //                 "");
-        //         }
-        //     
-        //         writer.Save(folderPath,$"{fileNamePrefix}_{type}");    
-        //     }
-        //
-        //
-        //     Type getItemType(ItemType type)
-        //     {
-        //         switch (type)
-        //         {
-        //             case ItemType.Generic:
-        //                 return typeof(GenericItem);
-        //             case ItemType.Armor:
-        //                 return typeof(ArmorItem);
-        //             case ItemType.Weapon:
-        //                 return typeof(WeaponItem);
-        //             case ItemType.Accessory:
-        //                 return typeof(AccessoryItem);
-        //             case ItemType.Important:
-        //                 return typeof(ImportantItem);
-        //             default:
-        //                 throw new ArgumentOutOfRangeException(nameof(type), type, null);
-        //         }
-        //     }
-        //
-        //     object cast(ItemBase item)
-        //     {
-        //         switch (item.type)
-        //         {
-        //             case ItemType.Generic:
-        //                 return item as GenericItem;
-        //             case ItemType.Armor:
-        //                 return item as ArmorItem;
-        //             case ItemType.Weapon:
-        //                 return item as WeaponItem;
-        //             case ItemType.Accessory:
-        //                 return item as AccessoryItem;
-        //             case ItemType.Important:
-        //                 return item as ImportantItem;
-        //             default:
-        //                 throw new ArgumentOutOfRangeException();
-        //         }
-        //     }
-        //
-        //     ExportItemTypeFlags typeEnumToFlag(ItemType t)
-        //     {
-        //         switch (t)
-        //         {
-        //             case ItemType.Generic:
-        //                 return ExportItemTypeFlags.Generic;
-        //             case ItemType.Armor:
-        //                 return ExportItemTypeFlags.Armor;
-        //             case ItemType.Weapon:
-        //                 return ExportItemTypeFlags.Weapon;
-        //             case ItemType.Accessory:
-        //                 return ExportItemTypeFlags.Accessory;
-        //             case ItemType.Important:
-        //                 return ExportItemTypeFlags.Important;
-        //             default:
-        //                 throw new ArgumentOutOfRangeException(nameof(t), t, null);
-        //         }
-        //     }
-        // }
-        //
-        // #endregion
-        //
-        // #region CommonDB
-        //
-        // void ExportQuestDB()
-        // {
-        //     if (QuestDB.Instance == null)
-        //     {
-        //         Debug.LogWarning("퀘스트 데이터베이스의 인스턴스가 없음.");
-        //         return;
-        //     }
-        //
-        //     var writer = new CSVWriter(categoryFieldName, questNameFieldName, questDescriptionFieldName);
-        //
-        //     var quests = useLogicalOrder ? 
-        //         QuestDB.Instance.Quests.OrderBy(x => x.Category + x.e_order + x.Name).ToArray() : 
-        //         QuestDB.Instance.Quests.ToArray();
-        //     
-        //     foreach (var quest in quests)
-        //     {
-        //         writer.Add(quest.Category, quest.Name, quest.Description);
-        //     }
-        //     
-        //     writer.Save(folderPath, $"{fileNamePrefix}_{type}");
-        // }
-        //
-        //
-        // void ExportNPCDB()
-        // {
-        //     if (NPCDB.Instance == null)
-        //     {
-        //         Debug.LogWarning("NPC 데이터베이스의 인스턴스가 없음.");
-        //         return;
-        //     }
-        //
-        //     var writer = new CSVWriter(categoryFieldName, npcNameFieldName, npcGenderFieldName, npcDescriptionFieldName);
-        //
-        //     var NPCs = useLogicalOrder ? 
-        //         NPCDB.Instance.NPCs.OrderBy(x => x.Category).ToArray() :
-        //         NPCDB.Instance.NPCs.ToArray();
-        //     
-        //     foreach (var npc in NPCs)
-        //     {
-        //         writer.Add(npc.Category, npc.Name, npc.gender.ToString(), npc.Description);
-        //     }
-        //     
-        //     writer.Save(folderPath, $"{fileNamePrefix}_{type}");
-        // }
-        //
-        // void ExportEnemyDB()
-        // {
-        //     if (EnemyDB.Instance == null)
-        //     {
-        //         Debug.LogWarning("Enemy 데이터베이스의 인스턴스가 없음.");
-        //         return;
-        //     }
-        //
-        //     var writer = new CSVWriter(categoryFieldName, enemyNameFieldName, enemyDescriptionFieldName);
-        //
-        //     var Enemies = useLogicalOrder ? 
-        //         EnemyDB.Instance.Enemies.OrderBy(x => x.Category).ToArray() :
-        //         EnemyDB.Instance.Enemies.ToArray();
-        //     
-        //     foreach (var enemy in Enemies)
-        //     {
-        //         writer.Add(enemy.Category, enemy.Name, enemy.Description);
-        //     }
-        //     
-        //     writer.Save(folderPath, $"{fileNamePrefix}_{type}");
-        // }
-        //
-        // #endregion
-        //
+
+        ValueDropdownList<OcDB> GetAvailableDBList()
+        {
+            var list = new ValueDropdownList<OcDB>();
+            if (DBManager.Instance == null) return list;
+            foreach (var db in DBManager.Instance.DBs)
+            {
+                list.Add(db);
+            }
+
+            return list;
+        }
     }
 }

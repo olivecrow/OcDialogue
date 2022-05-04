@@ -25,6 +25,11 @@
             "name": "com.unity.textmeshpro",
             "expression": "",
             "define": "TEXT_MESH_PRO"
+        },
+        {
+            "name": "com.unity.localization",
+            "expression": "",
+            "define": "ENABLE_LOCALIZATION"
         }
     ],
     "noEngineReferences": false

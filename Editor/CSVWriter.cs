@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using UnityEditor;
 using UnityEngine;
 
 namespace OcDialogue.Editor
@@ -54,9 +55,14 @@ namespace OcDialogue.Editor
                 }
             }
 
-            var writer = File.CreateText(Path.Combine(folderPath, $"{fileName}.csv"));
+            var path = Path.Combine(folderPath, $"{fileName}.csv");
+            var writer = File.CreateText(path);
             writer.WriteLine(sb);
             writer.Close();
+            if (folderPath.Contains("Assets/"))
+            {
+                AssetDatabase.ImportAsset(path);
+            }
             Debug.Log($"CSV Export 완료 | Path : {folderPath} | FileName : {fileName} | 항목 개수 : {Data.Count}");
         }
         

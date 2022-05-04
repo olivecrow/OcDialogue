@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using OcUtility;
 using Sirenix.OdinInspector;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Playables;
@@ -179,11 +183,12 @@ namespace OcDialogue.Cutscene
         [UnityEditor.InitializeOnLoadMethod]
         static void Init()
         {
-            Application.quitting += Release;
+            EditorApplication.playModeStateChanged += Release;
         }
 
-        static void Release()
+        static void Release(PlayModeStateChange change)
         {
+            if(change != PlayModeStateChange.EnteredEditMode) return;
             OnCutsceneStart = null;
             OnCutsceneEnd = null;
             
@@ -194,7 +199,7 @@ namespace OcDialogue.Cutscene
             ActiveCutscene = null;
             
 
-            Application.quitting -= Release;
+            EditorApplication.playModeStateChanged -= Release;
         }
 
         void Reset()

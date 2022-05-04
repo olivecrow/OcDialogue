@@ -1,4 +1,6 @@
-﻿using Sirenix.OdinInspector.Editor;
+﻿using System.Collections;
+using System.Collections.Generic;
+using Sirenix.OdinInspector.Editor;
 using UnityEngine.UIElements;
 
 namespace OcDialogue.Editor
@@ -10,5 +12,8 @@ namespace OcDialogue.Editor
         void DrawToolbar();
         void OnInspectorGUI();
         void AddDialogueContextualMenu(ContextualMenuPopulateEvent evt, DialogueGraphView graphView);
+        string[] GetCSVFields();
+        IEnumerable<string[]> GetCSVData();
+        IEnumerable<LocalizationCSVRow> GetLocalizationData();
     }
 }

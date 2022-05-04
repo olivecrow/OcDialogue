@@ -1,7 +1,9 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
-// TODO : ExportWizard 새로 만들기
+### [2.3.4] -2022-05-05
+- 일반화시킨 DB에 맞게 ExportWizard 새로 작성
+- CutsceneBehaviour의 Release를 EnterEditMode 타이밍으로 변경
 
 ### [2.3.3] -2022-04-29
 - DialogueEditor
