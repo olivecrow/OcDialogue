@@ -30,7 +30,9 @@ namespace OcDialogue
             }
         }
         public List<Conversation> Conversations;
+        public Dictionary<string, IEnumerable<Conversation>> CategorizedConversations;
         IDialogueActorDB _dialogueActorDB;
+        
         public DialogueAsset()
         {
             Categories = new[] {"Main"};
@@ -58,7 +60,12 @@ namespace OcDialogue
         
         public Balloon FindBalloon(string category, string guid)
         {
-            foreach (var conversation in Conversations.Where(x => string.CompareOrdinal(x.Category, category) == 0))
+            if (CategorizedConversations == null) CategorizedConversations = new Dictionary<string, IEnumerable<Conversation>>();
+            if (CategorizedConversations.Count == 0)
+            {
+                CategorizeConversations();
+            }
+            foreach (var conversation in CategorizedConversations[category])
             {
                 foreach (var balloon in conversation.Balloons)
                 {
@@ -67,6 +74,14 @@ namespace OcDialogue
             }
 
             return null;
+        }
+
+        void CategorizeConversations()
+        {
+            foreach (var c in Categories)
+            {
+                CategorizedConversations[c] = Conversations.Where(x => string.CompareOrdinal(x.Category, c) == 0);
+            }
         }
 
 #if UNITY_EDITOR

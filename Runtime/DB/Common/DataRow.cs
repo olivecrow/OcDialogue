@@ -128,6 +128,7 @@ namespace OcDialogue.DB
                 IntValue = InitialValue.IntValue,
                 FloatValue = InitialValue.FloatValue,
                 StringValue = InitialValue.StringValue,
+                VectorValue = InitialValue.VectorValue
             };
         }
 

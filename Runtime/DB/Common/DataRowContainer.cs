@@ -2,10 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using OcUtility;
 using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEngine;
+using Vector3 = UnityEngine.Vector3;
 
 namespace OcDialogue.DB
 {
@@ -93,6 +95,15 @@ namespace OcDialogue.DB
                     case DataRowType.String:
                         data.SetValue(kv.Value, DataSetter.Operator.Set, true);
                         break;
+                    case DataRowType.Vector:
+                    {
+                        if (kv.Value.TryParseToVector4(out var v))
+                        {
+                            data.SetValue(v, DataSetter.Operator.Set, true);
+                        }
+                        else Debug.LogWarning($"[DataRowContainer] 데이터 형식이 일치하지 않음 | type : {data.Type} | value : {v}");
+                        break;
+                    }
                 }
             }
         }
@@ -165,12 +176,11 @@ namespace OcDialogue.DB
             var row = ScriptableObject.CreateInstance<DataRow>();
             row.SetParent(Parent);
             row.name = key;
+            row.id = DBManager.GenerateID();
             DataRows.Add(row);
-            // OcDataUtility.Repaint();
 
             AssetDatabase.AddObjectToAsset(row, Parent);
             EditorUtility.SetDirty(Parent);
-            // EditorApplication.delayCall += AssetDatabase.SaveAssets;
 
             return row;
         }
@@ -189,7 +199,6 @@ namespace OcDialogue.DB
 
             AssetDatabase.RemoveObjectFromAsset(row);
             EditorUtility.SetDirty(Parent);
-            // AssetDatabase.SaveAssets();
         }
         [HorizontalGroup("btn"),Button]
         public void MatchParent()

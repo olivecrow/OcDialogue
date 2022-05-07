@@ -6,6 +6,7 @@ namespace OcDialogue
     public struct LocalizationCSVRow
     {
         public string key;
+        public string id;
         public string korean;
     }
 }

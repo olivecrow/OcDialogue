@@ -1,6 +1,17 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.3.5] -2022-05-07
+- OcData에 int형 id를 기본적으로 포함하도록 추가함
+  - 유닛 테스트에 id가 0일때와 중복되는 경우의 테스트 추가함
+- DataRowContainer에 Vector타입에 대한 Overwrite추가함
+- OcUtility의존성 1.5.7로 증가
+- LocalizationCSVRow에 id 변수 추가
+- ExportWizard
+  - 번역용 CSV Export에 LocalizationCSVRow id 추가
+  - id를 기준으로 값 덮어쓸 수 있게 변경.
+  - Dialogue DB에 대한 Localization CSV Export 가능하게 변경
+
 ### [2.3.4] -2022-05-05
 - 일반화시킨 DB에 맞게 ExportWizard 새로 작성
 - CutsceneBehaviour의 Release를 EnterEditMode 타이밍으로 변경

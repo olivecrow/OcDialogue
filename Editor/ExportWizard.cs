@@ -19,17 +19,7 @@ using UnityEngine.Localization.Settings;
 
 namespace OcDialogue.Editor
 {
-    [Flags]
-    public enum ExportItemTypeFlags
-    {
-        None = 0,
-        Generic = 2,
-        Armor = 4,
-        Weapon = 8,
-        Accessory = 16,
-        Important = 32,
-        All = int.MaxValue
-    }
+    
     public class ExportWizard : OdinEditorWindow
     {
         public enum ExportTarget
@@ -37,14 +27,23 @@ namespace OcDialogue.Editor
             DialogueDB,
             OtherDB
         }
-
+        public enum ColumnModifyType
+        {
+            SelectKey,
+            IgnoreKey
+        }
         [EnumToggleButtons]public ExportTarget exportTarget;
         [ShowIf(nameof(exportTarget), ExportTarget.OtherDB)] [ValueDropdown(nameof(GetAvailableDBList))] public OcDB targetDB;
 
         [FolderPath]public string folderPath = "Asset";
         [SuffixLabel("@labelPreview")]public string fileNamePrefix = "My Project";
         [Space]
-        [LabelText("논리적인 순서 사용")] public bool useLogicalOrder = true;
+        [ShowIf(nameof(exportTarget), ExportTarget.DialogueDB)][LabelText("논리적인 순서 사용")] 
+        public bool useLogicalOrder = true;
+
+        [ShowIf(nameof(exportTarget), ExportTarget.DialogueDB)][LabelText("번역 참고용 열 추가")]
+        public bool useLocalizationHelpColumns = true;
+        
         [Space]
         [ShowIf(nameof(exportTarget), ExportTarget.DialogueDB)] public string conversationFieldName = "대화 분류";
         [ShowIf(nameof(exportTarget), ExportTarget.DialogueDB)] public string actorFieldName = "인물";
@@ -55,6 +54,17 @@ namespace OcDialogue.Editor
         [ShowIf(nameof(exportTarget), ExportTarget.DialogueDB)] public string categoryFieldName = "분류";
         [ShowIf(nameof(exportTarget), ExportTarget.DialogueDB)] public string guidFieldName = "GUID";
         [ShowIf(nameof(exportTarget), ExportTarget.DialogueDB)] public string commentFieldName = "비고";
+
+        public string idKey = "Id";
+        [InfoBox("SelectKey일 경우, 선택된 키값의 열만 덮어쓴다.\n" +
+                 "IgnoreKey일 경우, 선택된 키값의 열은 덮어쓰기에서 제외한다.\n" +
+                 "보통 개발을 진행함에 따라, 현지화 지역이 변경될 수 있기 때문에, SelectKey를 쓰는 게 나을 것이다.")]
+        public ColumnModifyType modifyType;
+        [ShowIf(nameof(modifyType), ColumnModifyType.IgnoreKey)]
+        public List<string> ignoreColumnKeys = new List<string>(){"Shared Comments"};
+        [ShowIf(nameof(modifyType), ColumnModifyType.SelectKey)]
+        public List<string> overwriteColumnKey = new List<string>(){"Key", "Korean(ko)"};
+
 
         string _fileName => $"{fileNamePrefix}_{(exportTarget == ExportTarget.DialogueDB ? "Dialogue" : targetDB == null ? "null" : targetDB.name)}";
         string labelPreview => $"{_fileName}.csv";
@@ -100,37 +110,103 @@ namespace OcDialogue.Editor
                 return;
             }
             
+            var keys = new List<string>();
+
+            if (exportTarget == ExportTarget.DialogueDB && useLocalizationHelpColumns)
+            {
+                keys.Add("대화명");
+                keys.Add("인물");
+            }
+            
+            keys.Add("Key");
+            keys.Add("Id");
+            keys.AddRange(LocalizationSettings.AvailableLocales.Locales.Select(x => x.Identifier.ToString()));
+            Debug.Log($"index of Korean(ko) {keys.IndexOf("Korean(ko)")}");
+            keys.Add("Shared Comments");
+            Debug.Log($"index of Korean(ko) {keys.IndexOf("Korean(ko)")}");
+
+            var koreanTableName = LocalizationSettings.AvailableLocales.Locales.
+                FirstOrDefault(x => x.Identifier.ToString().Contains("Korean"))?.Identifier.ToString();
+            var indexOfKorean = keys.IndexOf(x => x == koreanTableName);
+            var writer = new CSVWriter(keys.ToArray());
+
+            
             var fileName = exportTarget == ExportTarget.DialogueDB ?
                 $"{fileNamePrefix}_Dialogue Localization" : $"{fileNamePrefix}_{targetDB.name} Localization";
             var path = $"{folderPath}/{fileName}.csv";
             if (File.Exists(path))
             {
-                if(!EditorUtility.DisplayDialog("이미 파일이 존재함", "이미 존재하는 파일을 덮어씌우시겠습니까?", "덮어쓰기", "취소")) return;
+                var text = File.ReadAllText(path);
+                writer.Read(text);
             }
-            var keys = new List<string>();
-            keys.Add("Key");
-            keys.Add("Id");
-            keys.Add("Shared Comments");
-            keys.AddRange(LocalizationSettings.AvailableLocales.Locales.Select(x => x.Identifier.ToString()));
-            var koreanTableName = LocalizationSettings.AvailableLocales.Locales.
-                FirstOrDefault(x => x.Identifier.ToString().Contains("Korean"))!.Identifier;
-            var indexOfKorean = keys.IndexOf(x => x == koreanTableName.ToString());
-            var writer = new CSVWriter(keys.ToArray());
-
+            
+            
             switch (exportTarget)
             {
                 case ExportTarget.DialogueDB:
 
-                    Debug.Log($"Dialogue DB에 대해선 따로 번역 테이블 생성이 없음. 그냥 Export한다음에 빈 테이블에 붙여넣을것.");
-                    return;
+                    foreach (var conversation in DialogueAsset.Instance.Conversations)
+                    {
+                        var balloons = useLogicalOrder ? LogicallyOrderedBalloons(conversation) : conversation.Balloons;
+                        foreach (var balloon in balloons)
+                        {
+                            if(balloon.type is Balloon.Type.Entry or Balloon.Type.Action) continue;
+                            var row = new string[keys.Count];
+
+                            if (useLocalizationHelpColumns)
+                            {
+                                // 대화명
+                                row[0] = $"{conversation.Category}/{conversation.name}";
+                                // 인물
+                                row[1] = balloon.type == Balloon.Type.Dialogue ? 
+                                    balloon.actor == null ? "" : balloon.actor.name :
+                                    "(선택지)";
+                                // Key
+                                row[2] = balloon.GUID;
+                            }
+                            else
+                            {
+                                // Key
+                                row[0] = balloon.GUID;
+                            }
+
+                            row[indexOfKorean] = $"\"{balloon.text}\"";
+                            switch (modifyType)
+                            {
+                                case ColumnModifyType.SelectKey:
+                                    writer.AppendColumn("Key", overwriteColumnKey, row);
+                                    break;
+                                case ColumnModifyType.IgnoreKey:
+                                    writer.AppendWithIgnoreColumn(idKey, ignoreColumnKeys, row);
+                                    break;
+                                default:
+                                    throw new ArgumentOutOfRangeException();
+                            }
+                        }
+                        
+                    }
+                    
+                    break;
                 case ExportTarget.OtherDB:
                     var editor = UnityEditor.Editor.CreateEditor(targetDB) as IDBEditor;
                     foreach (var data in editor.GetLocalizationData())
                     {
                         var row = new string[keys.Count];
                         row[0] = data.key;
-                        row[indexOfKorean] = data.korean;
-                        writer.Add(row);
+                        row[1] = data.id;
+                        row[indexOfKorean] = $"\"{data.korean}\"";
+
+                        switch (modifyType)
+                        {
+                            case ColumnModifyType.SelectKey:
+                                writer.AppendColumn(idKey, overwriteColumnKey, row);
+                                break;
+                            case ColumnModifyType.IgnoreKey:
+                                writer.AppendWithIgnoreColumn(idKey, ignoreColumnKeys, row);
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
                     }
                     break;
             }
@@ -199,13 +275,7 @@ namespace OcDialogue.Editor
                 List<Balloon> balloons;
                 if (useLogicalOrder)
                 {
-                    balloons = new List<Balloon>();
-                    foreach (var balloon in conversation.Balloons)
-                    {
-                        if(balloons.Contains(balloon)) continue;
-                        balloons.Add(balloon);
-                        queryLinkedBalloon(balloons, balloon);
-                    }
+                    balloons = LogicallyOrderedBalloons(conversation);
                 }
                 else
                 {
@@ -229,7 +299,7 @@ namespace OcDialogue.Editor
                     case Balloon.Type.Dialogue:
                         writer.Add(
                             conversation.Category,
-                            $"{conversation.Category}/{conversation.key}",
+                            conversation.key,
                             balloon.GUID,
                             balloon.actor == null ? "" : balloon.actor.name,
                             balloon.text,
@@ -239,7 +309,7 @@ namespace OcDialogue.Editor
                     case Balloon.Type.Choice:
                         writer.Add(
                             conversation.Category,
-                            $"{conversation.Category}/{conversation.key}/{balloon.GUID}",
+                            conversation.key,
                             balloon.GUID,
                             choiceType_actorName,
                             balloon.text,
@@ -248,16 +318,6 @@ namespace OcDialogue.Editor
                         break;
                     case Balloon.Type.Action:
                         return;
-                }
-            }
-
-            void queryLinkedBalloon(ICollection<Balloon> balloons, Balloon balloon)
-            {
-                foreach (var linkedBalloon in balloon.linkedBalloons)
-                {
-                    if(balloons.Contains(linkedBalloon)) continue;
-                    balloons.Add(linkedBalloon);
-                    queryLinkedBalloon(balloons, linkedBalloon);
                 }
             }
 
@@ -284,6 +344,29 @@ namespace OcDialogue.Editor
 
         #endregion
 
+
+        List<Balloon> LogicallyOrderedBalloons(Conversation conversation)
+        {
+            var balloons = new List<Balloon>();
+            foreach (var balloon in conversation.Balloons)
+            {
+                if(balloons.Contains(balloon)) continue;
+                balloons.Add(balloon);
+                queryLinkedBalloon(balloons, balloon);
+            }
+            
+            void queryLinkedBalloon(ICollection<Balloon> balloons, Balloon balloon)
+            {
+                foreach (var linkedBalloon in balloon.linkedBalloons)
+                {
+                    if(balloons.Contains(linkedBalloon)) continue;
+                    balloons.Add(linkedBalloon);
+                    queryLinkedBalloon(balloons, linkedBalloon);
+                }
+            }
+
+            return balloons;
+        }
 
         ValueDropdownList<OcDB> GetAvailableDBList()
         {

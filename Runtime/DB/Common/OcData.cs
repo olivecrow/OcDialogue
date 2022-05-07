@@ -14,6 +14,7 @@ namespace OcDialogue
         public virtual OcData Parent => parent;
         public abstract string Address { get; }
         public abstract string Category { get; set; }
+        [ReadOnly]public int id;
         public string TotalAddress => $"{(Parent == null ? "" : Parent.TotalAddress + "/")}{Address}";
         [HideInTables]
         public OcData parent;
