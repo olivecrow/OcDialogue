@@ -163,12 +163,7 @@ namespace OcDialogue.Editor
             }
         }
 
-        /// <summary>
-        /// 입력된 키와 데이터를 바탕으로 CSV 파일을 생성함.
-        /// </summary>
-        /// <param name="folderPath">파일이 저장될 위치. 프로젝트 폴더의 경로와 관계 없음.</param>
-        /// <param name="fileName">확장자를 제외한 파일 이름.</param>
-        public void Save(string folderPath, string fileName)
+        string DataToText()
         {
             var sb = new StringBuilder();
 
@@ -191,16 +186,53 @@ namespace OcDialogue.Editor
                 }
             }
 
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 입력된 키와 데이터를 바탕으로 CSV 파일을 생성함.
+        /// </summary>
+        /// <param name="folderPath">파일이 저장될 위치. 프로젝트 폴더의 경로와 관계 없음.</param>
+        /// <param name="fileName">확장자를 제외한 파일 이름.</param>
+        public void Save(string folderPath, string fileName)
+        {
+            var text = DataToText();
+
             var path = Path.Combine(folderPath, $"{fileName}.csv");
             var writer = File.CreateText(path);
-            writer.WriteLine(sb);
+            writer.WriteLine(text);
             writer.Close();
             if (folderPath.Contains("Assets/"))
             {
-                AssetDatabase.ImportAsset(path);
+                var relative = AbsoluteToRelativePath(path);
+                AssetDatabase.ImportAsset(relative);
             }
             Debug.Log($"CSV Export 완료 | Path : {folderPath} | FileName : {fileName} | 항목 개수 : {Data.Count}");
         }
-        
+
+        /// <param name="path">확장자를 포함한 전체 패스</param>
+        public void Save(string path)
+        {
+            var text = DataToText();
+
+            var writer = File.CreateText(path);
+            writer.WriteLine(text);
+            writer.Close();
+            if (path.Contains(Application.dataPath))
+            {
+                var relative = AbsoluteToRelativePath(path);
+                AssetDatabase.ImportAsset(relative);
+            }
+            Debug.Log($"CSV Export 완료 | Path : {path} | 항목 개수 : {Data.Count}");
+        }
+     
+        public static string AbsoluteToRelativePath(string absolute)
+        {
+            if (absolute.Contains(Application.dataPath))
+                return "Assets" + absolute.Substring(Application.dataPath.Length);
+            
+            // Debug.LogError("path is not belonged to project directory");
+            return absolute;
+        }
     }
 }

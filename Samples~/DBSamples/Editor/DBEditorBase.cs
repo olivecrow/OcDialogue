@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using OcDialogue;
 using OcDialogue.DB;
@@ -124,6 +125,9 @@ namespace MyDB.Editor
         
         public abstract void DrawToolbar();
         public virtual void AddDialogueContextualMenu(ContextualMenuPopulateEvent evt, DialogueGraphView graphView){}
+        public abstract string[] GetCSVFields();
+        public abstract IEnumerable<string[]> GetCSVData();
+        public abstract IEnumerable<LocalizationCSVRow> GetLocalizationData();
 
         protected virtual void OnCategoryChanged(int index, string category)
         {

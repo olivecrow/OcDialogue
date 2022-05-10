@@ -245,7 +245,7 @@ namespace OcDialogue.Samples
             if(Choices != null && Choices.Count > 0) return;
             if (CutsceneBehaviour.IsCutscenePlaying)
             {
-                CutsceneBehaviour.SkipToNextClip();
+                CutsceneBehaviour.ActiveCutscene.SkipToNextClip();
             }
 
             _isNextTriggered = true;

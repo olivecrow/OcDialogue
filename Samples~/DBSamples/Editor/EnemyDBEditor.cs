@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using OcDialogue;
 using OcDialogue.Editor;
 using Sirenix.Utilities.Editor;
@@ -54,6 +55,35 @@ namespace MyDB.Editor
             
             SirenixEditorGUI.EndHorizontalToolbar();
             serializedObject.ApplyModifiedProperties();
+        }
+
+        public override string[] GetCSVFields()
+        {
+            return new[] { "분류", "이름", "설명" };
+        }
+
+        public override IEnumerable<string[]> GetCSVData()
+        {
+            foreach (var enemy in EnemyDB.Enemies.OrderBy(x => x.Category).ThenBy(x => x.Name))
+            {
+                yield return new[] { enemy.Category, enemy.name, enemy.Description };
+            }
+        }
+
+        public override IEnumerable<LocalizationCSVRow> GetLocalizationData()
+        {
+            foreach (var enemy in EnemyDB.Enemies.OrderBy(x => x.Category).ThenBy(x => x.name))
+            {
+                var nameRow = new LocalizationCSVRow();
+                nameRow.key = enemy.name;
+                nameRow.korean = enemy.name;
+                yield return nameRow;
+                
+                var descriptionRow = new LocalizationCSVRow();
+                descriptionRow.key = $"{enemy.name}_Description";
+                descriptionRow.korean = enemy.Description;
+                yield return descriptionRow;
+            }
         }
 
         public override void OnInspectorGUI()

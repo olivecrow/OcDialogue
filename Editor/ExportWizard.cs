@@ -34,9 +34,7 @@ namespace OcDialogue.Editor
         }
         [EnumToggleButtons]public ExportTarget exportTarget;
         [ShowIf(nameof(exportTarget), ExportTarget.OtherDB)] [ValueDropdown(nameof(GetAvailableDBList))] public OcDB targetDB;
-
-        [FolderPath]public string folderPath = "Asset";
-        [SuffixLabel("@labelPreview")]public string fileNamePrefix = "My Project";
+        
         [Space]
         [ShowIf(nameof(exportTarget), ExportTarget.DialogueDB)][LabelText("논리적인 순서 사용")] 
         public bool useLogicalOrder = true;
@@ -66,10 +64,9 @@ namespace OcDialogue.Editor
         public List<string> overwriteColumnKey = new List<string>(){"Key", "Korean(ko)"};
 
 
-        string _fileName => $"{fileNamePrefix}_{(exportTarget == ExportTarget.DialogueDB ? "Dialogue" : targetDB == null ? "null" : targetDB.name)}";
-        string labelPreview => $"{_fileName}.csv";
+        string folderPath = "Asset";
+
         const string key_pathPrefs = "OcDialogue_ExportPath";
-        const string key_prefixPrefs = "OcDialogue_ExportPrefix";
         
         [MenuItem("OcDialogue/Export Wizard")]
         static void Open()
@@ -82,7 +79,6 @@ namespace OcDialogue.Editor
         {
             base.OnEnable();
             folderPath = EditorPrefs.GetString(key_pathPrefs);
-            fileNamePrefix = EditorPrefs.HasKey(key_prefixPrefs) ? EditorPrefs.GetString(key_prefixPrefs) : "My Project";
         }
 
         [Button]
@@ -98,7 +94,6 @@ namespace OcDialogue.Editor
                     break;
             }
             EditorPrefs.SetString(key_pathPrefs, folderPath);
-            EditorPrefs.SetString(key_prefixPrefs, fileNamePrefix);
         }
 
         [Button("번역용 CSV 테이블 Export")]
@@ -121,9 +116,7 @@ namespace OcDialogue.Editor
             keys.Add("Key");
             keys.Add("Id");
             keys.AddRange(LocalizationSettings.AvailableLocales.Locales.Select(x => x.Identifier.ToString()));
-            Debug.Log($"index of Korean(ko) {keys.IndexOf("Korean(ko)")}");
             keys.Add("Shared Comments");
-            Debug.Log($"index of Korean(ko) {keys.IndexOf("Korean(ko)")}");
 
             var koreanTableName = LocalizationSettings.AvailableLocales.Locales.
                 FirstOrDefault(x => x.Identifier.ToString().Contains("Korean"))?.Identifier.ToString();
@@ -132,8 +125,11 @@ namespace OcDialogue.Editor
 
             
             var fileName = exportTarget == ExportTarget.DialogueDB ?
-                $"{fileNamePrefix}_Dialogue Localization" : $"{fileNamePrefix}_{targetDB.name} Localization";
+                $"Dialogue Localization" : $"{targetDB.name} Localization";
+            
             var path = $"{folderPath}/{fileName}.csv";
+            path = EditorUtility.SaveFilePanel("Export CSV File", folderPath, fileName, "csv");
+            
             if (File.Exists(path))
             {
                 var text = File.ReadAllText(path);
@@ -211,10 +207,9 @@ namespace OcDialogue.Editor
                     break;
             }
 
-            writer.Save(folderPath, fileName);
+            writer.Save(path);
             
-            EditorPrefs.SetString(key_pathPrefs, folderPath);
-            EditorPrefs.SetString(key_prefixPrefs, fileNamePrefix);
+            EditorPrefs.SetString(key_pathPrefs, path.Substring(path.Length - ($"{fileName}.csv".Length)));
         }
 
         [Button("빈 Localization 테이블 생성하기")]
@@ -244,8 +239,9 @@ namespace OcDialogue.Editor
             {
                 writer.Add(data);
             }
-            
-            writer.Save(folderPath, $"{fileNamePrefix}_{targetDB.name}");
+
+            var path = EditorUtility.SaveFilePanel("Export CSV File", folderPath, targetDB.name, "csv");
+            writer.Save(path);
         }
 
 
@@ -288,7 +284,8 @@ namespace OcDialogue.Editor
                 }
             }
             
-            writer.Save(folderPath, _fileName);
+            var path = EditorUtility.SaveFilePanel("Export CSV File", folderPath, "Oc Dialogue", "csv");
+            writer.Save(path);
 
             void addData(Conversation conversation, Balloon balloon)
             {
@@ -375,6 +372,18 @@ namespace OcDialogue.Editor
             foreach (var db in DBManager.Instance.DBs)
             {
                 list.Add(db);
+            }
+
+            return list;
+        }
+        ValueDropdownList<string> GetAvailableColumnKey()
+        {
+            var list = new ValueDropdownList<string>();
+            list.Add("Key");
+            list.Add("Id");
+            foreach (var locale in LocalizationSettings.AvailableLocales.Locales)
+            {
+                list.Add(locale.Identifier.ToString());   
             }
 
             return list;

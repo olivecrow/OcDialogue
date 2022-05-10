@@ -2,18 +2,21 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using OcDialogue.DB;
+using OcUtility;
 using UnityEngine;
 
 namespace OcDialogue.Samples
 {
     public static class EasySaveIntegration
     {
+        public static bool DebugLog { get; set; }
         public static ES3Settings ES3Settings;
+        public static event Action OnSoftSaved;
         const string saveDataKey_PresetNames = "Preset";
-        const string saveDataKey_DataRowContainer = "DataRowContainer";
-        [RuntimeInitializeOnLoadMethod]
-        static void Init()
+        
+        public static void Init()
         {
             if (!DBManager.RuntimeInitialized)
             {
@@ -22,29 +25,23 @@ namespace OcDialogue.Samples
             }
             ES3.CacheFile();
             ES3Settings = new ES3Settings(ES3.Location.Cache);
-            LoadAllDBs();
             InitSaveCallbacks();
-        }
 
-        static void LoadAllDBs(string presetName = "")
-        {
-            foreach (var db in DBManager.Instance.DBs)
-            {
-                Load(db, presetName);
-            }
-        }
+#if UNITY_EDITOR
 
-        static void Load(OcDB db, string presetName)
-        {
-            if (!ES3.KeyExists(Name(db.Address, presetName), ES3Settings)) return;
-            var saveData = ES3.Load<List<CommonSaveData>>(Name(db.Address, presetName), ES3Settings);
-            
-            db.Overwrite(saveData);
+            var str = "";
+            var names = GetPresetNames();
+            names.ForEach(x => str += $"\n{x}");
+            Debug.Log($"[EasySave Integration] 초기화\n" +
+                          $"현재 저장된 프리셋 : {names.Count}\n" +
+                          $"{str}");
+#endif
         }
+        static string Name(string address, string presetName) => $"{presetName}({address})";
 
         static void InitSaveCallbacks()
         {
-            foreach (var db in DBManager.Instance.DBs) db.OnRuntimeValueChanged += () => SaveDB(db);
+            foreach (var db in DBManager.Instance.DBs) db.OnRuntimeValueChanged += () => SaveDB(db, "");
         }
         
         /// <summary>
@@ -60,21 +57,65 @@ namespace OcDialogue.Samples
             if(saveAsFile)
             {
                 ES3.StoreCachedFile(ES3Settings);
-                Debug.Log($"[EasySave Integration] Store Cached File");
+                Debug.Log($"[EasySave Integration] 게임 저장".Rich(Color.cyan));
             }
         }
 
         public static void SaveDB(OcDB db, string presetName = "", bool saveAsFile = false)
         {
-            ES3.Save(Name(db.Address, presetName), db.GetSaveData(), ES3Settings);
+            var saveData = db.GetSaveData();
+            if(DebugLog)
+            {
+                if (saveData != null)
+                {
+                    var sb = new StringBuilder();
+                    sb.Append($"SaveData ==> {Name(db.Address, presetName)}");
+                    foreach (var data in saveData)
+                    {
+                        sb.Append($"\nKey : {data.Key}");
+                        sb.Append("\nData");
+                        if (data.Data != null)
+                        {
+                            foreach (var dict in data.Data)
+                            {
+                                sb.Append($"\n   {dict.Key} : {dict.Value}");
+                            }
+                        }
+
+                        sb.Append("\nDataRowContainer");
+                        if (data.DataRowContainerDict != null)
+                        {
+                            foreach (var dict in data.DataRowContainerDict)
+                            {
+                                sb.Append($"\n   {dict.Key} : {dict.Value}");
+                            }
+                        }
+                    }
+
+                    Debug.Log($"[EasySave Integration] SaveDB ({db.name}) | as file ? {saveAsFile.DRT()} | saveData is null ? {(saveData == null).DRT()}");
+                }
+            }
+            ES3.Save(Name(db.Address, presetName), saveData, ES3Settings);
             SavePresetName(Name(db.Address, presetName));
             if(saveAsFile)
             {
                 ES3.StoreCachedFile(ES3Settings);
-                Debug.Log($"[EasySave Integration] Store Cached File ({db.name})");
+            }
+            else
+            {
+                OnSoftSaved?.Invoke();
             }
         }
-
+        static void SavePresetName(string presetName)
+        {
+            // if(string.IsNullOrWhiteSpace(presetName)) return;
+            var existPresets = GetPresetNames();
+            if(!existPresets.Contains(presetName))
+            {
+                existPresets.Add(presetName);
+                ES3.Save(saveDataKey_PresetNames, existPresets, ES3Settings);
+            }
+        }
         public static void StoreCachedFile()
         {
             ES3.StoreCachedFile(ES3Settings);
@@ -85,16 +126,21 @@ namespace OcDialogue.Samples
         {
             if (!ES3.KeyExists(saveDataKey_PresetNames, ES3Settings))
             {
-                Debug.LogWarning($"저장된 프리셋이 없음");
+                Debug.LogWarning($"[EasySave Integration] 저장된 프리셋이 없음 | presetName : {presetName}");
                 return;
             }
-            LoadAllDBs(presetName);
+
+            Debug.Log($"[EasySave Integration]Load Save Data | presetName : {presetName}");
+            foreach (var db in DBManager.Instance.DBs)
+            {
+                LoadFromPreset(db, presetName);
+            }
         }
         public static void LoadFromPreset(OcDB db, string presetName)
         {
-            if (!ES3.KeyExists(Name(db.Address, saveDataKey_PresetNames), ES3Settings))
+            if (!ES3.KeyExists(Name(db.Address, presetName), ES3Settings))
             {
-                Debug.LogWarning($"저장된 프리셋이 없음");
+                Debug.LogWarning($"[EasySave Integration] {db.name} | ES3에 해당 키가 없음 | key : {Name(db.Address, presetName)} | presetName : {presetName}");
                 return;
             }
 
@@ -127,18 +173,14 @@ namespace OcDialogue.Samples
             ES3.Save(Name(db.Address, saveDataKey_PresetNames), keys, ES3Settings);
         }
 
-        static void SavePresetName(string presetName)
+        public static bool HasPreset()
         {
-            if(string.IsNullOrWhiteSpace(presetName)) return;
-            var existPresets = GetPresetNames();
-            if(!existPresets.Contains(presetName))
-            {
-                existPresets.Add(presetName);
-                ES3.Save(saveDataKey_PresetNames, existPresets, ES3Settings);
-            }
+            return GetPresetNames().Count > 0;
         }
-
-        static string Name(string address, string presetName) => $"{presetName}({address})";
+        public static bool HasPreset(string presetName)
+        {
+            return GetPresetNames().Contains(presetName);
+        }
     }
 
 }

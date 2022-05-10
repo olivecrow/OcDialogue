@@ -47,6 +47,27 @@ namespace MyDB.Editor
             serializedObject.ApplyModifiedProperties();
         }
 
+        public override string[] GetCSVFields()
+        {
+            return new[] { "분류", "이름", "설명" };
+        }
+
+        public override IEnumerable<string[]> GetCSVData()
+        {
+            foreach (var gameProcessData in GameProcessDB.Data)
+            {
+                foreach (var dataRow in gameProcessData.dataRowContainer.DataRows)
+                {
+                    yield return new[] { dataRow.category, dataRow.name, dataRow.description };
+                }
+            }
+        }
+
+        public override IEnumerable<LocalizationCSVRow> GetLocalizationData()
+        {
+            return null;
+        }
+
 
         public override void OnInspectorGUI()
         {

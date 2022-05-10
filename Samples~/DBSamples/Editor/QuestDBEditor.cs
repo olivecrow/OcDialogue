@@ -130,6 +130,35 @@ namespace MyDB.Editor
             evt.menu.AppendAction("퀘스트 분기 노드 추가", a => CreateQuestDialogueNodes(a, graphView));
         }
 
+        public override string[] GetCSVFields()
+        {
+            return new[] { "분류", "이름", "설명" };
+        }
+
+        public override IEnumerable<string[]> GetCSVData()
+        {
+            foreach (var quest in QuestDB.Quests.OrderBy(x => x.Category).ThenBy(x => x.Name))
+            {
+                yield return new[] { quest.Category, quest.Name, quest.Description };
+            }
+        }
+
+        public override IEnumerable<LocalizationCSVRow> GetLocalizationData()
+        {
+            foreach (var quest in QuestDB.Quests.OrderBy(x => x.Category).ThenBy(x => x.Name))
+            {
+                var nameRow = new LocalizationCSVRow();
+                nameRow.key = quest.name;
+                nameRow.korean = quest.name;
+                yield return nameRow;
+                
+                var descriptionRow = new LocalizationCSVRow();
+                descriptionRow.key = $"{quest.name}_Description";
+                descriptionRow.korean = quest.Description;
+                yield return descriptionRow;
+            }
+        }
+
         void CreateQuestDialogueNodes(DropdownMenuAction action, DialogueGraphView graphView)
         {
             var selected = graphView.selection[0] as DialogueNode;

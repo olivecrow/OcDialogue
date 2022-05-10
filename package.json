@@ -1,6 +1,6 @@
 {
   "name": "com.olivecrow.ocdialogue",
-  "version": "2.3.5",
+  "version": "2.3.6",
   "displayName": "Oc Dialogue",
   "description": "\ub370\uc774\ud130\ubca0\uc774\uc2a4\ub97c \ud3ec\ud568\ud55c \ucee4\uc2a4\ud140 \ub2e4\uc774\uc5bc\ub85c\uadf8 \uc2dc\uc2a4\ud15c.",
   "unity": "2020.3",
@@ -31,6 +31,11 @@
       "displayName": "DBSamples",
       "description": "GameProcess, Item, Quest, NPC, Enemy \ub4f1 \uc8fc\uc694 DB\uc640 \uc5d0\ub514\ud130\ub97c \uad6c\ud604\ud55c \uc0d8\ud50c",
       "path": "Samples~/DBSamples"
+    },
+    {
+      "displayName": "DataBasicTest",
+      "description": "프로젝트에서 실행할 수 있는 OcData에 대한 기본적인 테스트 및 유효성 검사.",
+      "path": "Samples~/DataBasicTest"
     }
   ]
 }

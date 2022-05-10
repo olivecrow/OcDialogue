@@ -150,6 +150,38 @@ namespace MyDB.Editor
             }
             SirenixEditorGUI.EndHorizontalToolbar();
         }
+
+        public override string[] GetCSVFields()
+        {
+            return new[] { "대분류", "소분류", "GUID", "이름", "설명"};
+        }
+
+        public override IEnumerable<string[]> GetCSVData()
+        {
+            foreach (var item in ItemDB.Items.OrderBy(x => x.Category).ThenBy(x => x.itemName))
+            {
+                yield return new[] { item.Category, item.SubTypeString, item.GUID.ToString(), item.itemName, item.description };
+            }
+        }
+
+        public override IEnumerable<LocalizationCSVRow> GetLocalizationData()
+        {
+            foreach (var item in ItemDB.Items.OrderBy(x => x.Category).ThenBy(x => x.itemName))
+            {
+                var nameRow = new LocalizationCSVRow();
+                nameRow.key = item.GUID.ToString();
+                nameRow.korean = item.itemName;
+                yield return nameRow;
+                
+                var descriptionRow = new LocalizationCSVRow();
+                descriptionRow.key = $"{item.GUID}_Description";
+                descriptionRow.korean = item.description;
+                yield return descriptionRow;
+
+
+            }
+        }
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
