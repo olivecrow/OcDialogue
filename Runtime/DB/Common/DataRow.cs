@@ -117,8 +117,7 @@ namespace OcDialogue.DB
         PrimitiveValue _initialValue;
 
         PrimitiveValue _runtimeValue;
-
-        public void GenerateRuntimeData()
+        public override void Initialize()
         {
             OnRuntimeValueChanged = null;
             RuntimeValue = new PrimitiveValue()
@@ -130,6 +129,11 @@ namespace OcDialogue.DB
                 StringValue = InitialValue.StringValue,
                 VectorValue = InitialValue.VectorValue
             };
+        }
+        [Obsolete("Initialize를 사용할 것.")]
+        public void GenerateRuntimeData()
+        {
+            Initialize();
         }
 
         public void SetTypeAndValue(DataRowType type, object value)
@@ -355,7 +359,6 @@ namespace OcDialogue.DB
             }
         }
         public override DataRowType GetValueType(string fieldName) => Type;
-        
 
 
         public override string ToString()

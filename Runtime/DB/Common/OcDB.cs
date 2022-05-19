@@ -15,7 +15,6 @@ namespace OcDialogue.DB
             get => Address;
             set => Debug.LogWarning($"[{Address}] DB는 카테고리가 지정될 수 없음");
         }
-        public abstract void Init();
         public abstract void Overwrite(List<CommonSaveData> saveData);
         public abstract List<CommonSaveData> GetSaveData();
         public bool IsInitialized { get; protected set; }

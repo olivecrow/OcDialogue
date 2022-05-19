@@ -127,7 +127,7 @@ namespace OcDialogue.Editor
         {
             if (data.Length != Keys.Length)
             {
-                Debug.LogError($"[CSVWriter] 키의 개수와 데이터의 개수가 일치하지 않음");
+                Debug.LogError($"[CSVWriter] 키의 개수와 데이터의 개수가 일치하지 않음 | key : {Keys.Length} | data : {data.Length}");
                 return;
             }
             if (!Keys.Contains(idKey))

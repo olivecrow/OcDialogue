@@ -66,7 +66,7 @@ namespace OcDialogue.Editor
 
         string folderPath = "Asset";
 
-        const string key_pathPrefs = "OcDialogue_ExportPath";
+        static string key_pathPrefs => $"{Application.dataPath}_OcDialogue_ExportPath";
         
         [MenuItem("OcDialogue/Export Wizard")]
         static void Open()
@@ -121,6 +121,15 @@ namespace OcDialogue.Editor
             var koreanTableName = LocalizationSettings.AvailableLocales.Locales.
                 FirstOrDefault(x => x.Identifier.ToString().Contains("Korean"))?.Identifier.ToString();
             var indexOfKorean = keys.IndexOf(x => x == koreanTableName);
+
+            Debug.Log($"korean table name : {koreanTableName}");
+            Debug.Log($"index of korean : {indexOfKorean}");
+            if (indexOfKorean == -1)
+            {
+                Debug.Log($"LocalizationSettings.AvailableLocales.Locales.FirstOrDefault(x => x.Identifier.ToString().Contains()) :" +
+                          $"{LocalizationSettings.AvailableLocales.Locales.FirstOrDefault(x => x.Identifier.ToString().Contains("Korean"))}");
+            }
+            
             var writer = new CSVWriter(keys.ToArray());
 
             

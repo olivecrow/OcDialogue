@@ -26,12 +26,14 @@ namespace OcDialogue.DB
                  "예를 들어 [0] stage1_clear, [1] stage2_clear 라는 데이터가 있을 경우, \n" +
                  "stage2_clear가 true가 되면 0번의 stage1_clear는 자동으로 true가 됨")]
         public OcDictionary<string, List<DataRow>> HierarchicalData;
-        public event Action<DataRow> OnRuntimeValueChanged; 
-        public void GenerateRuntimeData()
+        public event Action<DataRow> OnRuntimeValueChanged;
+
+        public void Initialize()
         {
+            OnRuntimeValueChanged = null;
             foreach (var dataRow in DataRows)
             {
-                dataRow.GenerateRuntimeData();
+                dataRow.Initialize();
                 dataRow.OnRuntimeValueChanged += OnRuntimeValueChanged;
             }
 
@@ -43,6 +45,11 @@ namespace OcDialogue.DB
 #if UNITY_EDITOR
             Application.quitting += () => OnRuntimeValueChanged = null;      
 #endif
+        }
+        [Obsolete("Initialize를 사용할 것.")]
+        public void GenerateRuntimeData()
+        {
+            Initialize();
         }
 
         /// <summary>
@@ -124,7 +131,13 @@ namespace OcDialogue.DB
             return DataRows.Any(x => string.CompareOrdinal(x.Name, key) == 0);
         }
 
+        [Obsolete("FindData를 대신 사용할 것")]
         public DataRow Get(string key)
+        {
+            return DataRows.FirstOrDefault(x => string.CompareOrdinal(x.Name, key) == 0);
+        }
+
+        public DataRow FindData(string key)
         {
             return DataRows.FirstOrDefault(x => string.CompareOrdinal(x.Name, key) == 0);
         }

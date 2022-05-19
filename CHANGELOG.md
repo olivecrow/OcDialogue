@@ -1,6 +1,12 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.3.7] -2022-05-19
+- ExportWizard에 로컬라이징 관련 디버그 로그 추가
+- OcData를 기본값으로 되돌리는 Initialize 메서드 추가. 기존의 GenerateRuntimeData를 대체함
+- OcDB의 Init을 Initialize로 대체함. API를 동일하게 유지하기 위한 것.
+- CutsceneBehaviour.Play를 virtual 메서드로 시그니처 변경.
+
 ### [2.3.6] -2022-05-10
 - EasySave Integration 업데이트
 - DataBasicTest의 샘플화

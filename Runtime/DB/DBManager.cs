@@ -69,7 +69,7 @@ namespace OcDialogue.DB
             Printer.Print($"[DB Manager V2] RuntimeInit : 모든 데이터 초기화");
             foreach (var db in _instance.DBs)
             {
-                db.Init();
+                db.Initialize();
             }
 
             _runtimeInitialized = true;

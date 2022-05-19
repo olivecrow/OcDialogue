@@ -26,6 +26,8 @@ namespace OcDialogue
         public abstract void SetValue(string fieldName, DataSetter.Operator op, object value);
         public abstract DataRowType GetValueType(string fieldName);
 
+        public abstract void Initialize();
+
         public static bool IsTrue(bool a, CheckFactor.Operator op, bool b)
         {
             var ia = a == true ? 1 : 0;

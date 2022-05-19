@@ -81,7 +81,7 @@ namespace OcDialogue.Cutscene
         
 
         [EnableIf("@EditorApplication.isPlaying")][Button]
-        public void Play()
+        public virtual void Play()
         {
             if (IsCutscenePlaying)
             {
