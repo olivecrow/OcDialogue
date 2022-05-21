@@ -13,6 +13,7 @@ using UnityEditor;
 #endif
 using UnityEngine;
 using UnityEngine.Timeline;
+using Random = UnityEngine.Random;
 
 namespace OcDialogue
 {
@@ -35,7 +36,9 @@ namespace OcDialogue
         public enum ActionType
         {
             None,
-            SubEntry
+            SubEntry,
+            RandomSelection,
+            CycleSelection
         }
 
         public enum SubEntryDataType
@@ -122,8 +125,90 @@ namespace OcDialogue
         [Indent(2)] [ShowIf("@type == Type.Action && subEntryDataType == SubEntryDataType.OcData")][InlineButton("OpenDataSelectWindow", "선택")]
         public OcData subEntryTriggerData;
 
-        
+        public bool IsAvailable => !useChecker || checker.IsTrue();
         public void OnDataApplied() { }
+        int _cycleIndex;
+
+        public Balloon GetNextDialogue(out IEnumerable<Balloon> choices, List<SignalAsset> eventSignals)
+        {
+            choices = null;
+
+            if (linkedBalloons.Count == 0) return null;
+            
+            if (eventSignals == null) eventSignals = new List<SignalAsset>();
+            else eventSignals.Clear();
+
+            if (type == Type.Action)
+            {
+                switch (actionType)
+                {
+                    case ActionType.None:
+                    case ActionType.SubEntry:
+                        return get_next_default(ref choices);
+                    case ActionType.RandomSelection:
+                        return get_random(ref choices);
+                    case ActionType.CycleSelection:
+                        return get_cycle(ref choices);
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            return get_next_default(ref choices);
+
+            bool try_get(ref Balloon b, ref IEnumerable<Balloon> choices)
+            {
+                if(!b.IsAvailable) return false;
+                if(b.useEvent) eventSignals.Add(b.signal);
+                if(b.useSetter)
+                    foreach (var setter in b.setters) setter.Execute();
+                
+                if (linkedBalloons.Any(x => x.type == Type.Choice && x.IsAvailable))
+                {
+                    choices = linkedBalloons.Where(x => x.type == Type.Choice && x.IsAvailable);
+                }
+                
+                if (b.type == Type.Action) b = b.GetNextDialogue(out choices, eventSignals);
+
+                return true;
+            }
+
+            Balloon get_next_default(ref IEnumerable<Balloon> choices)
+            {
+                for (int i = 0; i < linkedBalloons.Count; i++)
+                {
+                    var b = linkedBalloons[i];
+                    if (try_get(ref b, ref choices)) return b;
+                }
+
+                return null;
+            }
+
+            Balloon get_random(ref IEnumerable<Balloon> choices)
+            {
+                choices = null;
+                var random = new System.Random();
+                var randomOrderedIndex = Enumerable.Range(0, linkedBalloons.Count).OrderBy(x => random.Next());
+
+                for (int i = 0; i < linkedBalloons.Count; i++)
+                {
+                    var b = linkedBalloons[randomOrderedIndex.ElementAt(i)];
+                    if (try_get(ref b, ref choices)) return b;
+                }
+
+                return null;
+            }
+            
+            Balloon get_cycle(ref IEnumerable<Balloon> choices)
+            {
+                _cycleIndex = (int)Mathf.Repeat(_cycleIndex++, linkedBalloons.Count);
+                
+                var b = linkedBalloons[_cycleIndex];
+                if (try_get(ref b, ref choices)) return b;
+
+                return null;
+            }
+        }
 
 #if UNITY_EDITOR
 

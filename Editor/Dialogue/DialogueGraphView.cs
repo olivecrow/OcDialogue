@@ -494,6 +494,7 @@ namespace OcDialogue.Editor
                     var newLinked = new List<Balloon>();
                     foreach (var linkedBalloon in balloon.linkedBalloons)
                     {
+                        if(selected.All(x => x.Balloon != linkedBalloon)) continue;
                         var newLinkedBalloon = _copyBuffer.First(x => x.GUID == guidMatch[linkedBalloon.GUID]);
                         newLinked.Add(newLinkedBalloon);
                     }
