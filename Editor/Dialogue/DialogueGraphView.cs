@@ -163,19 +163,25 @@ namespace OcDialogue.Editor
             }
 
         }
-
+        
         public DialogueNode CreateBalloonAndNode(Balloon.Type type, Vector2 position)
         {
+            var undoID = Undo.GetCurrentGroup();
+            Undo.RecordObject(Conversation, "Create Balloon And Node");
+            
             var newBalloon = Conversation.AddBalloon(type);
             var node = CreateNode(newBalloon, position);
 
+            Undo.RegisterCreatedObjectUndo(newBalloon, "Create Balloon And Node");
+            
             var myChange = new DialogueGraphViewChange();
             myChange.createdNode = node;
             OnChanged?.Invoke(myChange);
 
-            EditorUtility.SetDirty(newBalloon);
-            EditorUtility.SetDirty(Conversation);
+            // EditorUtility.SetDirty(newBalloon);
+            // EditorUtility.SetDirty(Conversation);
 
+            Undo.CollapseUndoOperations(undoID);
             return node;
         }
         
@@ -215,19 +221,23 @@ namespace OcDialogue.Editor
         /// <summary> 선택된 노드에 연결된 노드를 생성함. </summary>
         public DialogueNode CreateLinkedNode(DialogueNode source, Balloon.Type balloonType)
         {
+            var undoID = Undo.GetCurrentGroup();
+            Undo.RecordObject(Conversation, "Create Linked Node");
             var newBalloon = Conversation.AddBalloon(balloonType);
+            Undo.RegisterCreatedObjectUndo(newBalloon, "Create Linked Node");
+            
             var rect = source.GetPosition();
             if (source.Balloon.linkedBalloons == null) source.Balloon.linkedBalloons = new List<Balloon>();
             var node = CreateNode(newBalloon,  rect.position + new Vector2(rect.width + 10f, source.Balloon.linkedBalloons.Count * rect.height));
             var edge = source.OutputPort.ConnectTo(node.InputPort);
-            
+            Undo.RecordObject(Conversation, "Create Linked Node");
             var linkData = CreateLinkDataFromEdge(edge);
             Conversation.AddLinkData(linkData);
             
             AddElement(edge);
             
-            EditorUtility.SetDirty(newBalloon);
-            EditorUtility.SetDirty(Conversation);
+            // EditorUtility.SetDirty(newBalloon);
+            // EditorUtility.SetDirty(Conversation);
             
             var myChange = new DialogueGraphViewChange();
             myChange.createdNode = node;
@@ -235,6 +245,8 @@ namespace OcDialogue.Editor
             
             ClearSelection();
             AddToSelection(node);
+            
+            Undo.CollapseUndoOperations(undoID);
             return node;
         }
         
@@ -320,9 +332,15 @@ namespace OcDialogue.Editor
         
         public override EventPropagation DeleteSelection()
         {
+            var undoID = Undo.GetCurrentGroup();
+            Undo.RecordObject(Conversation, "Delete Selection");
             foreach (var s in selection)
             {
-                if(s is DialogueNode node) Conversation.RemoveBalloon(node.Balloon);
+                if(s is DialogueNode node)
+                {
+                    var balloon = node.Balloon;
+                    Conversation.RemoveBalloon(balloon);
+                }
                 else if(s is Edge edge)
                 {
                     var fromNode = Nodes.Find(x => x.OutputPort == edge.output);
@@ -330,7 +348,10 @@ namespace OcDialogue.Editor
                     Conversation.RemoveLinkData(fromNode.Balloon.GUID, toNode.Balloon.GUID);
                 }
             }
-            return base.DeleteSelection();
+            Undo.RecordObject(Conversation, "Delete Selection");
+            var result = base.DeleteSelection();
+            Undo.CollapseUndoOperations(undoID);
+            return result;
         }
         
 
@@ -515,16 +536,18 @@ namespace OcDialogue.Editor
         {
             if(_copyBuffer.Count == 0) return;
             
+            var undoID = Undo.GetCurrentGroup();
             var firstOriginal = _copyBuffer[0];
             var created = new List<DialogueNode>();
             var guidMatch = new Dictionary<string, string>();
-
+            
             Undo.RecordObject(Conversation, "다이얼로그 에디터 Paste");
             try
             {
                 for (int i = 0; i < _copyBuffer.Count; i++)
                 {
                     var copy = ScriptableObject.CreateInstance<Balloon>();
+                    Undo.RegisterCreatedObjectUndo(copy, "다이얼로그 에디터 Paste");
                     // copyBuffer에 있는 인스턴스를 템플릿으로 사용해서 복사함.
                     EditorUtility.CopySerialized(_copyBuffer[i], copy);
 
@@ -542,6 +565,7 @@ namespace OcDialogue.Editor
 
                 foreach (var node in created)
                 {
+                    Undo.RecordObject(Conversation, "다이얼로그 에디터 Paste");
                     Conversation.Balloons.Add(node.Balloon);
                     AssetDatabase.AddObjectToAsset(node.Balloon, Conversation);
                 }
@@ -564,6 +588,7 @@ namespace OcDialogue.Editor
 
             try
             {
+                Undo.RecordObject(Conversation, "다이얼로그 에디터 Paste");
                 foreach (var node in created)
                 {
                     if(node.Balloon.linkedBalloons.Count == 0) continue;
@@ -583,6 +608,7 @@ namespace OcDialogue.Editor
                 }
 
 
+                Undo.RecordObject(Conversation, "다이얼로그 에디터 Paste");
                 foreach (var linkData in newLinkData)
                 {
                     Conversation.LinkData.Add(linkData);
@@ -605,6 +631,7 @@ namespace OcDialogue.Editor
             {
                 AddToSelection(node);   
             }
+            Undo.CollapseUndoOperations(undoID);
         }
     }
 }

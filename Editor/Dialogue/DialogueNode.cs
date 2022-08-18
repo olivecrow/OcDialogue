@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using OcDialogue.DB;
 using OcUtility;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
@@ -146,7 +147,7 @@ namespace OcDialogue.Editor
                     break;
                 case Balloon.Type.Dialogue:
                     title = Balloon.actor == null ? "No Actor" : Balloon.actor.name;
-                    var color = Balloon.actor == null ? new Color(0.2f, 0.6f, 0.7f) : Balloon.actor.color;
+                    var color = Balloon.actor == null ? new Color(0.2f, 0.6f, 0.7f) : ((IOcNPC)Balloon.actor).color;
                     color.a = 1;
                     titleContainer.style.backgroundColor =  color;
                     break;

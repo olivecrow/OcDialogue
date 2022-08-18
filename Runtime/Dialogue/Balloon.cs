@@ -58,7 +58,7 @@ namespace OcDialogue
         [ReadOnly] public Type type;
 
         [ShowIf("type", Type.Dialogue)] [ValueDropdown("GetNPCList")]
-        public OcNPC actor;
+        public OcData actor;
 
         [InfoBox("타입이 Action일땐 텍스트가 참고용 설명으로만 쓰이고 대화에서 나타나지 않음\n오로지 Checker, Setter, Event, Image용도로만 쓰임", 
             VisibleIf = "@type == Balloon.Type.Action")]
@@ -74,7 +74,7 @@ namespace OcDialogue
         public Vector2 _position;
 
         [ValueDropdown("GetBalloonText")]
-        public List<Balloon> linkedBalloons;
+        public List<Balloon> linkedBalloons = new List<Balloon>();
         [ShowIf("@type == Type.Choice && useChecker")]
         public ChoiceCheckerReaction choiceCheckerReaction;
         [HideIf("type", Type.Entry)] public bool useChecker;
@@ -213,7 +213,7 @@ namespace OcDialogue
 #if UNITY_EDITOR
 
         /// <summary> actor필드에서 NPC이름을 드롭다운으로 보여주기위한 리스트를 반환함. (Odin Inspector용) </summary>
-        ValueDropdownList<OcNPC> GetNPCList() => DialogueAsset.Instance.GetNPCDropDown();
+        ValueDropdownList<OcData> GetNPCList() => DialogueAsset.Instance.GetNPCDropDown();
 
         ValueDropdownList<Balloon> GetBalloonText()
         {

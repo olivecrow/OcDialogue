@@ -12,7 +12,7 @@ using UnityEngine;
 namespace OcDialogue
 {
     [CreateAssetMenu(fileName = "Dialogue Asset", menuName = "Oc Dialogue/Dialogue Asset")]
-    public class DialogueAsset : ScriptableObject
+    public class DialogueAsset : ScriptableObject, ICSVExportable
     {
         public static DialogueAsset Instance => DBManager.Instance.DialogueAsset;
 
@@ -38,11 +38,11 @@ namespace OcDialogue
             Categories = new[] {"Main"};
         }
 
-        public ValueDropdownList<OcNPC> GetNPCDropDown()
+        public ValueDropdownList<OcData> GetNPCDropDown()
         {
             if (DialogueNPCDB == null) return null;
 
-            return DialogueNPCDB.GetOdinDropDown();
+            return DialogueNPCDB.GetNPCDropDown();
         }
 
         public Balloon FindBalloon(string guid)
@@ -81,6 +81,84 @@ namespace OcDialogue
             foreach (var c in Categories)
             {
                 CategorizedConversations[c] = Conversations.Where(x => string.CompareOrdinal(x.Category, c) == 0);
+            }
+        }
+        List<Balloon> GetLogicallyOrderedBalloons(Conversation conversation)
+        {
+            var balloons = new List<Balloon>();
+            foreach (var balloon in conversation.Balloons)
+            {
+                if(balloons.Contains(balloon)) continue;
+                balloons.Add(balloon);
+                queryLinkedBalloon(balloons, balloon);
+            }
+            
+            void queryLinkedBalloon(ICollection<Balloon> balloons, Balloon balloon)
+            {
+                foreach (var linkedBalloon in balloon.linkedBalloons)
+                {
+                    if(balloons.Contains(linkedBalloon)) continue;
+                    balloons.Add(linkedBalloon);
+                    queryLinkedBalloon(balloons, linkedBalloon);
+                }
+            }
+
+            return balloons;
+        }
+
+        public string[] GetLocalizationCSVHeader()
+        {
+            var header = new List<string>();
+            header.Add("대화명");
+            header.Add("인물");
+            header.Add("Key");
+            header.Add("Korean(ko)");
+            header.Add("비고");
+
+            return header.ToArray();
+        }
+
+        public IEnumerable<LocalizationCSVRow> GetLocalizationCSVLines()
+        {
+            foreach (var conversation in Conversations.OrderBy(x => x.Category))
+            {
+                var balloons = GetLogicallyOrderedBalloons(conversation);
+                foreach (var balloon in balloons)
+                {
+                    var row = new LocalizationCSVRow();
+                    // 대화명
+                    row.additional1 = $"{conversation.Category}/{conversation.key}/{balloon.GUID}";
+                    // 인물
+                    row.additional2 = balloon.actor == null ? " " : balloon.actor.name;
+                    // Key
+                    row.key = balloon.GUID;
+                    // Korean(ko)
+                    row.korean = balloon.text;
+                    // 비고
+                    row.additional3 = getAutoComment(balloon);
+
+                    yield return row;
+                }
+            }
+            
+            string getAutoComment(Balloon balloon)
+            {
+                var comment = string.IsNullOrWhiteSpace(balloon.description) ? "" : balloon.description;
+                if (balloon.linkedBalloons.Any(x => x.type == Balloon.Type.Choice))
+                {
+                    comment += "-> 선택지 제시 ";
+                    foreach (var choice in balloon.linkedBalloons.Where(x => x.type == Balloon.Type.Choice))
+                    {
+                        comment += $"[{choice.text}]";
+                    }
+                }
+
+                if (balloon.type == Balloon.Type.Choice && balloon.linkedBalloons == null || balloon.linkedBalloons.Count == 0)
+                {
+                    comment += "대화 종료";
+                }
+                
+                return comment;
             }
         }
 
@@ -148,20 +226,6 @@ namespace OcDialogue
                 return;
             }
             Debug.Log($"[{guid}] 해당 GUID를 가진 Balloon이 없음");
-        }
-        
-        public IEnumerable<string> GetLocalizationKey()
-        {
-            // Key | ID | SharedComments
-            foreach (var conversation in Conversations)
-            {
-                foreach (var balloon in conversation.Balloons)
-                {
-                    yield return $"{conversation.Category}/{conversation.key}/{balloon.GUID}";
-                    yield return "";
-                    yield return $"{balloon.text}";
-                }
-            }
         }
 #endif
         

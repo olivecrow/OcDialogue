@@ -4,6 +4,6 @@ namespace OcDialogue
 {
     public interface IDialogueActorDB
     {
-        ValueDropdownList<OcNPC> GetOdinDropDown();
+        ValueDropdownList<OcData> GetNPCDropDown();
     }
 }

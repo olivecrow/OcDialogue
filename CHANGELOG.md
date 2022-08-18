@@ -1,6 +1,11 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.3.8] -2022-08-19
+- ExportWizard제거 및 새로운 버전인 DBExportWizard 추가
+- 로컬라이징용 CSV를 추출하기 위한 DB용 인터페이스인 ICSVExportable 추가
+- Dialogue 에디터에서 Undo 안정성 증가
+
 ### [2.3.7] -2022-05-19
 - ExportWizard에 로컬라이징 관련 디버그 로그 추가
 - OcData를 기본값으로 되돌리는 Initialize 메서드 추가. 기존의 GenerateRuntimeData를 대체함

@@ -83,7 +83,7 @@ namespace OcDialogue.Editor
             _instance = this;
             _edgeLabels = new Dictionary<Edge, Label>();
         }
-
+        
         void OnDisable()
         {
             if (_instance == this) _instance = null;
@@ -145,6 +145,13 @@ namespace OcDialogue.Editor
                 // ConversationField.SetValueWithoutNotify(Conversation.key);
                 ConversationField.choices = ConversationDropDownChoices;
             }
+
+            Undo.undoRedoPerformed += ForceRepaint;
+        }
+
+        void OnLostFocus()
+        {
+            Undo.undoRedoPerformed -= ForceRepaint;
         }
 
         void OnGUI()

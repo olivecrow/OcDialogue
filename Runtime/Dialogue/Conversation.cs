@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using OcDialogue.DB;
+using OcUtility;
 using Sirenix.OdinInspector;
 
 #if UNITY_EDITOR
@@ -37,7 +38,7 @@ namespace OcDialogue
             }
         }
         [InfoBox("Main NPC가 설정되어있지 않음", InfoMessageType.Warning, "@MainNPC == null")]
-        [ValueDropdown("GetNPCList")]public OcNPC MainNPC;
+        [ValueDropdown("GetNPCList")]public OcData MainNPC;
         /// <summary> 에디터에서 참고용으로 사용되는 설명. 인게임에서는 등장하지 않음. </summary>
         [TextArea]public string description;
         public List<Balloon> Balloons;
@@ -155,7 +156,7 @@ namespace OcDialogue
         }
 
         /// <summary> MainActor 필드에서 NPC이름을 드롭다운으로 보여주기위한 리스트를 반환함. (Odin Inspector용) </summary>
-        ValueDropdownList<OcNPC> GetNPCList() => DialogueAsset.Instance.GetNPCDropDown();
+        ValueDropdownList<OcData> GetNPCList() => DialogueAsset.Instance.GetNPCDropDown();
 
 
         [BoxGroup("유틸리티 메서드")]
@@ -163,6 +164,16 @@ namespace OcDialogue
         public OcNPC replace_before;
         [HorizontalGroup("유틸리티 메서드/1", LabelWidth = 50), LabelText("  =>"), ValueDropdown("GetNPCList")][InlineButton("ReplaceNPC", "Replace")]
         public OcNPC replace_after;
+
+        void OnValidate()
+        {
+            var subAssets = AssetDatabase.LoadAllAssetRepresentationsAtPath(AssetDatabase.GetAssetPath(this));
+            for (int i = 0; i < Balloons.Count; i++)
+            {
+                if(subAssets.Contains(Balloons[i])) continue;
+                AssetDatabase.AddObjectToAsset(Balloons[i], this);
+            }
+        }
 
         void ReplaceNPC()
         {
@@ -207,6 +218,25 @@ namespace OcDialogue
             }
         }
 
+        [BoxGroup("유틸리티 메서드"), Button("사용하지 않는 Balloon 제거")]
+        void RemoveUnusedBalloons()
+        {
+            var undoID = Undo.GetCurrentGroup();
+            Undo.RecordObject(this, "Remove Unused Balloons");
+            var count = Balloons.Count;
+            var subAssets = AssetDatabase.LoadAllAssetRepresentationsAtPath(AssetDatabase.GetAssetPath(this));
+            for (int i = 0; i < count; i++)
+            {
+                if(Balloons[i] == null) continue;
+                if(subAssets.Contains(Balloons[i])) continue;
+                Debug.Log($"{this.DRT(true)} {Balloons[i].GUID} : {Balloons[i].text} 제거됨");
+                Undo.DestroyObjectImmediate(Balloons[i]);
+                Balloons[i] = null;
+            }
+
+            Balloons = Balloons.Where(x => x != null).ToList();
+            Undo.CollapseUndoOperations(undoID);
+        }
         [BoxGroup("유틸리티 메서드"), Button("사용하지 않는 LinkData 제거")]
         void RemoveUnusedLinkData()
         {
@@ -219,16 +249,15 @@ namespace OcDialogue
                     removeList.Add(linkData);
                     continue;
                 }
-                if(LinkData.Any(x => string.CompareOrdinal(x.@from, linkData.@from) == 0 && 
-                                     string.CompareOrdinal(x.to, linkData.to) == 0 && x != linkData)) removeList.Add(linkData);
-                if(restoreList.Count(x => string.CompareOrdinal(x.@from, linkData.@from) == 0 && 
-                                          string.CompareOrdinal(x.to, linkData.to) == 0) == 0) 
+                if(LinkData.Any(x => x.@from.equal(linkData.from) && x.to.equal(linkData.to) && x != linkData)) 
+                    removeList.Add(linkData);
+                if(restoreList.Count(x => x.@from.equal(linkData.@from) && x.to.equal(linkData.to)) == 0) 
                     restoreList.Add(linkData);
             }
 
             foreach (var linkData in removeList)
             {
-                Debug.Log($"[Conversation] LinkData 제거됨 | from : {linkData.@from} | to : {linkData.to}");
+                Debug.Log($"{this.DRT(true)} LinkData 제거됨 | from : {linkData.@from} | to : {linkData.to}");
                 LinkData.Remove(linkData);
             }
             
@@ -237,6 +266,8 @@ namespace OcDialogue
             {
                 LinkData.Add(linkData);
             }
+
+            LinkData = LinkData.Distinct().ToList();
         }
 
         [BoxGroup("유틸리티 메서드"), Button("GUID로 Balloon선택")]
