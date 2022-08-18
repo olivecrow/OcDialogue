@@ -108,12 +108,15 @@ namespace OcDialogue
 
         public string[] GetLocalizationCSVHeader()
         {
-            var header = new List<string>();
-            header.Add("대화명");
-            header.Add("인물");
-            header.Add("Key");
-            header.Add("Korean(ko)");
-            header.Add("비고");
+            var header = new []
+            {
+                "대화명",
+                "인물",
+                "비고",
+                " ",
+                "Key",
+                "Korean(ko)"
+            };
 
             return header.ToArray();
         }
@@ -130,12 +133,13 @@ namespace OcDialogue
                     row.additional1 = $"{conversation.Category}/{conversation.key}/{balloon.GUID}";
                     // 인물
                     row.additional2 = balloon.actor == null ? " " : balloon.actor.name;
+                    // 비고
+                    row.additional3 = getAutoComment(balloon);
+                    row.additional4 = " ";
                     // Key
                     row.key = balloon.GUID;
                     // Korean(ko)
                     row.korean = balloon.text;
-                    // 비고
-                    row.additional3 = getAutoComment(balloon);
 
                     yield return row;
                 }

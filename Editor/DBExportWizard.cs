@@ -63,15 +63,21 @@ namespace OcDialogue.Editor
                 throw new NullReferenceException("DB가 선택되지 않음");
             var asExporter = TargetDB as ICSVExportable;
 
-            csv = new MyCSV(asExporter.GetLocalizationCSVHeader());
+            var header = asExporter.GetLocalizationCSVHeader();
+            
+            // LocalizationCSVRow의 변수 크기에 맞춤.
+            if (header.Length != 6)
+                throw new ArgumentOutOfRangeException($"헤더의 길이는 LocalizationCSVRow에 맞게 6이어야함.");
+            csv = new MyCSV(header);
             foreach (var row in asExporter.GetLocalizationCSVLines())
             {
                 csv.AppendLine(
-                    row.additional1, // 대화명 
-                    row.additional2, // 인물
-                    row.key,         // Key
-                    row.korean,      // Korean(ko)
-                    row.additional3  // 비고
+                    row.additional1, 
+                    row.additional2,
+                    row.additional3,
+                    row.additional4,
+                    row.key,
+                    row.korean
                 );
             }
             

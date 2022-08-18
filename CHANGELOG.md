@@ -1,6 +1,9 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.3.9] -2022-08-19
+- DBExportWizard에서 CSV 추출하는 방식을 LocalizationCSVRow에 맞게 고정함.
+
 ### [2.3.8] -2022-08-19
 - ExportWizard제거 및 새로운 버전인 DBExportWizard 추가
 - 로컬라이징용 CSV를 추출하기 위한 DB용 인터페이스인 ICSVExportable 추가
