@@ -1,6 +1,9 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.3.10] -2022-08-19
+- IDBEditor에서 불필요해진 CSV 추출 관련 메서드 삭제.
+
 ### [2.3.9] -2022-08-19
 - DBExportWizard에서 CSV 추출하는 방식을 LocalizationCSVRow에 맞게 고정함.
 

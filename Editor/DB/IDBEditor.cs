@@ -12,8 +12,5 @@ namespace OcDialogue.Editor
         void DrawToolbar();
         void OnInspectorGUI();
         void AddDialogueContextualMenu(ContextualMenuPopulateEvent evt, DialogueGraphView graphView);
-        string[] GetCSVFields();
-        IEnumerable<string[]> GetCSVData();
-        IEnumerable<LocalizationCSVRow> GetLocalizationData();
     }
 }
