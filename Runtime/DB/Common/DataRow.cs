@@ -58,6 +58,7 @@ namespace OcDialogue.DB
         }
         public event Action<DataRow> OnRuntimeValueChanged;
         [ShowInInspector, TableColumnWidth(250, false), PropertyOrder(-1)][DelayedProperty][InlineButton("Ping", "O")]
+        [GUIColor("@nameColor")]
         public string Name
         {
             get => name;
@@ -72,7 +73,7 @@ namespace OcDialogue.DB
         }
 #if UNITY_EDITOR
         public PrimitiveValue EditorPresetValue => _editorPresetValue;
-
+        [HideInInspector]public bool isCreatedRuntime;
         [PropertyOrder(8)]
         [SerializeField]
         [DisableIf("@UnityEditor.EditorApplication.isPlaying")]
@@ -111,6 +112,9 @@ namespace OcDialogue.DB
             }
         }
 
+#if UNITY_EDITOR
+        Color nameColor => isCreatedRuntime ? Color.green : Color.white;
+#endif
 
         [SerializeField] [DisableIf("@UnityEditor.EditorApplication.isPlaying")] [TableColumnWidth(110, false)]
         [PropertyOrder(2)]

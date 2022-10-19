@@ -5,6 +5,7 @@ using OcDialogue.DB;
 using Sirenix.OdinInspector;
 
 #if UNITY_EDITOR
+using System.IO;
 using UnityEditor;
 #endif
 using UnityEngine;
@@ -128,19 +129,22 @@ namespace OcDialogue
                 var balloons = GetLogicallyOrderedBalloons(conversation);
                 foreach (var balloon in balloons)
                 {
-                    var row = new LocalizationCSVRow();
-                    // 대화명
-                    row.additional1 = $"{conversation.Category}/{conversation.key}/{balloon.GUID}";
-                    // 인물
-                    row.additional2 = balloon.actor == null ? " " : balloon.actor.name;
-                    // 비고
-                    row.additional3 = getAutoComment(balloon);
-                    row.additional4 = " ";
-                    // Key
-                    row.key = balloon.GUID;
-                    // Korean(ko)
-                    row.korean = balloon.text;
-
+                    var row = new LocalizationCSVRow(
+                        // Key
+                        balloon.GUID,
+                        
+                        // Korean(ko)
+                        balloon.text,
+                        
+                        // 대화명
+                        $"{conversation.Category}/{conversation.key}/{balloon.GUID}",
+                        
+                        // 인물
+                        balloon.actor == null ? " " : balloon.actor.name,
+                        
+                        // 비고
+                        getAutoComment(balloon), 
+                        " ");
                     yield return row;
                 }
             }

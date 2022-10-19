@@ -171,6 +171,7 @@ namespace OcDialogue.Editor
         }
         static string FilterString(string text)
         {
+            if (string.IsNullOrWhiteSpace(text)) return "";
             text = text.Replace("\"", @"""");
             if (text.Contains(',') || text.Contains(';') || text.Contains('|') || text.Contains('\n')) text = $"\"{text}\"";
 

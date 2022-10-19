@@ -7,7 +7,9 @@ using OcUtility;
 using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEngine;
+using Random = UnityEngine.Random;
 using Vector3 = UnityEngine.Vector3;
+using Vector4 = UnityEngine.Vector4;
 
 namespace OcDialogue.DB
 {
@@ -27,6 +29,7 @@ namespace OcDialogue.DB
                  "stage2_clear가 true가 되면 0번의 stage1_clear는 자동으로 true가 됨")]
         public OcDictionary<string, List<DataRow>> HierarchicalData;
         public event Action<DataRow> OnRuntimeValueChanged;
+
 
         public void Initialize()
         {
@@ -55,75 +58,43 @@ namespace OcDialogue.DB
         /// <summary>
         /// 런타임 값을 덮어씌움.
         /// </summary>
-        /// <param name="dict"></param>
-        public void Overwrite(Dictionary<string, string> dict)
+        public void Overwrite(List<SavedDataRow> saveData)
         {
-            foreach (var kv in dict)
+            for (int i = 0; i < saveData.Count; i++)
             {
-                var data = DataRows.Find(x => string.CompareOrdinal(x.name, kv.Key) == 0);
-                if (data == null)
+                var data = saveData[i];
+                
+                var matchedData = DataRows.Find(x => string.CompareOrdinal(x.name, data.name) == 0);
+                if (matchedData == null)
                 {
-                    Printer.Print($"[DataRowContainer]Overwrite) 해당 키를 가진 데이터를 찾을 수 없음 | key : {kv.Key}");
+                    if (data.isCreatedRuntime)
+                    {
+                        var added = AddDataRuntime(data.name, data.type);
+                        data.CopyTo(added);
+#if DEBUG
+                        Debug.Log($"{Parent.DRT()}|Overwrite) 런타임에 DataRow 생성 | key : {data.name}");
+#endif
+                    }
+                    else
+                    {
+                        Debug.LogError($"{Parent.DRT()}|Overwrite) 해당 키를 가진 데이터를 찾을 수 없음 | key : {data.name} ");
+                    }
                     continue;
                 }
 
-                switch (data.Type)
-                {
-                    case DataRowType.Bool:
-                    {
-                        if (bool.TryParse(kv.Value, out var v))
-                        {
-                            data.SetValue(v, DataSetter.Operator.Set, true);
-                        }
-                        else Debug.LogWarning($"[DataRowContainer] 데이터 형식이 일치하지 않음 | type : {data.Type} | value : {v}");
-
-                        break;
-                    }
-                    case DataRowType.Int:
-                    {
-                        if (int.TryParse(kv.Value, out var v))
-                        {
-                            data.SetValue(v, DataSetter.Operator.Set, true);
-                        }
-                        else Debug.LogWarning($"[DataRowContainer] 데이터 형식이 일치하지 않음 | type : {data.Type} | value : {v}");
-
-                        break;
-                    }
-                    case DataRowType.Float:
-                    {
-                        if (float.TryParse(kv.Value, out var v))
-                        {
-                            data.SetValue(v, DataSetter.Operator.Set, true);
-                        }
-                        else Debug.LogWarning($"[DataRowContainer] 데이터 형식이 일치하지 않음 | type : {data.Type} | value : {v}");
-
-                        break;
-                    }
-                    case DataRowType.String:
-                        data.SetValue(kv.Value, DataSetter.Operator.Set, true);
-                        break;
-                    case DataRowType.Vector:
-                    {
-                        if (kv.Value.TryParseToVector4(out var v))
-                        {
-                            data.SetValue(v, DataSetter.Operator.Set, true);
-                        }
-                        else Debug.LogWarning($"[DataRowContainer] 데이터 형식이 일치하지 않음 | type : {data.Type} | value : {v}");
-                        break;
-                    }
-                }
+                data.CopyTo(matchedData);
             }
         }
 
-        public Dictionary<string, string> GetSaveData()
+        public List<SavedDataRow> GetSaveData()
         {
-            var dict = new Dictionary<string, string>();
-            foreach (var dataRow in DataRows)
+            var list = new List<SavedDataRow>();
+            for (int i = 0; i < DataRows.Count; i++)
             {
-                dict[dataRow.Name] = dataRow.TargetValue.ToString();
+                list.Add(new SavedDataRow(DataRows[i]));
             }
 
-            return dict;
+            return list;
         }
 
         public bool HasKey(string key)
@@ -159,8 +130,47 @@ namespace OcDialogue.DB
                 data.SetValue(true);
             }
         }
-        
-        #if UNITY_EDITOR
+
+        DataRow AddDataRuntime(string key, DataRowType type)
+        {
+            var data = ScriptableObject.CreateInstance<DataRow>();
+            data.Initialize();
+            data.category = Parent.Category;
+            data.Type = type;
+            data.name = key;
+            data.SetParent(Parent);
+            data.id = Random.Range(int.MinValue, int.MaxValue);
+            
+            DataRows.Add(data);
+
+            return data;
+        }
+        public void AddDataRuntime(string key, bool value)
+        {
+            var data = AddDataRuntime(key, DataRowType.Bool);
+            data.SetValue(value);
+        }
+        public void AddDataRuntime(string key, float value)
+        {
+            var data = AddDataRuntime(key, DataRowType.Float);
+            data.SetValue(value);
+        }
+        public void AddDataRuntime(string key, int value)
+        {
+            var data = AddDataRuntime(key, DataRowType.Int);
+            data.SetValue(value);
+        }
+        public void AddDataRuntime(string key, string value)
+        {
+            var data = AddDataRuntime(key, DataRowType.String);
+            data.SetValue(value);
+        }
+        public void AddDataRuntime(string key, Vector4 value)
+        {
+            var data = AddDataRuntime(key, DataRowType.Vector);
+            data.SetValue(value);
+        }
+#if UNITY_EDITOR
 
         public void LoadFromEditorPreset()
         {

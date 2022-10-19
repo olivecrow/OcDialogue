@@ -87,8 +87,12 @@ namespace OcDialogue.Editor
             if(string.IsNullOrWhiteSpace(path)) return;
             
             csv.SaveAsFile(path);
-            var relativePath = "Assets" + path.Substring(Application.dataPath.Length);
-            if(path.Contains(Application.dataPath)) AssetDatabase.ImportAsset(relativePath);
+            
+            if(path.Contains(Application.dataPath))
+            {
+                var relativePath = "Assets" + path.Substring(Application.dataPath.Length);
+                if (path.Contains(Application.dataPath)) AssetDatabase.ImportAsset(relativePath);
+            }
         }
 
         [Button, PropertyTooltip("번역된 테이블을 붙여넣고 로드하기 위해 헤더만 있는 CSV파일을 추출함.")]
