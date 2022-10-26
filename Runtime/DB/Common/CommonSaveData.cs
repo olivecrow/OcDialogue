@@ -11,9 +11,14 @@ namespace OcDialogue
     public class CommonSaveData
     {
         public string Key;
-        public List<SavedDataRow> DataRowContainerDict;
+        public List<SavedDataRow> DataRows;
         public Dictionary<string, string> Data;
-        public CommonSaveData() { }
+        public DateTime SaveTime;
+
+        public CommonSaveData()
+        {
+            SaveTime = DateTime.Now;
+        }
     }
 
     [Serializable]

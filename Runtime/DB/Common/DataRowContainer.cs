@@ -37,7 +37,7 @@ namespace OcDialogue.DB
             foreach (var dataRow in DataRows)
             {
                 dataRow.Initialize();
-                dataRow.OnRuntimeValueChanged += OnRuntimeValueChanged;
+                dataRow.OnRuntimeValueChanged += row => OnRuntimeValueChanged?.Invoke(row);
             }
 
             foreach (var kv in HierarchicalData)

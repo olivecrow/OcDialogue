@@ -1,6 +1,12 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.4.0] -2022-10-27
+- 런타임에 DB 상태를 확인하고 수정할 수 있는 DB Debug UI 샘플 추가
+- CommonSaveData의 DataRowContainerDict를 DataRows로 이름 변경
+- CommonSaveData가 생성될때 SaveTime에 현재시간이 자동 등록되도록 추가
+- DataRowContainer.OnRuntimeValueChanged가 DataRow.OnRuntimeValueChanged가 호출될때 따라서 호출되지 않던 문제 해결
+
 ### [2.3.11] -2022-10-19
 - DB Export 개선 및 버그 수정
 - 런타임에 DataRow 생성할 수 있는 기능 추가
