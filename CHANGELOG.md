@@ -1,6 +1,9 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.4.1] -2022-11-09
+- DataRowContainer에서 AddDataRuntime할때 OnRuntimeValueChanged가 설정되지 않던 문제 해결
+
 ### [2.4.0] -2022-10-27
 - 런타임에 DB 상태를 확인하고 수정할 수 있는 DB Debug UI 샘플 추가
 - CommonSaveData의 DataRowContainerDict를 DataRows로 이름 변경

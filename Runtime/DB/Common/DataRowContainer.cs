@@ -135,6 +135,7 @@ namespace OcDialogue.DB
         {
             var data = ScriptableObject.CreateInstance<DataRow>();
             data.Initialize();
+            data.OnRuntimeValueChanged += row => OnRuntimeValueChanged?.Invoke(row);
             data.category = Parent.Category;
             data.Type = type;
             data.name = key;
