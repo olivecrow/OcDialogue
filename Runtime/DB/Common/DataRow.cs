@@ -415,6 +415,16 @@ namespace OcDialogue.DB
             _runtimeValue.StringValue = _editorPresetValue.StringValue;
             _runtimeValue.VectorValue = _editorPresetValue.VectorValue;
         }
+
+        /// <summary>
+        /// (Editor Only) InitialValue 값을 바꿈.
+        /// </summary>
+        /// <param name="value"></param>
+        public void ChangeInitialValue(PrimitiveValue value)
+        {
+            EditorUtility.SetDirty(this);
+            _initialValue = value;
+        }
 #endif
     }
 

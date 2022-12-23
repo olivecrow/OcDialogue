@@ -17,19 +17,21 @@
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
-    "precompiledReferences": [],
+    "precompiledReferences": [
+        ""
+    ],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [
         {
             "name": "com.unity.textmeshpro",
-            "expression": "",
+            "expression": "1.0.0",
             "define": "TEXT_MESH_PRO"
         },
         {
             "name": "com.unity.localization",
-            "expression": "",
-            "define": "ENABLE_LOCALIZATION"
+            "expression": "1.0.0",
+            "define": "PACKAGE_LOCALIZATION"
         }
     ],
     "noEngineReferences": false

@@ -98,6 +98,7 @@ namespace OcDialogue.Editor
         [Button, PropertyTooltip("번역된 테이블을 붙여넣고 로드하기 위해 헤더만 있는 CSV파일을 추출함.")]
         public void ExportLocalizationTable()
         {
+#if PACKAGE_LOCALIZATION
             var header = new List<string>();
             header.Add("Key");
             header.Add("Id");
@@ -110,6 +111,7 @@ namespace OcDialogue.Editor
             csvTable.SaveAsFile(path);
             var relativePath = "Assets" + path.Substring(Application.dataPath.Length);
             if(path.Contains(Application.dataPath)) AssetDatabase.ImportAsset(relativePath);
+#endif
         }
     }
 }

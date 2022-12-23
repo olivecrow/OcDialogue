@@ -7,10 +7,6 @@ using OcUtility;
 using Sirenix.Utilities;
 using Sirenix.Utilities.Editor;
 using UnityEditor;
-
-// #if ENABLE_LOCALIZATION
-// using UnityEditor.Localization.Plugins.XLIFF.V12;
-// #endif
 using UnityEngine;
 
 namespace OcDialogue.Editor

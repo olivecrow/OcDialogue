@@ -1,6 +1,9 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.4.2] -2022-12-23
+- DataRow의 InitialValue를 외부에서 변경할 수 있도록 ChangeInitialValue 메서드 추가.
+
 ### [2.4.1] -2022-11-09
 - DataRowContainer에서 AddDataRuntime할때 OnRuntimeValueChanged가 설정되지 않던 문제 해결
 
