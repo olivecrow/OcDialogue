@@ -138,6 +138,7 @@ namespace OcDialogue.DB
             data.Initialize();
             data.OnRuntimeValueChanged += row => OnRuntimeValueChanged?.Invoke(row);
             data.category = Parent.Category;
+            data.isCreatedRuntime = true;
             data.Type = type;
             data.name = key;
             data.SetParent(Parent);

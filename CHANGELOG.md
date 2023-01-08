@@ -1,6 +1,9 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.4.4] -2023-01-10
+- DataRowContainer.AddDataRuntime에서 isCreatedRuntime이 설정되지 않던 문제 해결.
+
 ### [2.4.3] -2023-01-09
 - DataRowContainer에서 초기화 시, null인 데이터를 삭제함. 런타임 데이터는 게임 종료 후 null로 남기 때문.
 
