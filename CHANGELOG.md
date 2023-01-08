@@ -1,6 +1,9 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.4.3] -2023-01-09
+- DataRowContainer에서 초기화 시, null인 데이터를 삭제함. 런타임 데이터는 게임 종료 후 null로 남기 때문.
+
 ### [2.4.2] -2022-12-23
 - DataRow의 InitialValue를 외부에서 변경할 수 있도록 ChangeInitialValue 메서드 추가.
 

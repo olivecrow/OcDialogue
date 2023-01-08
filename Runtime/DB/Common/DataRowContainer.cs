@@ -34,6 +34,7 @@ namespace OcDialogue.DB
         public void Initialize()
         {
             OnRuntimeValueChanged = null;
+            DataRows.RemoveAll(x => x == null);
             foreach (var dataRow in DataRows)
             {
                 dataRow.Initialize();
