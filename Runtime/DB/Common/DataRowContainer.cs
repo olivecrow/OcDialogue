@@ -70,7 +70,7 @@ namespace OcDialogue.DB
                 {
                     if (data.isCreatedRuntime)
                     {
-                        var added = AddDataRuntime(data.name, data.type);
+                        var added = AddDataRuntime(data.name, data.type, data.id);
                         data.CopyTo(added);
 #if DEBUG
                         Debug.Log($"{Parent.DRT()}|Overwrite) 런타임에 DataRow 생성 | key : {data.name}");
@@ -132,7 +132,7 @@ namespace OcDialogue.DB
             }
         }
 
-        DataRow AddDataRuntime(string key, DataRowType type)
+        DataRow AddDataRuntime(string key, DataRowType type, int manualID = 0)
         {
             var data = ScriptableObject.CreateInstance<DataRow>();
             data.Initialize();
@@ -142,7 +142,7 @@ namespace OcDialogue.DB
             data.Type = type;
             data.name = key;
             data.SetParent(Parent);
-            data.id = Random.Range(int.MinValue, int.MaxValue);
+            data.id = manualID == 0 ? Random.Range(int.MinValue, int.MaxValue) : manualID;
             
             DataRows.Add(data);
 

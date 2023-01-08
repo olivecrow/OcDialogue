@@ -1,6 +1,9 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.4.5] -2023-01-10
+- 런타임 데이터를 읽어서 초기화할때 SaveDataRow.CopyTo에서 id가 달라서 생기는 오류 해결.
+
 ### [2.4.4] -2023-01-10
 - DataRowContainer.AddDataRuntime에서 isCreatedRuntime이 설정되지 않던 문제 해결.
 
