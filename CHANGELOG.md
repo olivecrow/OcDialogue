@@ -1,6 +1,9 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.4.7] -2023-04-14
+- DBDebugStandardField 및 DBDebugObjectField 버그 수정
+
 ### [2.4.6] -2023-04-14
 - DataRow 및 OcData에서 전처리기 문제때문에 빌드 오류가 나던 문제 해결
 - DBDebugUI 개선

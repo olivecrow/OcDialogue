@@ -34,6 +34,7 @@ namespace OcDialogue.DB
             _propertyInfo = propertyInfo;
             _fieldInfo = null;
             nameText.text = propertyInfo.Name;
+            UpdateValue();
         }
 
         void UpdateValue()

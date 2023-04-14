@@ -45,24 +45,35 @@ namespace OcDialogue.DB
             _memberInfo = propertyInfo;
             nameText.text = propertyInfo.Name;
             valueInputField.onEndEdit.RemoveAllListeners();
+            UpdateValue();
+
+            valueInputField.onEndEdit.AddListener(TrySetValue);
         }
 
         void UpdateValue()
         {
-            if (_fieldInfo != null)
+            try
             {
-                if (_fieldInfo.FieldType == typeof(bool))
-                    valueInputField.text = ((bool)_fieldInfo.GetValue(_target)).DRT();
-                else
-                    valueInputField.text = _fieldInfo.GetValue(_target).ToString();
+                if (_fieldInfo != null)
+                {
+                    if (_fieldInfo.FieldType == typeof(bool))
+                        valueInputField.text = ((bool)_fieldInfo.GetValue(_target)).DRT();
+                    else
+                        valueInputField.text = _fieldInfo.GetValue(_target).ToString();
+                }
+                else if (_propertyInfo != null)
+                {
+                    if (_propertyInfo.PropertyType == typeof(bool))
+                        valueInputField.text = ((bool)_propertyInfo.GetValue(_target)).DRT();
+                    else
+                        valueInputField.text = _propertyInfo.GetValue(_target).ToString();
+                }
             }
-            else if (_propertyInfo != null)
+            catch (Exception e)
             {
-                if (_propertyInfo.PropertyType == typeof(bool))
-                    valueInputField.text = ((bool)_propertyInfo.GetValue(_target)).DRT();
-                else
-                    valueInputField.text = _propertyInfo.GetValue(_target).ToString();
+                valueInputField.text = "cannot read";
             }
+            
         }
 
         void TrySetValue(string text)
