@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using OcDialogue.DB;
 using OcUtility;
 using UnityEngine;
@@ -18,6 +19,25 @@ namespace OcDialogue
         public CommonSaveData()
         {
             SaveTime = DateTime.Now;
+        }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine($"{Key} --- {SaveTime}");
+            sb.AppendLine($"    - DataRows : {DataRows.Count}");
+            for (int i = 0; i < DataRows.Count; i++)
+            {
+                sb.AppendLine($"        {DataRows[i]}");
+            }
+
+            sb.AppendLine($"    - Data : {Data.Count}");
+            foreach (var kv in Data)
+            {
+                sb.AppendLine($"        {kv.Key} = {kv.Value}");
+            }
+
+            return sb.ToString();
         }
     }
 
@@ -58,6 +78,11 @@ namespace OcDialogue
             
             destination.RuntimeValue = value;
             destination.isCreatedRuntime = isCreatedRuntime;
+        }
+        
+        public override string ToString()
+        {
+            return $"{name} [{id}] | {type} | {value.ToString()} :: isCreatedRuntime ? {isCreatedRuntime}";
         }
     }
 }

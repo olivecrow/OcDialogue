@@ -14,6 +14,7 @@ namespace OcDialogue
         public virtual OcData Parent => parent;
         public abstract string Address { get; }
         public abstract string Category { get; set; }
+        
         [ReadOnly][HideInTables]
         public int id;
         public string TotalAddress => $"{(Parent == null ? "" : Parent.TotalAddress + "/")}{Address}";
@@ -74,12 +75,9 @@ namespace OcDialogue
 
         
 
-#if UNITY_EDITOR
-        /// <summary> Editor Only. </summary>
         public void SetParent(OcData parent)
         {
             this.parent = parent;
         }
-#endif
     }
 }

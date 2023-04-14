@@ -1,6 +1,11 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.4.6] -2023-04-14
+- DataRow 및 OcData에서 전처리기 문제때문에 빌드 오류가 나던 문제 해결
+- DBDebugUI 개선
+- SaveDataRow 및 CommonSaveData에 ToString 오버라이드 추가
+
 ### [2.4.5] -2023-01-10
 - 런타임 데이터를 읽어서 초기화할때 SaveDataRow.CopyTo에서 id가 달라서 생기는 오류 해결.
 

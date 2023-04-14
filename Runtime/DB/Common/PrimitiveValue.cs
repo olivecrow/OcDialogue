@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using OcDialogue.DB;
+using OcUtility;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -21,5 +22,18 @@ namespace OcDialogue
         public string StringValue;
         [ShowIf("Type", DataRowType.Vector), HideLabel]
         public Vector4 VectorValue;
+
+        public override string ToString()
+        {
+            return Type switch
+            {
+                DataRowType.Bool => BoolValue.DRT(),
+                DataRowType.Int => IntValue.ToString("N"),
+                DataRowType.Float => FloatValue.ToString("N"),
+                DataRowType.String => StringValue,
+                DataRowType.Vector => VectorValue.ToString(),
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
     }
 }

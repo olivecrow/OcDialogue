@@ -73,7 +73,6 @@ namespace OcDialogue.DB
         }
 #if UNITY_EDITOR
         public PrimitiveValue EditorPresetValue => _editorPresetValue;
-        [HideInInspector]public bool isCreatedRuntime;
         [PropertyOrder(8)]
         [SerializeField]
         [DisableIf("@UnityEditor.EditorApplication.isPlaying")]
@@ -81,6 +80,7 @@ namespace OcDialogue.DB
         PrimitiveValue _editorPresetValue;
         
 #endif
+        [HideInInspector]public bool isCreatedRuntime;
         [PropertyOrder(10)] public string description;
         public object TargetValue
         {
@@ -367,7 +367,7 @@ namespace OcDialogue.DB
 
         public override string ToString()
         {
-            return $"{TotalAddress} | {Type} | {TargetValue}";
+            return $"{TotalAddress} | {Type} | {TargetValue} :: isCreatedRuntime ? {isCreatedRuntime}";
         }
 
 #if UNITY_EDITOR
