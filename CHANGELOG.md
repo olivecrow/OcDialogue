@@ -1,6 +1,10 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.4.8] -2023-08-24
+- DBManager의 EditorInit에서도 각 DB 초기화하도록 변경
+- DataRowContainer의 HasKey에서 목록이 비어있으면 ArgumentNullException이 발생하기때문에 리스트의 Count가 0 일 경우 false를 반환하는 코드 추가.
+
 ### [2.4.7] -2023-04-14
 - DBDebugStandardField 및 DBDebugObjectField 버그 수정
 

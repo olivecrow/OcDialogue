@@ -100,6 +100,7 @@ namespace OcDialogue.DB
 
         public bool HasKey(string key)
         {
+            if (DataRows.Count == 0) return false;
             return DataRows.Any(x => string.CompareOrdinal(x.Name, key) == 0);
         }
 

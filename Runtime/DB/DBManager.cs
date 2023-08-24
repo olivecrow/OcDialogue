@@ -36,6 +36,11 @@ namespace OcDialogue.DB
         static void EditorInit()
         {
             _instance = Resources.Load<DBManager>("DB Manager");
+            foreach (var db in _instance.DBs)
+            {
+                db.Initialize();
+            }
+
             Application.quitting += Release;
         }
 
