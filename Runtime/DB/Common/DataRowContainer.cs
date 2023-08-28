@@ -22,7 +22,7 @@ namespace OcDialogue.DB
 #endif
         public OcData Parent;
         [TableList(AlwaysExpanded = true, NumberOfItemsPerPage = 50, ShowPaging = true, DrawScrollView = false)]
-        public List<DataRow> DataRows;
+        public List<DataRow> DataRows = new List<DataRow>();
 
         [InfoBox("한 데이터가 true가 될때, 상위 인덱스를 전부 true로 만드는 기능\n" +
                  "예를 들어 [0] stage1_clear, [1] stage2_clear 라는 데이터가 있을 경우, \n" +
@@ -100,18 +100,20 @@ namespace OcDialogue.DB
 
         public bool HasKey(string key)
         {
-            if (DataRows.Count == 0) return false;
+            if (DataRows == null) return false;
             return DataRows.Any(x => string.CompareOrdinal(x.Name, key) == 0);
         }
 
         [Obsolete("FindData를 대신 사용할 것")]
         public DataRow Get(string key)
         {
+            if (DataRows == null) return null;
             return DataRows.FirstOrDefault(x => string.CompareOrdinal(x.Name, key) == 0);
         }
 
         public DataRow FindData(string key)
         {
+            if (DataRows == null) return null;
             return DataRows.FirstOrDefault(x => string.CompareOrdinal(x.Name, key) == 0);
         }
 

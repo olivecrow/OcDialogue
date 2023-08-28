@@ -172,8 +172,8 @@ namespace OcDialogue.Editor
         public void RefreshSubtitleLabel()
         {
             if(Balloon.type == Balloon.Type.Entry) return;
-            TextField.text = Balloon.text.Length > Number_Of_Subtitle_Text ? 
-                $"{Balloon.text.Substring(0, Number_Of_Subtitle_Text)}..." : Balloon.text;
+            var lines = Balloon.text.Split('\n');
+            TextField.text = lines.Length > 2 ? $"{lines[0]}\n{lines[1]}" : Balloon.text;
         }
 
         public void RefreshDescription()

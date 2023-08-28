@@ -27,7 +27,7 @@ namespace OcDialogue
             Action
         }
 
-        public enum ChoiceCheckerReaction
+        public enum ChoiceCheckerDisplayMode
         {
             Disable,
             Hide
@@ -76,12 +76,14 @@ namespace OcDialogue
         [ValueDropdown("GetBalloonText")]
         public List<Balloon> linkedBalloons = new List<Balloon>();
         [ShowIf("@type == Type.Choice && useChecker")]
-        public ChoiceCheckerReaction choiceCheckerReaction;
+        public ChoiceCheckerDisplayMode choiceCheckerDisplayMode;
         [HideIf("type", Type.Entry)] public bool useChecker;
 
         [InfoBox("Check Factor가 하나도 없음", InfoMessageType.Error, "@checker != null && checker.factors != null && checker.factors.Length == 0")]
         [ShowIf("useChecker"), HideLabel, BoxGroup("Checker"), GUIColor(1f, 2f, 1f)]
         public DataChecker checker;
+
+        public DataChecker highlightCondition;
         
         [HideIf("type", Type.Entry)] public bool useSetter;
 

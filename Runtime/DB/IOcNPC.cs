@@ -13,8 +13,5 @@ namespace OcDialogue.DB
         OcData OcData { get; }
         Gender gender { get; }
         Color color { get; }
-        string job { get; }
-        string tribe { get; }
-        string group { get; }
     }
 }

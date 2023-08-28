@@ -401,11 +401,7 @@ namespace OcDialogue.Editor
                 },
                 a =>
                 {
-                    if (selected == null) return DropdownMenuAction.Status.Normal;
-                    else
-                        return selected.Balloon.type == Balloon.Type.Dialogue
-                            ? DropdownMenuAction.Status.Normal
-                            : DropdownMenuAction.Status.Disabled; 
+                    return DropdownMenuAction.Status.Normal;
                 });
             evt.menu.AppendAction("Add Action", a => 
                 {

@@ -1,6 +1,13 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.4.9] -2023-08-28
+- IOcNPC에서 불필요한 프로퍼티 삭제
+- DataRowCotainer에 포함된 메서드 들에서 DataRow == null 일때의 처리 추가
+- DialogueNode의 텍스트 부분의 가독성 향상
+- Balloon 에 HighlightCondition 추가 및 ChoiceCheckerReaction enum을 ChoiceCheckerDisplayMode로 변경
+- 다이얼로그 에디터에서 Add Balloon 할때, Balloon 타입에 상관 없이 추가할 수 있도록 변경
+
 ### [2.4.8] -2023-08-24
 - DBManager의 EditorInit에서도 각 DB 초기화하도록 변경
 - DataRowContainer의 HasKey에서 목록이 비어있으면 ArgumentNullException이 발생하기때문에 리스트의 Count가 0 일 경우 false를 반환하는 코드 추가.
