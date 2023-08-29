@@ -1,6 +1,10 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.4.10] -2023-08-29
+- DBDebugObjectField 에서 null 체크 추가
+- Balloon에 useHighlight 변수 추가
+
 ### [2.4.9] -2023-08-28
 - IOcNPC에서 불필요한 프로퍼티 삭제
 - DataRowCotainer에 포함된 메서드 들에서 DataRow == null 일때의 처리 추가

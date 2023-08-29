@@ -42,14 +42,14 @@ namespace OcDialogue.DB
             if(_fieldInfo != null)
             {
                 var valueType = _fieldInfo.FieldType.ToString();
-                var value = _fieldInfo.GetValue(_target);
+                var value = _target == null ? "null" : _fieldInfo.GetValue(_target);
                 var valueName = value == null ? "null" : value.ToString();
                 objectValueField.text = $"{valueName} ({valueType})";
             }
             else if (_propertyInfo != null)
             {
                 var valueType = _propertyInfo.PropertyType.ToString();
-                var value = _propertyInfo.GetValue(_target);
+                var value = _target == null ? "null" : _propertyInfo.GetValue(_target);
                 var valueName = value == null ? "null" : value.ToString();
                 objectValueField.text = $"{valueName} ({valueType})";
             }
