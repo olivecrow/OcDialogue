@@ -35,7 +35,7 @@ namespace OcDialogue.Editor
         public event Action<DialogueGraphViewChange> OnChanged;
 
         Vector2 _lastMousePosition;
-        readonly Vector2 DefaultNodeSize = new Vector2(160, 200);
+        public static readonly Vector2 DefaultNodeSize = new Vector2(160, 200);
         List<Balloon> _copyBuffer;
         public DialogueGraphView(Conversation conversation)
         {
@@ -424,6 +424,10 @@ namespace OcDialogue.Editor
                 {
                     EditorGUIUtility.PingObject(DialogueEditorWindow.Instance.Asset);
                     Selection.activeObject = DialogueEditorWindow.Instance.Asset;
+                });
+                evt.menu.AppendAction("텍스트를 대화로 만들기", a =>
+                {
+                    TextToDialogueWindow.Open(_lastMousePosition);
                 });
             }
             else

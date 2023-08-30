@@ -84,6 +84,7 @@ namespace OcDialogue
                     balloon.GUID = Guid.NewGuid().ToString();
                     balloon.position = new Vector2(20, 60);
                     balloon.text = "Entry";
+                    balloon.waitTime = 2;
                     break;
                 case Balloon.Type.Dialogue:
                     balloon = CreateInstance<Balloon>();
@@ -106,22 +107,29 @@ namespace OcDialogue
                     break;
                 default: goto case Balloon.Type.Dialogue;
             }
+
+            var undoID = Undo.GetCurrentGroup();
+            Undo.RegisterCreatedObjectUndo(balloon, "Add Balloon");
+            Undo.RecordObject(this, "Add Balloon");
             balloon.name = balloon.GUID;
             Balloons.Add(balloon);
             AssetDatabase.AddObjectToAsset(balloon, this);
             
+            Undo.CollapseUndoOperations(undoID);
             return balloon;
         }
 
         public void RemoveBalloon(Balloon balloon)
         {
             if(!Balloons.Contains(balloon)) return;
+            Undo.RecordObject(this, "Remove Balloon");
             Balloons.Remove(balloon);
             AssetDatabase.RemoveObjectFromAsset(balloon);
         }
 
         public void AddLinkData(LinkData linkData)
         {
+            Undo.RecordObject(this, "AddLinkData");
             LinkData.Add(linkData);
             
             UpdateLinkedBalloonList();
@@ -158,30 +166,16 @@ namespace OcDialogue
         /// <summary> MainActor 필드에서 NPC이름을 드롭다운으로 보여주기위한 리스트를 반환함. (Odin Inspector용) </summary>
         ValueDropdownList<OcData> GetNPCList() => DialogueAsset.Instance.GetNPCDropDown();
 
-
-        [BoxGroup("유틸리티 메서드")]
-        [HorizontalGroup("유틸리티 메서드/1", LabelWidth = 100), LabelText("Replace"), ValueDropdown("GetNPCList")]
-        public OcNPC replace_before;
-        [HorizontalGroup("유틸리티 메서드/1", LabelWidth = 50), LabelText("  =>"), ValueDropdown("GetNPCList")][InlineButton("ReplaceNPC", "Replace")]
-        public OcNPC replace_after;
-
+        
         void OnValidate()
         {
             var subAssets = AssetDatabase.LoadAllAssetRepresentationsAtPath(AssetDatabase.GetAssetPath(this));
             for (int i = 0; i < Balloons.Count; i++)
             {
                 if(subAssets.Contains(Balloons[i])) continue;
+                if(Balloons[i] == null) continue;
                 AssetDatabase.AddObjectToAsset(Balloons[i], this);
             }
-        }
-
-        void ReplaceNPC()
-        {
-            foreach (var balloon in Balloons)
-            {
-                if (balloon.actor == replace_before) balloon.actor = replace_after;
-            }
-            onValidate?.Invoke();
         }
 
         [BoxGroup("유틸리티 메서드"), Button("모든 말풍선의 LinkBalloons 리스트 업데이트")]

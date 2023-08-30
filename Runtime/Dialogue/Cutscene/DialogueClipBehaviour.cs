@@ -130,6 +130,7 @@ namespace OcDialogue.Cutscene
         }
         void InitializePreview()
         {
+            if(Application.isPlaying) return;
             if (_editorPreviewCanvas == null)
             {
                 _editorPreviewCanvas = new GameObject("_DialogueClip Preview").AddComponent<Canvas>();
@@ -153,6 +154,7 @@ namespace OcDialogue.Cutscene
 
         void UpdatePreviewText()
         {
+            if(Application.isPlaying) return;
             if (_editorPreviewText != null) _editorPreviewText.text = Balloon.text;
         }
 

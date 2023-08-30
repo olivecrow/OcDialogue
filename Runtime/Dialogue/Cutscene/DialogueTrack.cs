@@ -25,8 +25,8 @@ namespace OcDialogue.Cutscene
         event Action<DialogueClipBehaviour> _onClipFadeOut;
         event Action<DialogueClipBehaviour> _onClipEnd;
         
-        List<DialogueClip> _clips;
-        List<DialogueClipBehaviour> _clipBehaviours;
+        List<DialogueClip> _clips = new List<DialogueClip>();
+        List<DialogueClipBehaviour> _clipBehaviours = new List<DialogueClipBehaviour>();
 
         [SerializeField]CutsceneBehaviour _behaviour;
         [SerializeField]PlayableDirector _director;
@@ -59,8 +59,6 @@ namespace OcDialogue.Cutscene
         {
             _behaviour = behaviour;
             _director = behaviour.director;
-            _clips = new List<DialogueClip>();
-            _clipBehaviours = new List<DialogueClipBehaviour>();
 
             _onClipStart = onClipStart;
             _onClipFadeOut = onClipFadeOut;

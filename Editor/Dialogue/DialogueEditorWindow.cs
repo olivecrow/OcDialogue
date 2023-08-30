@@ -88,6 +88,7 @@ namespace OcDialogue.Editor
         {
             if (_instance == this) _instance = null;
         }
+        
 
         void OnInspectorUpdate()
         {
@@ -312,6 +313,14 @@ namespace OcDialogue.Editor
             RemoveConversationButton.style.backgroundColor = new Color(0.8f, 0f, 0f);
             ConversationSelectToolbar.Add(RemoveConversationButton);
 
+            var focusButton = new Button(FocusToOrigin);
+            focusButton.text = "Focus";
+            ConversationSelectToolbar.Add(focusButton);
+        }
+
+        void FocusToOrigin()
+        {
+            if(GraphView != null) GraphView.UpdateViewTransform(Vector3.zero, Vector3.one);
         }
         void RefreshConversationChoices()
         {
