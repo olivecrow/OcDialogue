@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OcDialogue.DB;
 using Sirenix.OdinInspector;
+using TMPro;
 
 #if UNITY_EDITOR
 using System.IO;
@@ -32,6 +33,12 @@ namespace OcDialogue
         }
         public List<Conversation> Conversations;
         public Dictionary<string, IEnumerable<Conversation>> CategorizedConversations;
+
+        [TitleGroup("컷씬")]public float timePerChar = 0.15f;
+        [TitleGroup("컷씬")]public float minTime = 2f;
+
+        public TMP_FontAsset cutscenePreviewFont;
+        
         IDialogueActorDB _dialogueActorDB;
         
         public DialogueAsset()

@@ -12,6 +12,7 @@ using TMPro;
 using UnityEditor;
 #endif
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Timeline;
 using Random = UnityEngine.Random;
 
@@ -100,7 +101,7 @@ namespace OcDialogue
         [Indent()]
         public SignalAsset signal;
         
-        [InfoBox("이미지를 사용하지 않으면 참조를 해제하셈", InfoMessageType.Warning, "@!useImage && displayTargetImage != null")]
+        [InfoBox("이미지를 사용하지 않으면 참조를 해제하셈", InfoMessageType.Warning, "@!useImage && displayTargetImage.editorAsset != null")]
         [InlineButton("ReleaseUnusedImage", "참조 해제", ShowIf = "@!useImage && displayTargetImage != null")]
         public bool useImage;
         
@@ -113,7 +114,7 @@ namespace OcDialogue
         [InfoBox("이미지가 없음", InfoMessageType.Error, "@displayTargetImage == null")]
         [InlineButton("QueryImageFromPreviousBalloon", "앞에꺼 사용")]
         [ShowIf("useImage")] 
-        public Sprite displayTargetImage;
+        public AssetReferenceSprite displayTargetImage;
         
         [Indent()][ShowIf("@useImage && imageViewerSize == ImageViewerSize.FloatingSize")] 
         public Vector2 imageSizeOverride;
@@ -128,6 +129,10 @@ namespace OcDialogue
 
         [Indent(2)] [ShowIf("@type == Type.Action && subEntryDataType == SubEntryDataType.OcData")][InlineButton("OpenDataSelectWindow", "선택")]
         public OcData subEntryTriggerData;
+
+        public float waitTime;
+
+        public AssetReferenceT<AudioClip> audioClip;
 
         public bool IsAvailable => !useChecker || checker.IsTrue();
         public void OnDataApplied() { }
@@ -250,14 +255,16 @@ namespace OcDialogue
         {
             if (!useImage) return false;
             if (displayTargetImage == null) return false;
+            if (displayTargetImage.Asset == null) return false;
+            var image = displayTargetImage.Asset as Sprite;
             switch (imageViewerSize)
             {
                 case ImageViewerSize.FullSize:
-                    if (displayTargetImage.bounds.size.y < 800 || displayTargetImage.bounds.size.x < 1000) return true;
-                    if (displayTargetImage.bounds.size.y > displayTargetImage.bounds.size.x * 0.7f) return true;
+                    if (image.bounds.size.y < 800 || image.bounds.size.x < 1000) return true;
+                    if (image.bounds.size.y > image.bounds.size.x * 0.7f) return true;
                     break;
                 case ImageViewerSize.FloatingSize:
-                    if (displayTargetImage.bounds.size.y >= 1080 || displayTargetImage.bounds.size.x >= 1920) return true;
+                    if (image.bounds.size.y >= 1080 || image.bounds.size.x >= 1920) return true;
                     break;
             }
 
@@ -300,11 +307,11 @@ namespace OcDialogue
 
             if (useImage)
             {
-                if (IsImageSizeMismatching() || displayTargetImage == null) return true;
+                if (IsImageSizeMismatching() || displayTargetImage.editorAsset == null) return true;
             }
             else
             {
-                if (displayTargetImage != null) return true;
+                if (displayTargetImage != null && displayTargetImage.editorAsset != null) return true;
             }
             return false;
         }
@@ -325,7 +332,9 @@ namespace OcDialogue
             {
                 if(!balloon.useImage || balloon.displayTargetImage == null) return;
                 displayTargetImage = balloon.displayTargetImage;
-                Debug.Log($"[Balloon] <{balloon.text}> 라는 Balloon에서 <{displayTargetImage.name}>을 가져옴");
+#if UNITY_EDITOR
+                Debug.Log($"[Balloon] <{balloon.text}> 라는 Balloon에서 <{displayTargetImage.editorAsset.name}>을 가져옴");          
+#endif
                 return;
             }
             

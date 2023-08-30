@@ -10,19 +10,17 @@ namespace OcDialogue.Cutscene
     {
         public Conversation Conversation;
         public Balloon Balloon;
-        public DialogueClipBehaviour template;
         public ClipCaps clipCaps => ClipCaps.None;
-        public CutsceneBehaviour CutsceneBehaviour { get; private set; }
-        public DialogueTrack DialogueTrack { get; private set; }
-        public PlayableDirector Director { get; private set; }
-        public DialogueClipBehaviour ClipBehaviour { get; private set; }
-        public TimelineClip TimelineClip { get; private set; }
+        public CutsceneBehaviour CutsceneBehaviour;
+        public DialogueTrack DialogueTrack;
+        public PlayableDirector Director;
+        public DialogueClipBehaviour ClipBehaviour;
+        public TimelineClip TimelineClip;
         public event Action<DialogueClipBehaviour> OnCreatePlayable;
 
         public override Playable CreatePlayable(PlayableGraph graph, GameObject owner)
         {
-            if(!Application.isPlaying) return ScriptPlayable<DialogueClipBehaviour>.Create(graph, template);
-            var playable = ScriptPlayable<DialogueClipBehaviour>.Create(graph, template);
+            var playable = ScriptPlayable<DialogueClipBehaviour>.Create(graph);
             ClipBehaviour = playable.GetBehaviour();
             ClipBehaviour.Init(CutsceneBehaviour, this, DialogueTrack);
             OnCreatePlayable?.Invoke(ClipBehaviour);

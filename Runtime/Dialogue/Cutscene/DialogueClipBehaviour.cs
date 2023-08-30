@@ -1,21 +1,24 @@
 ﻿using System;
 using System.Linq;
 using Sirenix.OdinInspector;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.Timeline;
+using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace OcDialogue.Cutscene
 {
     [Serializable]
     public class DialogueClipBehaviour : PlayableBehaviour
     {
-        public Conversation Conversation { get; private set; }
-        public Balloon Balloon { get; private set; }
-        public CutsceneBehaviour Cutscene { get; private set; }
-        public PlayableDirector Director { get; private set; }
-        public DialogueTrack Track { get; private set; }
-        public DialogueClip Clip { get; private set; }
+        public Conversation Conversation;
+        public Balloon Balloon;
+        public CutsceneBehaviour Cutscene;
+        public PlayableDirector Director;
+        public DialogueTrack Track;
+        public DialogueClip Clip;
         public ClipPlayState PlayState => _playState;
         public double LeftTime => __duration - __time;
         public double NormalizedTime => __duration == 0 ? 1 : __time / __duration;
@@ -32,6 +35,10 @@ namespace OcDialogue.Cutscene
         event Action<DialogueClipBehaviour> OnFadeOut;
         event Action<DialogueClipBehaviour> OnEnd;
 
+#if UNITY_EDITOR
+        static Canvas _editorPreviewCanvas;
+        static TextMeshProUGUI _editorPreviewText;  
+#endif
         public void Init(CutsceneBehaviour cutscene, DialogueClip clip, DialogueTrack track)
         {
             Cutscene = cutscene;
@@ -52,11 +59,9 @@ namespace OcDialogue.Cutscene
             OnFadeOut = onClipFadeOut;
             OnEnd = onClipEnd;
         }
-
         public override void ProcessFrame(Playable playable, FrameData info, object playerData)
         {
-            if(!Application.isPlaying) return;
-            
+
             if(_playState == ClipPlayState.None && info.weight > 0f)
             {
                 if(hasToPause) _pauseScheduled = true;
@@ -93,6 +98,9 @@ namespace OcDialogue.Cutscene
 
         public override void OnBehaviourPause(Playable playable, FrameData info)
         {
+#if UNITY_EDITOR
+            ClearPreview();
+#endif
             // 이름은 일시정지때 호출될 것 같지만, 실제로는 클립이 끝날때도 호출됨.
             // 물론 director.Pause를 통해 일시정지하면 일시정지떄때도 호출하지만,
             // CutsceneBehaviour에서 일시정지를 Speed = 0으로 하는 식으로 하기때문에 그 일시정지로는 호출되지 않음.
@@ -103,11 +111,57 @@ namespace OcDialogue.Cutscene
                 OnEnd?.Invoke(this);
             }
         }
+        
 
         public override void OnPlayableDestroy(Playable playable)
         {
             _playState = ClipPlayState.None;
         }
+
+#if UNITY_EDITOR
+        public override void OnBehaviourPlay(Playable playable, FrameData info)
+        {
+            InitializePreview();
+            UpdatePreviewText();
+        }
+        public override void OnGraphStop(Playable playable)
+        {
+            ClearPreview();
+        }
+        void InitializePreview()
+        {
+            if (_editorPreviewCanvas == null)
+            {
+                _editorPreviewCanvas = new GameObject("_DialogueClip Preview").AddComponent<Canvas>();
+                _editorPreviewCanvas.gameObject.hideFlags = HideFlags.HideAndDontSave;
+                _editorPreviewCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                var scaler = _editorPreviewCanvas.gameObject.AddComponent<CanvasScaler>();
+            }
+
+            if (_editorPreviewText == null)
+            {
+                _editorPreviewText = new GameObject("TXT").AddComponent<TextMeshProUGUI>();
+                _editorPreviewText.font = DialogueAsset.Instance.cutscenePreviewFont;
+                _editorPreviewText.transform.SetParent(_editorPreviewCanvas.transform);
+                _editorPreviewText.rectTransform.anchorMin = Vector2.zero;
+                _editorPreviewText.rectTransform.anchorMax = Vector2.one;
+                _editorPreviewText.rectTransform.anchoredPosition = Vector2.zero;
+                _editorPreviewText.rectTransform.sizeDelta = Vector2.zero;
+                _editorPreviewText.alignment = TextAlignmentOptions.Bottom;
+            }
+        }
+
+        void UpdatePreviewText()
+        {
+            if (_editorPreviewText != null) _editorPreviewText.text = Balloon.text;
+        }
+
+        void ClearPreview()
+        {
+            if(_editorPreviewCanvas != null) Object.DestroyImmediate(_editorPreviewCanvas.gameObject);
+        }
+#endif
+
     }
 
     public enum ClipPlayState

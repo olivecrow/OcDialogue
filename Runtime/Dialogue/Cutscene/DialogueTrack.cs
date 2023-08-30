@@ -28,13 +28,16 @@ namespace OcDialogue.Cutscene
         List<DialogueClip> _clips;
         List<DialogueClipBehaviour> _clipBehaviours;
 
-        CutsceneBehaviour _behaviour;
-        PlayableDirector _director;
-        SignalReceiver _signalReceiver;
+        [SerializeField]CutsceneBehaviour _behaviour;
+        [SerializeField]PlayableDirector _director;
+        [SerializeField]SignalReceiver _signalReceiver;
 
         protected override Playable CreatePlayable(PlayableGraph graph, GameObject gameObject, TimelineClip clip)
         {
-            if (!Application.isPlaying) return base.CreatePlayable(graph, gameObject, clip);
+            if (!Application.isPlaying)
+            {
+                if (_behaviour == null) _behaviour = gameObject.GetComponent<CutsceneBehaviour>();
+            }
             var c = (DialogueClip)clip.asset;
             c.Init(CutsceneBehaviour, this, clip);
             c.OnCreatePlayable += behaviour =>

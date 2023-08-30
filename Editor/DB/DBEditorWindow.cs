@@ -64,6 +64,7 @@ namespace OcDialogue.Editor
         void UpdateDBEditor()
         {
             if (_DBNames == null) _DBNames = new List<string>();
+            if(DBManager.Instance.DBs.Count == 0) return;
             _DBNames.Clear();
             foreach (var db in DBManager.Instance.DBs) _DBNames.Add(db.Address);
             if(_CurrentDBEditor != null)
