@@ -43,10 +43,6 @@ namespace OcDialogue.Cutscene
         public static event Action<CutsceneBehaviour> OnCutsceneStart;
         public static event Action<CutsceneBehaviour> OnCutsceneEnd;
         
-        public static event Action<DialogueClipBehaviour> OnClipStart;
-        public static event Action<DialogueClipBehaviour> OnClipFadeOut;
-        public static event Action<DialogueClipBehaviour> OnClipEnd;
-
         public string DialogueSceneName => dialogueSceneName;
         public SignalReceiver SignalReceiver => signalReceiver;
         public Conversation Conversation => DialogueTrack.Conversation;
@@ -71,10 +67,11 @@ namespace OcDialogue.Cutscene
             DialogueTrack = director.playableAsset.outputs
                 .FirstOrDefault(x => x.outputTargetType == typeof(Conversation))
                 .sourceObject as DialogueTrack;
-            if(DialogueTrack != null) DialogueTrack.Init(this,
-                dialogueClipBehaviour => OnClipStart?.Invoke(dialogueClipBehaviour), 
-                dialogueClipBehaviour => OnClipFadeOut?.Invoke(dialogueClipBehaviour), 
-                dialogueClipBehaviour => OnClipEnd?.Invoke(dialogueClipBehaviour));
+            if (DialogueTrack != null)
+                DialogueTrack.Init(this,
+                    OnClipStart,
+                    OnClipFadeOut,
+                    OnClipEnd);
 
             director.stopped += playableDirector => InternalEnd();
         }
@@ -166,6 +163,9 @@ namespace OcDialogue.Cutscene
         protected virtual void PreEnd(){}
         protected virtual void PostEnd(){}
         
+        protected virtual void OnClipStart(DialogueClipBehaviour clipBehaviour){}
+        protected virtual void OnClipFadeOut(DialogueClipBehaviour clipBehaviour){}
+        protected virtual void OnClipEnd(DialogueClipBehaviour clipBehaviour){}
         void InternalEnd()
         {
             PreEnd();
@@ -192,9 +192,6 @@ namespace OcDialogue.Cutscene
             OnCutsceneStart = null;
             OnCutsceneEnd = null;
             
-            OnClipStart = null;
-            OnClipFadeOut = null;
-            OnClipEnd = null;
             IsCutscenePlaying = false;
             ActiveCutscene = null;
             
