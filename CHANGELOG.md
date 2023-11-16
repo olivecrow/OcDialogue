@@ -1,6 +1,10 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.4.14] -2023-11-16
+- CutsceneBehaviour에 인스턴스 이벤트인 start, end 추가
+- CutsceneBehaviour에서 스킵 도착시간을 인스펙터에서 정할 수 있는 변수 추가
+
 ### [2.4.13] -2023-11-05
 - CutsceneBehaviour의 클립 이벤트를 없애고 내부 콜백으로 전환함.
 

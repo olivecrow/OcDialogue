@@ -49,6 +49,7 @@ namespace OcDialogue.Cutscene
         [FoldoutGroup("Dialogue")]public string dialogueSceneName = "Dialogue UI";
         [FoldoutGroup("Dialogue")][Range(0.5f, 0.99f)]public double autoPauseNormalizedTime = 0.95;
         [FoldoutGroup("Dialogue")][Range(0, 5)]public double balloonFadeOutDuration = 1;
+        public float skipTime_fromEnd = 1;
         [InfoBox("이 대화에는 SignalReceiver가 필요함", InfoMessageType.Error, VisibleIf = "IsSignalReceiverRequired")]
         public SignalReceiver signalReceiver;
 
@@ -57,6 +58,9 @@ namespace OcDialogue.Cutscene
         [FoldoutGroup("OnAwake")] public UnityEvent OnAwake;
         [FoldoutGroup("OnPlay")] public UnityEvent OnPlay;
         [FoldoutGroup("OnEnd")] public UnityEvent OnEnd;
+
+        public event Action start;
+        public event Action end;
 
         public DialogueTrack DialogueTrack { get; private set; }
 
@@ -94,6 +98,7 @@ namespace OcDialogue.Cutscene
             ActiveCutscene = this;
             director.Play();
             OnPlay.Invoke();
+            start?.Invoke();
             OnCutsceneStart?.Invoke(this);
             PostPlay();
         }
@@ -141,9 +146,9 @@ namespace OcDialogue.Cutscene
         {
             if(!IsSkipToEndAvailable) return;
 
-            if (director.time > 10)
+            if (director.time > 5)
             {
-                director.time = director.duration - 3;
+                director.time = director.duration - skipTime_fromEnd;
             }
             else
             {
@@ -174,6 +179,7 @@ namespace OcDialogue.Cutscene
             IsCutscenePlaying = false;
             IsCutscenePaused = false;
             if(ActiveCutscene == this) ActiveCutscene = null;
+            end?.Invoke();
             OnCutsceneEnd?.Invoke(this);
             PostEnd();
         }
