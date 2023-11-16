@@ -1,6 +1,10 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.4.15] -2023-11-17
+-CutsceneBehaviour에서 스킵관련 오류 해결(duration이 time으로 적혀있던 문제)
+-CutsceneBehaviour에서 IsSkipToEndAvailable을 스킵 내용에 맞게 변경
+
 ### [2.4.14] -2023-11-16
 - CutsceneBehaviour에 인스턴스 이벤트인 start, end 추가
 - CutsceneBehaviour에서 스킵 도착시간을 인스펙터에서 정할 수 있는 변수 추가

@@ -27,9 +27,9 @@ namespace OcDialogue.Cutscene
             {
                 if (director.state != PlayState.Playing) return false;
                 if (!IsCutscenePlaying) return false;
-                if (ActiveCutscene.director.time > 10)
+                if (ActiveCutscene.director.duration > 5)
                 {
-                    if (director.time > director.duration - 3) return false;
+                    if (director.time > director.duration - skipTime_fromEnd) return false;
                 }
                 else
                 {
@@ -146,7 +146,7 @@ namespace OcDialogue.Cutscene
         {
             if(!IsSkipToEndAvailable) return;
 
-            if (director.time > 5)
+            if (director.duration > 5)
             {
                 director.time = director.duration - skipTime_fromEnd;
             }
