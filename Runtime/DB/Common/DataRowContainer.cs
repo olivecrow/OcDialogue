@@ -28,9 +28,9 @@ namespace OcDialogue.DB
                  "예를 들어 [0] stage1_clear, [1] stage2_clear 라는 데이터가 있을 경우, \n" +
                  "stage2_clear가 true가 되면 0번의 stage1_clear는 자동으로 true가 됨")]
         public OcDictionary<string, List<DataRow>> HierarchicalData;
-        internal event Action<DataRow> OnRuntimeValueChanged;
+        public event Action<DataRow> OnRuntimeValueChanged;
 
-        internal void InitFromEditor()
+        public void InitFromEditor()
         {
             foreach (var dataRow in DataRows)
             {

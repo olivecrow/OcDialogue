@@ -1,6 +1,9 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.5.2] -2023-11-18
+- 누락된 변경사항 추가
+
 ### [2.5.1] -2023-11-18
 - DataRowContainer의 Initialize와 InitFromEditor, OnRuntimeValueChagned를 public으로 다시 바꿈.
 - DataRowContainer.LoadFromEditorPreset이 InitFromEditor와 중복되기때문에 삭제함.
