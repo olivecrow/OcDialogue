@@ -24,8 +24,17 @@ namespace OcDialogue.DB
         public DialogueAsset DialogueAsset;
 
         public List<OcDB> DBs;
+        
+     
 
 #if UNITY_EDITOR
+        
+        [InitializeOnLoadMethod]
+        static void EditorInit()
+        {
+            _instance = Resources.Load<DBManager>("DB Manager");
+        }
+        
         /// <summary>
         /// (Editor Only) OcData에 사용할 id를 생성함.
         /// </summary>
