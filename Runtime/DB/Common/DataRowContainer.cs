@@ -2,14 +2,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using OcUtility;
 using Sirenix.OdinInspector;
+
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 using Random = UnityEngine.Random;
-using Vector3 = UnityEngine.Vector3;
-using Vector4 = UnityEngine.Vector4;
 
 namespace OcDialogue.DB
 {
@@ -28,53 +28,43 @@ namespace OcDialogue.DB
                  "예를 들어 [0] stage1_clear, [1] stage2_clear 라는 데이터가 있을 경우, \n" +
                  "stage2_clear가 true가 되면 0번의 stage1_clear는 자동으로 true가 됨")]
         public OcDictionary<string, List<DataRow>> HierarchicalData;
-        public event Action<DataRow> OnRuntimeValueChanged;
+        internal event Action<DataRow> OnRuntimeValueChanged;
 
-
-        public void Initialize()
+        internal void InitFromEditor()
         {
-            OnRuntimeValueChanged = null;
+            // 런타임에 생성되었던 데이터들은 null이 되기때문에 일단 없애줌.
             DataRows.RemoveAll(x => x == null);
             foreach (var dataRow in DataRows)
             {
-                dataRow.Initialize();
-                dataRow.OnRuntimeValueChanged += row => OnRuntimeValueChanged?.Invoke(row);
+                dataRow.InitFromEditor();
             }
-
-            foreach (var kv in HierarchicalData)
-            {
-                var list = kv.Value;
-                foreach (var data in list) data.OnRuntimeValueChanged += UpdateHierarchicalData;
-            }
-#if UNITY_EDITOR
-            Application.quitting += () => OnRuntimeValueChanged = null;      
-#endif
-        }
-        [Obsolete("Initialize를 사용할 것.")]
-        public void GenerateRuntimeData()
-        {
-            Initialize();
         }
 
         /// <summary>
         /// 런타임 값을 덮어씌움.
         /// </summary>
-        public void Overwrite(List<SavedDataRow> saveData)
+        internal void Initialize(List<SavedDataRow> saveData)
         {
+            // 런타임에 생성되었던 데이터들은 null이 되기때문에 일단 없애줌.
+            DataRows.RemoveAll(x => x == null);
+            foreach (var kv in HierarchicalData)
+            {
+                var list = kv.Value;
+                foreach (var data in list) data.OnRuntimeValueChanged += UpdateHierarchicalData;
+            }
+            
             for (int i = 0; i < saveData.Count; i++)
             {
                 var data = saveData[i];
                 
                 var matchedData = DataRows.Find(x => string.CompareOrdinal(x.name, data.name) == 0);
+                matchedData.OnRuntimeValueChanged += OnDataRowValueChanged;
                 if (matchedData == null)
                 {
                     if (data.isCreatedRuntime)
                     {
                         var added = AddDataRuntime(data.name, data.type, data.id);
                         data.CopyTo(added);
-#if DEBUG
-                        Debug.Log($"{Parent.DRT()}|Overwrite) 런타임에 DataRow 생성 | key : {data.name}");
-#endif
                     }
                     else
                     {
@@ -85,8 +75,31 @@ namespace OcDialogue.DB
 
                 data.CopyTo(matchedData);
             }
+            
+#if UNITY_EDITOR
+            EditorApplication.playModeStateChanged += ReleaseEvents;
+#endif
         }
 
+#if UNITY_EDITOR
+        void ReleaseEvents(PlayModeStateChange change)
+        {
+            if(change != PlayModeStateChange.ExitingPlayMode) return;
+            OnRuntimeValueChanged = null;
+
+            foreach (var dataRow in DataRows)
+            {
+                dataRow.ReleaseEvents();
+            }
+            
+            EditorApplication.playModeStateChanged -= ReleaseEvents;
+        }
+#endif
+        void OnDataRowValueChanged(DataRow row)
+        {
+            OnRuntimeValueChanged?.Invoke(row);
+        }
+        
         public List<SavedDataRow> GetSaveData()
         {
             var list = new List<SavedDataRow>();
@@ -138,8 +151,7 @@ namespace OcDialogue.DB
         DataRow AddDataRuntime(string key, DataRowType type, int manualID = 0)
         {
             var data = ScriptableObject.CreateInstance<DataRow>();
-            data.Initialize();
-            data.OnRuntimeValueChanged += row => OnRuntimeValueChanged?.Invoke(row);
+            data.OnRuntimeValueChanged += OnDataRowValueChanged;
             data.category = Parent.Category;
             data.isCreatedRuntime = true;
             data.Type = type;

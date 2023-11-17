@@ -56,7 +56,7 @@ namespace OcDialogue.DB
             get => _runtimeValue;
             set => _runtimeValue = value;
         }
-        public event Action<DataRow> OnRuntimeValueChanged;
+        internal event Action<DataRow> OnRuntimeValueChanged;
         [ShowInInspector, TableColumnWidth(250, false), PropertyOrder(-1)][DelayedProperty][InlineButton("Ping", "O")]
         [GUIColor("@nameColor")]
         public string Name
@@ -121,9 +121,8 @@ namespace OcDialogue.DB
         PrimitiveValue _initialValue;
 
         PrimitiveValue _runtimeValue;
-        public override void Initialize()
+        internal void InitFromEditor()
         {
-            OnRuntimeValueChanged = null;
             RuntimeValue = new PrimitiveValue()
             {
                 Type = Type,
@@ -134,10 +133,10 @@ namespace OcDialogue.DB
                 VectorValue = InitialValue.VectorValue
             };
         }
-        [Obsolete("Initialize를 사용할 것.")]
-        public void GenerateRuntimeData()
+
+        internal void ReleaseEvents()
         {
-            Initialize();
+            OnRuntimeValueChanged = null;
         }
 
         public void SetTypeAndValue(DataRowType type, object value)

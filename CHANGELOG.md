@@ -1,6 +1,13 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.5.0] -2023-11-18
+- DBManager의 자체 초기화를 없앰. 이제 각 DB를 직접 초기화해야됨.
+- DataRowContainer와 DataRow의 OnRuntimeValueChaged 이벤트를 internal로 제한함.
+- DataRowContainer의 초기화와 DataRow의 초기화 메서드를 internal로 제한함.
+- 이제 Initialize() 메서드 없이 InitFromEditor() 혹은 Initialize(List<CommonSaveData> datas) 메서드로 초기화하도록 변경함.
+- 각 DB의 초기화 상태를 해제하는 UnInitialization() 메서드 추가.
+
 ### [2.4.15] -2023-11-17
 -CutsceneBehaviour에서 스킵관련 오류 해결(duration이 time으로 적혀있던 문제)
 -CutsceneBehaviour에서 IsSkipToEndAvailable을 스킵 내용에 맞게 변경
