@@ -32,54 +32,76 @@ namespace OcDialogue.DB
 
         internal void InitFromEditor()
         {
+            foreach (var dataRow in DataRows)
+            {
+                dataRow.ReleaseEvents();
+            }
+
             // 런타임에 생성되었던 데이터들은 null이 되기때문에 일단 없애줌.
             DataRows.RemoveAll(x => x == null);
             foreach (var dataRow in DataRows)
             {
                 dataRow.InitFromEditor();
+                dataRow.OnRuntimeValueChanged += OnDataRowValueChanged;
             }
-        }
-
-        /// <summary>
-        /// 런타임 값을 덮어씌움.
-        /// </summary>
-        internal void Initialize(List<SavedDataRow> saveData)
-        {
-            // 런타임에 생성되었던 데이터들은 null이 되기때문에 일단 없애줌.
-            DataRows.RemoveAll(x => x == null);
-            foreach (var kv in HierarchicalData)
-            {
-                var list = kv.Value;
-                foreach (var data in list) data.OnRuntimeValueChanged += UpdateHierarchicalData;
-            }
-            
-            for (int i = 0; i < saveData.Count; i++)
-            {
-                var data = saveData[i];
-                
-                var matchedData = DataRows.Find(x => string.CompareOrdinal(x.name, data.name) == 0);
-                matchedData.OnRuntimeValueChanged += OnDataRowValueChanged;
-                if (matchedData == null)
-                {
-                    if (data.isCreatedRuntime)
-                    {
-                        var added = AddDataRuntime(data.name, data.type, data.id);
-                        data.CopyTo(added);
-                    }
-                    else
-                    {
-                        Debug.LogError($"{Parent.DRT()}|Overwrite) 해당 키를 가진 데이터를 찾을 수 없음 | key : {data.name} ");
-                    }
-                    continue;
-                }
-
-                data.CopyTo(matchedData);
-            }
-            
 #if UNITY_EDITOR
             EditorApplication.playModeStateChanged += ReleaseEvents;
 #endif
         }
+        
+        /// <summary>
+        /// DataRow를 초기화함. 저장된 데이터가 아닌 InitialValue로 초기화하려면 null을 입력할것. 
+        /// </summary>
+        /// <param name="saveData"></param>
+        public void Initialize(List<SavedDataRow> saveData)
+        {
+            // 런타임에 생성되었던 데이터들은 null이 되기때문에 일단 없애줌.
+            DataRows.RemoveAll(x => x == null);
+            foreach (var dataRow in DataRows)
+            {
+                dataRow.ReleaseEvents();
+            }
+            
+            
+            if (saveData == null)
+            {
+                foreach (var dataRow in DataRows)
+                {
+                    dataRow.Initialize();
+                    dataRow.OnRuntimeValueChanged += OnDataRowValueChanged;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < saveData.Count; i++)
+                {
+                    var data = saveData[i];
+                
+                    var matchedData = DataRows.Find(x => string.CompareOrdinal(x.name, data.name) == 0);
+                    matchedData.OnRuntimeValueChanged += OnDataRowValueChanged;
+                    if (matchedData == null)
+                    {
+                        if (data.isCreatedRuntime)
+                        {
+                            var added = AddDataRuntime(data.name, data.type, data.id);
+                            data.CopyTo(added);
+                        }
+                        else
+                        {
+                            Debug.LogError($"{Parent.DRT()}|Overwrite) 해당 키를 가진 데이터를 찾을 수 없음 | key : {data.name} ");
+                        }
+                        continue;
+                    }
+
+                    data.CopyTo(matchedData);
+                }
+            }
+
+#if UNITY_EDITOR
+            EditorApplication.playModeStateChanged += ReleaseEvents;
+#endif
+        }
+
 
 #if UNITY_EDITOR
         void ReleaseEvents(PlayModeStateChange change)
@@ -144,7 +166,7 @@ namespace OcDialogue.DB
             foreach (var data in validData)
             {
                 Debug.Log($"[DataRowContainer] Update Hierarchical Data) {data.name} => true");
-                data.SetValue(true);
+                data.SetValue(dataRow.RuntimeValue.BoolValue);
             }
         }
 
@@ -189,15 +211,7 @@ namespace OcDialogue.DB
             data.SetValue(value);
         }
 #if UNITY_EDITOR
-
-        public void LoadFromEditorPreset()
-        {
-            foreach (var dataRow in DataRows)
-            {
-                dataRow.LoadFromEditorPreset();
-            }
-        }
-
+        
         [HorizontalGroup("btn"),Button("Add Row"), GUIColor(0,1,1)]
         void Btn_AddData()
         {

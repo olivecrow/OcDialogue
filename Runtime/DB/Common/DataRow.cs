@@ -126,6 +126,19 @@ namespace OcDialogue.DB
             RuntimeValue = new PrimitiveValue()
             {
                 Type = Type,
+                BoolValue = _editorPresetValue.BoolValue,
+                IntValue = _editorPresetValue.IntValue,
+                FloatValue = _editorPresetValue.FloatValue,
+                StringValue = _editorPresetValue.StringValue,
+                VectorValue = _editorPresetValue.VectorValue,
+            };
+        }
+
+        internal void Initialize()
+        {
+            RuntimeValue = new PrimitiveValue()
+            {
+                Type = Type,
                 BoolValue = InitialValue.BoolValue,
                 IntValue = InitialValue.IntValue,
                 FloatValue = InitialValue.FloatValue,
@@ -384,18 +397,6 @@ namespace OcDialogue.DB
         void Ping()
         {
             EditorGUIUtility.PingObject(this);
-        }
-        internal void LoadFromEditorPreset()
-        {
-            RuntimeValue = new PrimitiveValue()
-            {
-                Type = Type,
-                BoolValue = _editorPresetValue.BoolValue,
-                IntValue = _editorPresetValue.IntValue,
-                FloatValue = _editorPresetValue.FloatValue,
-                StringValue = _editorPresetValue.StringValue,
-                VectorValue = _editorPresetValue.VectorValue,
-            };
         }
         internal void EditorPresetToDefault()
         {

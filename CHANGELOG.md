@@ -1,6 +1,10 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.5.1] -2023-11-18
+- DataRowContainer의 Initialize와 InitFromEditor, OnRuntimeValueChagned를 public으로 다시 바꿈.
+- DataRowContainer.LoadFromEditorPreset이 InitFromEditor와 중복되기때문에 삭제함.
+
 ### [2.5.0] -2023-11-18
 - DBManager의 자체 초기화를 없앰. 이제 각 DB를 직접 초기화해야됨.
 - DataRowContainer와 DataRow의 OnRuntimeValueChaged 이벤트를 internal로 제한함.
