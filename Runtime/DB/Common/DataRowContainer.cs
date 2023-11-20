@@ -103,16 +103,21 @@ namespace OcDialogue.DB
         }
 
 
-#if UNITY_EDITOR
-        void ReleaseEvents(PlayModeStateChange change)
+        public void UnInitialize()
         {
-            if(change != PlayModeStateChange.ExitingPlayMode) return;
             OnRuntimeValueChanged = null;
 
             foreach (var dataRow in DataRows)
             {
                 dataRow.ReleaseEvents();
             }
+        }
+
+#if UNITY_EDITOR
+        void ReleaseEvents(PlayModeStateChange change)
+        {
+            if(change != PlayModeStateChange.ExitingPlayMode) return;
+            UnInitialize();
             
             EditorApplication.playModeStateChanged -= ReleaseEvents;
         }

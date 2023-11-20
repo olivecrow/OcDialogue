@@ -39,7 +39,8 @@ namespace OcDialogue
             None,
             SubEntry,
             RandomSelection,
-            CycleSelection
+            CycleSelection,
+            SequenceSelection
         }
 
         public enum SubEntryDataType
@@ -136,89 +137,144 @@ namespace OcDialogue
 
         public bool IsAvailable => !useChecker || checker.IsTrue();
         public void OnDataApplied() { }
-        int _cycleIndex;
 
-        public Balloon GetNextDialogue(out IEnumerable<Balloon> choices, List<SignalAsset> eventSignals)
+        public Balloon GetNext(List<Balloon> choices, ref int cycleIndex)
         {
-            choices = null;
-
+            choices.Clear();
             if (linkedBalloons.Count == 0) return null;
-            
-            if (eventSignals == null) eventSignals = new List<SignalAsset>();
-            else eventSignals.Clear();
 
+            
             if (type == Type.Action)
             {
                 switch (actionType)
                 {
                     case ActionType.None:
                     case ActionType.SubEntry:
-                        return get_next_default(ref choices);
+                        return get_next();
                     case ActionType.RandomSelection:
-                        return get_random(ref choices);
+                        return get_random();
                     case ActionType.CycleSelection:
-                        return get_cycle(ref choices);
+                        return get_cycle(ref cycleIndex);
+                    case ActionType.SequenceSelection:
+                        return get_sequence(ref cycleIndex);
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
             }
 
-            return get_next_default(ref choices);
+            return get_next();
 
-            bool try_get(ref Balloon b, ref IEnumerable<Balloon> choices)
-            {
-                if(!b.IsAvailable) return false;
-                if(b.useEvent) eventSignals.Add(b.signal);
-                if(b.useSetter)
-                    foreach (var setter in b.setters) setter.Execute();
-                
-                if (linkedBalloons.Any(x => x.type == Type.Choice && x.IsAvailable))
-                {
-                    choices = linkedBalloons.Where(x => x.type == Type.Choice && x.IsAvailable);
-                }
-                
-                if (b.type == Type.Action) b = b.GetNextDialogue(out choices, eventSignals);
-
-                return true;
-            }
-
-            Balloon get_next_default(ref IEnumerable<Balloon> choices)
+            Balloon get_next()
             {
                 for (int i = 0; i < linkedBalloons.Count; i++)
                 {
                     var b = linkedBalloons[i];
-                    if (try_get(ref b, ref choices)) return b;
+                    if (is_available(b))
+                    {
+                        query_choices(b);
+                        return b;
+                    }
                 }
-
                 return null;
             }
 
-            Balloon get_random(ref IEnumerable<Balloon> choices)
+            Balloon get_random()
             {
-                choices = null;
                 var random = new System.Random();
+                // 중복되지 않은 인덱스로 반복을 돌려야해서 linkedBalloon의 개수 내에서 순서를 섞어서 사용함.
                 var randomOrderedIndex = Enumerable.Range(0, linkedBalloons.Count).OrderBy(x => random.Next());
 
                 for (int i = 0; i < linkedBalloons.Count; i++)
                 {
                     var b = linkedBalloons[randomOrderedIndex.ElementAt(i)];
-                    if (try_get(ref b, ref choices)) return b;
+                    if (is_available(b))
+                    {
+                        query_choices(b);
+                        return b;
+                    }
                 }
 
                 return null;
             }
             
-            Balloon get_cycle(ref IEnumerable<Balloon> choices)
+            Balloon get_cycle(ref int cycleIndex)
             {
-                _cycleIndex = (int)Mathf.Repeat(_cycleIndex++, linkedBalloons.Count);
+                var iteration = 0;
+                while (iteration < linkedBalloons.Count)
+                {
+                    cycleIndex = (int)Mathf.Repeat(cycleIndex, linkedBalloons.Count);
                 
-                var b = linkedBalloons[_cycleIndex];
-                if (try_get(ref b, ref choices)) return b;
+                    var b = linkedBalloons[cycleIndex];
+                    cycleIndex++;
+                    if (is_available(b))
+                    {
+                        query_choices(b);
+                        return b;
+                    }
+                    iteration++;
+                }
 
                 return null;
             }
+
+            Balloon get_sequence(ref int cycleIndex)
+            {
+                var iteration = 0;
+                while (iteration < linkedBalloons.Count)
+                {
+                    cycleIndex = Mathf.Clamp(cycleIndex, 0, linkedBalloons.Count - 1);
+                
+                    var b = linkedBalloons[cycleIndex];
+                    cycleIndex++;
+                    if (is_available(b))
+                    {
+                        query_choices(b);
+                        return b;
+                    }
+                    iteration++;
+                }
+
+                return null;
+            }
+
+            bool is_available(Balloon b) => b.type != Type.Choice && b.IsAvailable;
+
+            void query_choices(Balloon b)
+            {
+                for (int i = 0; i < b.linkedBalloons.Count; i++)
+                {
+                    var linked = b.linkedBalloons[i];
+                    if (linked.type == Type.Choice && linked.IsAvailable) choices.Add(linked);   
+                }
+
+            }
         }
 
+
+        public void UseBalloon(SignalReceiver signalReceiver)
+        {
+            if(useEvent)
+            {
+                if (signal == null)
+                {
+                    Debug.LogWarning($"Balloon({type}) : {text}|에서 이벤트를 사용하지만 SignalAsset이 설정되지 않음");
+                }
+                else
+                {
+                    if(signalReceiver == null) Debug.LogError($"Balloon({type}) : {text}|에서 이벤트를 사용하지만 SignalReceiver가 없음 | signal : {signal.name}");
+                    else
+                    {
+                        var reaction =signalReceiver.GetReaction(signal);
+                        
+                        if(reaction == null)
+                            Debug.LogWarning($"Balloon({type}) : {text}|에서 이벤트를 사용하지만 SignalReceiver에 이벤트가 설정되지 않음 | signal : {signal.name}");
+                    }
+                }
+                
+            }
+            if(useSetter)
+                foreach (var setter in setters) setter.Execute();
+        }
 #if UNITY_EDITOR
 
         /// <summary> actor필드에서 NPC이름을 드롭다운으로 보여주기위한 리스트를 반환함. (Odin Inspector용) </summary>

@@ -1,6 +1,14 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.5.4] -2023-11-21
+- UnInitialization을 동사형인 UnInitialize로 변경
+- DataRowContainer에 UnInitialize 추가
+- Balloon에서 상황에 따라 적절한 연결된 다음 Balloon을 얻는 GetNext() 메서드 추가
+  - GetNextDialogue는 삭제
+- IDialogueUser에 대화 사이클을 조절하는 DialogueCycleIndex 프로퍼티 추가
+- 미리 대화문을 시뮬레이션할 수 있는 Dialogue Simulator 추가 (OcDialgue > Dialogue Simulator)
+
 ### [2.5.3] -2023-11-19
 - DBManager의 인스턴스가 자동으로 로드되지 않는 버그때문에 EditorInit 다시 추가
 

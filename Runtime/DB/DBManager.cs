@@ -51,11 +51,12 @@ namespace OcDialogue.DB
         }
 #endif
 
-        public void UnInitialization()
+        public void UnInitialize()
         {
             foreach (var db in DBs)
             {
-                db.UnInitialization();
+                db.UnInitialize();
+                if(db is IDataRowUser d) d.DataRowContainer.UnInitialize();
             }
         }
     }

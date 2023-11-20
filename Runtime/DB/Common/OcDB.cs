@@ -23,7 +23,7 @@ namespace OcDialogue.DB
         public abstract void InitFromEditor();
         public abstract void Initialize(List<CommonSaveData> saveData);
 
-        public virtual void UnInitialization()
+        public virtual void UnInitialize()
         {
             OnRuntimeValueChanged = null;
             IsInitialized = false;
