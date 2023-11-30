@@ -348,6 +348,8 @@ namespace OcDialogue.Editor
                     Conversation.RemoveLinkData(fromNode.Balloon.GUID, toNode.Balloon.GUID);
                 }
             }
+
+            Debug.Log($"delete selection");
             Undo.RecordObject(Conversation, "Delete Selection");
             var result = base.DeleteSelection();
             Undo.CollapseUndoOperations(undoID);

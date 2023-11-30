@@ -81,7 +81,8 @@ namespace OcDialogue
                 case Balloon.Type.Entry:
                     balloon = CreateInstance<Balloon>();
                     balloon.type = Balloon.Type.Entry;
-                    balloon.GUID = Guid.NewGuid().ToString();
+                    balloon.GUID = $"{type}-{Guid.NewGuid()}";
+                    // balloon.GUID = Guid.NewGuid().ToString();
                     balloon.position = new Vector2(20, 60);
                     balloon.text = "Entry";
                     balloon.waitTime = 2;
@@ -89,19 +90,22 @@ namespace OcDialogue
                 case Balloon.Type.Dialogue:
                     balloon = CreateInstance<Balloon>();
                     balloon.type = Balloon.Type.Dialogue;
-                    balloon.GUID = Guid.NewGuid().ToString();
+                    balloon.GUID = $"{type}-{Guid.NewGuid()}";
+                    // balloon.GUID = Guid.NewGuid().ToString();
                     balloon.text = "New Dialogue";
                     balloon.actor = MainNPC;
                     break;
                 case Balloon.Type.Choice:
                     balloon = CreateInstance<Balloon>();
                     balloon.type = Balloon.Type.Choice;
-                    balloon.GUID = Guid.NewGuid().ToString();
+                    balloon.GUID = $"{type}-{Guid.NewGuid()}";
+                    // balloon.GUID = Guid.NewGuid().ToString();
                     balloon.text = "New Choice";
                     break;
                 case Balloon.Type.Action:
                     balloon = CreateInstance<Balloon>();
                     balloon.type = Balloon.Type.Action;
+                    // balloon.GUID = $"{type}-{Guid.NewGuid()}";
                     balloon.GUID = Guid.NewGuid().ToString();
                     balloon.text = "New Action";
                     break;
@@ -122,9 +126,13 @@ namespace OcDialogue
         public void RemoveBalloon(Balloon balloon)
         {
             if(!Balloons.Contains(balloon)) return;
+            if(balloon.type == Balloon.Type.Entry) return;
+            var id = Undo.GetCurrentGroup();
             Undo.RecordObject(this, "Remove Balloon");
+            Undo.RegisterFullObjectHierarchyUndo(this, "Remove Balloon");
             Balloons.Remove(balloon);
             AssetDatabase.RemoveObjectFromAsset(balloon);
+            Undo.CollapseUndoOperations(id);
         }
 
         public void AddLinkData(LinkData linkData)
@@ -167,7 +175,8 @@ namespace OcDialogue
         ValueDropdownList<OcData> GetNPCList() => DialogueAsset.Instance.GetNPCDropDown();
 
         
-        void OnValidate()
+        [BoxGroup("유틸리티 메서드"), Button("서브에셋에 누락된 Balloon 가져오기")]
+        void UpdateMissingSubAsset()
         {
             var subAssets = AssetDatabase.LoadAllAssetRepresentationsAtPath(AssetDatabase.GetAssetPath(this));
             for (int i = 0; i < Balloons.Count; i++)
@@ -176,6 +185,8 @@ namespace OcDialogue
                 if(Balloons[i] == null) continue;
                 AssetDatabase.AddObjectToAsset(Balloons[i], this);
             }
+            EditorUtility.SetDirty(this);
+            AssetDatabase.SaveAssets();
         }
 
         [BoxGroup("유틸리티 메서드"), Button("모든 말풍선의 LinkBalloons 리스트 업데이트")]
@@ -194,6 +205,36 @@ namespace OcDialogue
                 
                 rootBalloon.linkedBalloons.Add(targetBalloon);
             }
+        }
+        
+        [BoxGroup("유틸리티 메서드"), Button("말풍선의 GUID를 최신 형식으로 업데이트")]
+        void UpdateBalloonGUID()
+        {
+            foreach (var balloon in Balloons)
+            {
+                EditorUtility.SetDirty(balloon);
+                if(balloon.GUID.StartsWith(balloon.type.ToString()))continue;
+                balloon.GUID = $"{balloon.type}-{balloon.GUID}";
+                balloon.name = balloon.GUID;
+            }
+
+            foreach (var balloon in Balloons)
+            {
+                balloon.linkedBalloons = new List<Balloon>();
+            }
+            foreach (var linkData in LinkData)
+            {
+                var rootBalloon = Balloons.Find(x => x.GUID.Contains(linkData.from));
+                linkData.from = rootBalloon.GUID;
+                var targetBalloon = Balloons.Find(x => x.GUID.Contains(linkData.to));
+                linkData.to = targetBalloon.GUID;
+                
+                if(rootBalloon.linkedBalloons.Contains(targetBalloon)) continue;
+                
+                rootBalloon.linkedBalloons.Add(targetBalloon);
+            }
+            EditorUtility.SetDirty(this);
+            AssetDatabase.SaveAssets();
         }
 
 

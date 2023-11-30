@@ -1,6 +1,18 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.5.5] -2023-11-30
+- 삭제한 Balloon을 Undo 했을때 서브에셋이 복구되지 않던 문제 해결.
+- Balloon을 삭제했을때 오류메세지가 출력되던 문제 해결
+- Conversation에 Balloons에는 존재하나, 서브에셋이 누락되어있던 Balloon을 복구하는 유틸리티 버튼 추가
+- Balloon의 GUID형식 변경
+  - Conversation에 모든 Balloon의 GUID를 최신 형식으로 업데이트하는 유틸리티 버튼 추가
+  - 각 Balloon 아래에 GUID의 첫 24글자가 표시되도록 변경.
+- 컴파일 직전에, 변경사항이 있는 Conversation을 자동으로 저장하도록 변경.
+- DBDebugUI에서 카테고리별로 TreeView가 보이도록 변경
+- SavedDataRow에서 중복된 type 삭제.
+- Balloon에 ToString 오버라이드 추가
+
 ### [2.5.4] -2023-11-21
 - UnInitialization을 동사형인 UnInitialize로 변경
 - DataRowContainer에 UnInitialize 추가

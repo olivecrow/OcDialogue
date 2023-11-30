@@ -20,7 +20,7 @@ namespace OcDialogue.Cutscene
         public static bool IsCutscenePlaying { get; private set; }
 
         public static bool IsCutscenePaused { get; private set; }
-        public int DialogueCycleIndex { get; set; }
+        public Dictionary<string, int> DialogueCycleIndex { get; set; }
 
         public virtual bool IsSkipToEndAvailable
         {

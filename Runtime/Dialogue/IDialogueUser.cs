@@ -7,7 +7,7 @@ namespace OcDialogue
 {
     public interface IDialogueUser
     {
-        public int DialogueCycleIndex { get; set; }
+        public Dictionary<string, int> DialogueCycleIndex { get; set; }
         public string DialogueSceneName { get; }
         public SignalReceiver SignalReceiver { get; }
         public Conversation Conversation { get; }

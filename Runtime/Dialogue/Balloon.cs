@@ -140,7 +140,7 @@ namespace OcDialogue
 
         public Balloon GetNext(List<Balloon> choices, ref int cycleIndex)
         {
-            choices.Clear();
+            choices?.Clear();
             if (linkedBalloons.Count == 0) return null;
 
             
@@ -251,6 +251,7 @@ namespace OcDialogue
         }
 
 
+
         public void UseBalloon(SignalReceiver signalReceiver)
         {
             if(useEvent)
@@ -275,6 +276,12 @@ namespace OcDialogue
             if(useSetter)
                 foreach (var setter in setters) setter.Execute();
         }
+
+        public override string ToString()
+        {
+            return $"type : {type} | {GUID} \n{(actor == null ? "NoActor" : actor.name)}:{text}";
+        }
+
 #if UNITY_EDITOR
 
         /// <summary> actor필드에서 NPC이름을 드롭다운으로 보여주기위한 리스트를 반환함. (Odin Inspector용) </summary>

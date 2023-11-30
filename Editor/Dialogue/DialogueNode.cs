@@ -79,7 +79,9 @@ namespace OcDialogue.Editor
                 Description.style.color = new Color(0, 1f, 0f, 0.5f);
 
                 style.maxWidth = 160;
-                
+
+                var guid = new Label(balloon.GUID[..24]){style = {color = Color.gray}};
+                Add(guid);
                 Add(Description);
                 CreateIcons();
             }

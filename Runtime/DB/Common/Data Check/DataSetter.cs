@@ -98,6 +98,11 @@ namespace OcDialogue.DB
         /// <summary> Setter를 실행함. </summary>
         public void Execute()
         {
+            if (TargetData == null)
+            {
+                Debug.LogWarning($"TargetData가 비어있어서 DataSetter.Execute를 실행할 수 없음");
+                return;
+            }
             TargetData.SetValue(detail, op, TargetValue);
         }
 

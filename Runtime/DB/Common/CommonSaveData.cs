@@ -46,7 +46,6 @@ namespace OcDialogue
     {
         public string name;
         public int id;
-        public DataRowType type;
         public PrimitiveValue value;
         public bool isCreatedRuntime;
 
@@ -54,7 +53,6 @@ namespace OcDialogue
         {
             name = dataRow.name;
             id = dataRow.id;
-            type = dataRow.Type;
             value = dataRow.RuntimeValue;
             isCreatedRuntime = dataRow.isCreatedRuntime;
         }
@@ -82,7 +80,7 @@ namespace OcDialogue
         
         public override string ToString()
         {
-            return $"{name} [{id}] | {type} | {value.ToString()} :: isCreatedRuntime ? {isCreatedRuntime}";
+            return $"{name} [{id}] | {value.Type} | {value.ToString()} :: isCreatedRuntime ? {isCreatedRuntime}";
         }
     }
 }

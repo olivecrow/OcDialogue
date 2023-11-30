@@ -153,11 +153,12 @@ namespace OcDialogue.DB
                 }
                 _instancedTreeView.Clear();
             }
-            for (int i = 0; i < allData.Count; i++)
+
+            foreach (var data in allData.Where(x => x.Category == _currentCategory.data.name))
             {
                 var toggle = Instantiate(treeViewToggleTemplate, treeViewToggleArea);
-                var toggleData = new ToggleData(toggle, treeViewToggleGroup, allData[i]);
-                toggleData.text.text = allData[i].name;
+                var toggleData = new ToggleData(toggle, treeViewToggleGroup, data);
+                toggleData.text.text = data.name;
                 toggle.onValueChanged.AddListener(isOn =>
                 {
                     if(isOn) OnTreeViewSelected(toggleData);
@@ -165,6 +166,7 @@ namespace OcDialogue.DB
                 toggle.gameObject.SetActive(true);
                 _instancedTreeView.Add(toggleData);
             }
+            
 
             _currentCategory = _instancedTreeView.FirstOrDefault();
         }
@@ -259,6 +261,7 @@ namespace OcDialogue.DB
 
         void OnCategorySelected(ToggleData data)
         {
+            Debug.Log($"on category selected : {data.data.name}");
             _currentCategory = data;
             UpdateTreeView();
         }

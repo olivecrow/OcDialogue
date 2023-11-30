@@ -83,7 +83,7 @@ namespace OcDialogue.DB
                     {
                         if (data.isCreatedRuntime)
                         {
-                            var added = AddDataRuntime(data.name, data.type, data.id);
+                            var added = AddDataRuntime(data.name, data.value.Type, data.id);
                             data.CopyTo(added);
                         }
                         else
