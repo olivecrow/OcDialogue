@@ -166,12 +166,12 @@ namespace OcDialogue
 
             Balloon get_next()
             {
+                query_choices(this);
                 for (int i = 0; i < linkedBalloons.Count; i++)
                 {
                     var b = linkedBalloons[i];
                     if (is_available(b))
                     {
-                        query_choices(b);
                         return b;
                     }
                 }
