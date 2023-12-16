@@ -121,6 +121,9 @@ namespace OcDialogue
         public Vector2 imageSizeOverride;
         
         [TextArea]public string description;
+#if UNITY_EDITOR
+        [TextArea] public string localizationComment;  
+#endif
 
         [Indent()][ShowIf("type", Type.Action)]public ActionType actionType;
         [Indent()][ShowIf("type", Type.Action)]public SubEntryDataType subEntryDataType;

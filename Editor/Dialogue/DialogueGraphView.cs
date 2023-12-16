@@ -113,12 +113,10 @@ namespace OcDialogue.Editor
                     {
                         var temp = CreateLinkDataFromEdge(edge);
                         Conversation.RemoveLinkData(temp.@from, temp.to);
-                        
-                        
                     }
                 }
-                Conversation.UpdateLinkedBalloonList();
             }
+            Conversation.UpdateLinkedBalloonList();
 
             var myChange = new DialogueGraphViewChange();
             myChange.built_in = change;
@@ -349,17 +347,15 @@ namespace OcDialogue.Editor
                 }
             }
 
-            Debug.Log($"delete selection");
             Undo.RecordObject(Conversation, "Delete Selection");
             var result = base.DeleteSelection();
             Undo.CollapseUndoOperations(undoID);
             return result;
         }
-        
 
-        public override void HandleEvent(EventBase evt)
+        protected override void ExecuteDefaultAction(EventBase evt)
         {
-            base.HandleEvent(evt);
+            base.ExecuteDefaultAction(evt);
             if (evt.originalMousePosition != Vector2.zero)
             {
                 _lastMousePosition =
@@ -373,6 +369,8 @@ namespace OcDialogue.Editor
             Selection.objects = selection.Where(x => x is DialogueNode)
                 .Select(x => ((DialogueNode)x).Balloon).ToArray();
         }
+        
+        
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {

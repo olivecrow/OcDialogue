@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using OcDialogue.DB;
 using OcUtility;
 using Sirenix.OdinInspector.Editor;
@@ -17,6 +18,12 @@ namespace OcDialogue.Editor
 {
     public class DialogueEditorWindow : EditorWindow
     {
+        public enum SortMethod
+        {
+            Index,
+            Name,
+            NameDescending
+        }
         public static DialogueEditorWindow Instance => _instance;
         static DialogueEditorWindow _instance;
         public DialogueAsset Asset => DialogueAsset.Instance;
@@ -30,6 +37,8 @@ namespace OcDialogue.Editor
 #else
         public PopupField<string> ConversationField;
 #endif
+        public EnumField SortField;
+        public SortMethod sortMethod;
         public Button SelectConversationButton;
         public Button AddConversationButton;
         public Button RemoveConversationButton;
@@ -43,10 +52,30 @@ namespace OcDialogue.Editor
             get => Asset.Categories;
             set => Asset.Categories = value;
         }
-        
 
-        List<string> ConversationDropDownChoices => 
-            Asset.Conversations.Where(x => x.Category == _currentCategory).Select(x => x.key).ToList();
+
+        List<string> ConversationDropDownChoices
+        {
+            get
+            {
+                switch (sortMethod)
+                {
+                    case SortMethod.Index:
+                        return Asset.Conversations.Where(x => x.Category == _currentCategory)
+                            .Select(x => $"[{Asset.Conversations.IndexOf(x)}] {x.key}").ToList();
+                    case SortMethod.Name:
+                        return Asset.Conversations.Where(x => x.Category == _currentCategory)
+                            .OrderBy(x => x.name)
+                            .Select(x => $"[{Asset.Conversations.IndexOf(x)}] {x.key}").ToList();
+                    case SortMethod.NameDescending:
+                        return Asset.Conversations.Where(x => x.Category == _currentCategory)
+                            .OrderByDescending(x => x.name)
+                            .Select(x => $"[{Asset.Conversations.IndexOf(x)}] {x.key}").ToList();
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
 
         Dictionary<Edge, Label> _edgeLabels;
         string _currentCategory;
@@ -272,7 +301,18 @@ namespace OcDialogue.Editor
                     {
                         Conversation.onValidate -= OnConversationChanged;
                     }
-                    Conversation = Asset.Conversations.Find(x => x.key == s);
+
+                    string key;
+                    if(!string.IsNullOrWhiteSpace(s))
+                    {
+                        var match = Regex.Match(s, @"\[\d+\]\s(.*)");
+                        if (match.Success)
+                        {
+                            key = match.Groups[1].Value;
+                            Conversation = Asset.Conversations.Find(x => x.key == key);
+                        }
+                    }
+
                     
                     // 이번 Conversation이 null이 아니면, OnConversationChanged 콜백을 할당함.
                     if (Conversation != null)
@@ -299,6 +339,14 @@ namespace OcDialogue.Editor
 
             ConversationField.style.width = 400;
             ConversationSelectToolbar.Add(ConversationField);
+
+            SortField = new EnumField(sortMethod);
+            SortField.RegisterValueChangedCallback(e =>
+            {
+                sortMethod = (SortMethod)e.newValue;
+                RefreshConversationChoices();
+            });
+            ConversationSelectToolbar.Add(SortField);
 
             AddConversationButton = new Button(AddConversation);
             AddConversationButton.text = "+";

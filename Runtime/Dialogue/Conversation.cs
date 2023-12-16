@@ -69,6 +69,37 @@ namespace OcDialogue
                 select FindBalloon(linkData.to)).ToList();
         }
 
+        /// <summary> entryName이 입력된 경우 해당되는 서브 엔트리를, 입력되지 않은 경우엔 메인 엔트리를 반환함. </summary>
+        public Balloon GetEntry(string entryName = null)
+        {
+            if (string.IsNullOrWhiteSpace(entryName)) return Balloons.First(x => x.type == Balloon.Type.Entry);
+
+            for (int i = 0; i < Balloons.Count; i++)
+            {
+                var balloon = Balloons[i];
+                if(balloon.type != Balloon.Type.Action) continue;
+                if(balloon.actionType != Balloon.ActionType.SubEntry) continue;
+                if(balloon.subEntryDataType != Balloon.SubEntryDataType.String) continue;
+                if (balloon.subEntryTrigger == entryName) return balloon;
+            }
+
+            return null;
+        }
+        
+        public Balloon GetEntry(OcData entryTrigger)
+        {
+            for (int i = 0; i < Balloons.Count; i++)
+            {
+                var balloon = Balloons[i];
+                if (balloon.type != Balloon.Type.Action) continue;
+                if (balloon.actionType != Balloon.ActionType.SubEntry) continue;
+                if (balloon.subEntryDataType != Balloon.SubEntryDataType.OcData) continue;
+                if (balloon.subEntryTriggerData == entryTrigger) return balloon;
+            }
+
+            return null;
+        }
+
 #if UNITY_EDITOR
         public event Action onValidate;
         public List<DialogueTrack> e_CutsceneReference;
@@ -175,7 +206,7 @@ namespace OcDialogue
         ValueDropdownList<OcData> GetNPCList() => DialogueAsset.Instance.GetNPCDropDown();
 
         
-        [BoxGroup("유틸리티 메서드"), Button("서브에셋에 누락된 Balloon 가져오기")]
+        [BoxGroup("유틸리티 메서드"), Button("서브에셋에 누락된 Balloon 추가하기")]
         void UpdateMissingSubAsset()
         {
             var subAssets = AssetDatabase.LoadAllAssetRepresentationsAtPath(AssetDatabase.GetAssetPath(this));
@@ -201,9 +232,17 @@ namespace OcDialogue
                 var rootBalloon = Balloons.Find(x => string.CompareOrdinal(x.GUID, linkData.@from) == 0);
                 var targetBalloon = Balloons.Find(x => string.CompareOrdinal(x.GUID, linkData.to) == 0);
                 
+                if(rootBalloon == null || targetBalloon == null) continue;
+                
                 if(rootBalloon.linkedBalloons.Contains(targetBalloon)) continue;
                 
                 rootBalloon.linkedBalloons.Add(targetBalloon);
+            }
+
+            foreach (var balloon in Balloons)
+            {
+                if(balloon.linkedBalloons == null || balloon.linkedBalloons.Count < 1) continue;
+                balloon.linkedBalloons = balloon.linkedBalloons.OrderBy(x => x.position.y).ThenBy(x => x.position.x).ToList();
             }
         }
         
@@ -253,7 +292,7 @@ namespace OcDialogue
             }
         }
 
-        [BoxGroup("유틸리티 메서드"), Button("사용하지 않는 Balloon 제거")]
+        [BoxGroup("유틸리티 메서드"), Button("서브에셋이 아닌 Balloon 제거")]
         void RemoveUnusedBalloons()
         {
             var undoID = Undo.GetCurrentGroup();

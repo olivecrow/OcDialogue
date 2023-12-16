@@ -1,6 +1,15 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+### [2.6.0] -2023-12-16
+- DBDebugUI에서 오류를 발생시키는 디버그 로그 라인 삭제
+- DBDebugUI가 켜져있을때 매 업데이트마다 커서를 활성화하도록 변경
+- DataRowContainer를 초기화할때 런타임 데이터로 인해 발생할 수 있는 오류 해결
+- 다이얼로그 에디터에서 서브 엔트리 노드를 포함하는 다수의 UI를 삭제할때 오류가 발생하는 문제 해결
+- 다이얼로그 에디터에서 Conversation 드롭다운의 순서를 알파벳 순/역순으로 정렬할 수 있는 옵션 추가
+- Balloon에 번역용 주석을 적어넣을 수 있는 localizationComment 필드 추가
+- Conversation에 string 혹은 OcData로 해당되는 엔트리를 반환해주는 GetEntry 메서드 추가
+
 ### [2.5.6] -2023-12-01
 - Balloon의 GetNext에서 선택지를 현재 Balloon 기준으로 반환하도록 변경
 - package 버전 넘버 오류 수정

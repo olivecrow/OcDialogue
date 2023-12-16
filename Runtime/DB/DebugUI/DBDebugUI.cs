@@ -54,6 +54,12 @@ namespace OcDialogue.DB
             dataRowTemplate.gameObject.SetActive(false);
         }
 
+        void Update()
+        {
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Confined;   
+        }
+
         void UpdateDBButtons()
         {
             if(DBManager.Instance == null) return;
@@ -261,7 +267,6 @@ namespace OcDialogue.DB
 
         void OnCategorySelected(ToggleData data)
         {
-            Debug.Log($"on category selected : {data.data.name}");
             _currentCategory = data;
             UpdateTreeView();
         }

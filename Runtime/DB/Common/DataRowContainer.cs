@@ -78,7 +78,6 @@ namespace OcDialogue.DB
                     var data = saveData[i];
                 
                     var matchedData = DataRows.Find(x => string.CompareOrdinal(x.name, data.name) == 0);
-                    matchedData.OnRuntimeValueChanged += OnDataRowValueChanged;
                     if (matchedData == null)
                     {
                         if (data.isCreatedRuntime)
@@ -88,12 +87,18 @@ namespace OcDialogue.DB
                         }
                         else
                         {
-                            Debug.LogError($"{Parent.DRT()}|Overwrite) 해당 키를 가진 데이터를 찾을 수 없음 | key : {data.name} ");
+                            Debug.LogError($"{Parent.DRT()}|Overwrite) 해당 키를 가진 데이터를 찾을 수 없음 | key : {data.name} \n" +
+                                           $"만약 기존에 저장되어있던 데이터를 에디터의 DB에서 삭제하면 이 오류가 발생할 수 있음.");
                         }
                         continue;
                     }
 
                     data.CopyTo(matchedData);
+                }
+
+                foreach (var data in DataRows)
+                {
+                    data.OnRuntimeValueChanged += OnDataRowValueChanged;
                 }
             }
 
