@@ -25,7 +25,7 @@ namespace OcDialogue
         public abstract object GetValue(string fieldName);
         public abstract string[] GetFieldNames();
         public abstract void SetValue(string fieldName, DataSetter.Operator op, object value);
-        public abstract DataRowType? GetValueType(string fieldName);
+        public abstract DataRowType GetValueType(string fieldName);
         public abstract event Action changed;
         
         public static bool IsTrue(bool a, CheckFactor.Operator op, bool b)

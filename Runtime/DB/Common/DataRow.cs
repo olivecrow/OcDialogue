@@ -374,7 +374,7 @@ namespace OcDialogue.DB
                     throw new ArgumentOutOfRangeException();
             }
         }
-        public override DataRowType? GetValueType(string fieldName) => Type;
+        public override DataRowType GetValueType(string fieldName) => Type;
 
 
         public override string ToString()

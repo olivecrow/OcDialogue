@@ -10,7 +10,7 @@ namespace OcDialogue.DB
 {
     public abstract class OcDB : OcData
     {
-        public event Action OnRuntimeValueChanged;
+        public override event Action changed;
         public virtual string[] CategoryOverride => Categories;
         public string[] Categories;
 
@@ -25,18 +25,14 @@ namespace OcDialogue.DB
 
         public virtual void UnInitialize()
         {
-            OnRuntimeValueChanged = null;
+            changed = null;
             IsInitialized = false;
         }
         public abstract List<CommonSaveData> GetSaveData();
-
-        public virtual void InvokeValueChangeCallback()
-        {
-            OnRuntimeValueChanged?.Invoke();
-        }
+        
         public bool IsInitialized { get; protected set; }
         public abstract IEnumerable<OcData> AllData { get; }
-        public override DataRowType? GetValueType(string fieldName)
+        public override DataRowType GetValueType(string fieldName)
         {
             return DataRowType.String;
         }
@@ -47,7 +43,7 @@ namespace OcDialogue.DB
         {
             if (change == PlayModeStateChange.ExitingPlayMode)
             {
-                OnRuntimeValueChanged = null;
+                changed = null;
                 EditorApplication.playModeStateChanged -= ReleaseEvent;
             }
         }  

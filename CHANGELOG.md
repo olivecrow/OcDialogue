@@ -1,6 +1,13 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+## [2.6.2] -2024-01-06
+- DBEditorWindow에서 트리뷰 검색 및 정렬 안되던 문제 해결(됐는지 아직 모름)
+- OcData에서 GetValueType의 반환형을 Nullable에서 원래대로 바꿈.
+- OcDB에서 OnRuntimeValueChanged 말고 changed를 사용하도록 변경.
+  - abstract 이벤트이기 때문에 invoke를 직접 할 수 있어서 InvokeValeuChangeCallback메서드 없앰
+- DataSetter에서 매개변수가 없고 상속받지 않은 메서드를 호출할 수 있는 기능 추가.
+
 ## [2.6.1] -2024-01-05
 - DBEditorWindow에 트리뷰 검색 기능 및 정렬 기능 추가
 - OcData에 변경사항을 콜백하는 기본 changed 이벤트 추가 및 DataRow의 OnRuntimeValueChanged<DataRow> 이벤트 삭제

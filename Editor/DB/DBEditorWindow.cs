@@ -82,8 +82,13 @@ namespace OcDialogue.Editor
 
         protected override void DrawMenu()
         {
+            EditorGUI.BeginChangeCheck();
             _searchText = EditorGUILayout.TextField("",_searchText);
             _sortMethod = (DialogueEditorWindow.SortMethod)EditorGUILayout.EnumPopup("", _sortMethod);
+            if (EditorGUI.EndChangeCheck())
+            {
+                ForceMenuTreeRebuild();
+            }
             base.DrawMenu();
         }
 

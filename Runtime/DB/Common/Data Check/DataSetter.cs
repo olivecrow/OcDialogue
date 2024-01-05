@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using OcUtility;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -85,7 +86,7 @@ namespace OcDialogue.DB
 
         [HideInInspector]
         public OcData parent;
-        
+
         public object TargetValue => GetValueType() switch
         {
             DataRowType.Bool => BoolValue,
@@ -103,10 +104,28 @@ namespace OcDialogue.DB
                 Debug.LogWarning($"TargetData가 비어있어서 DataSetter.Execute를 실행할 수 없음");
                 return;
             }
-            TargetData.SetValue(detail, op, TargetValue);
+            if(string.IsNullOrWhiteSpace(detail) || targetData.GetFieldNames().Contains(detail))
+                TargetData.SetValue(detail, op, TargetValue);
+            else
+            {
+                var methods = targetData.GetType()
+                    .GetMethods(BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod);
+
+
+                var method = methods.FirstOrDefault(x => x.Name == detail);
+                if (method == null)
+                {
+                    Debug.LogError($"[DataSetter] {targetData.name}에 유효한 메서드 이름, 혹은 fieldName이 발견되지 않음 | detail : {detail}");
+                }
+                else
+                {
+                    if (method.IsStatic) method.Invoke(null, null);
+                    else method.Invoke(targetData, null);
+                }
+            }
         }
 
-        DataRowType? GetValueType()
+        DataRowType GetValueType()
         {
             if (targetData == null) return DataRowType.Bool;
             return targetData.GetValueType(detail);
@@ -141,6 +160,14 @@ namespace OcDialogue.DB
                 list.Add(fieldName);
             }
 
+            var methods = targetData.GetType()
+                .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+
+            foreach (var method in methods)
+            {
+                list.Add(method.Name);
+            }
+            
             return list;
         }
         
