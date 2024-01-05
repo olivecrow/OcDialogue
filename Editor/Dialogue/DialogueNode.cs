@@ -22,6 +22,7 @@ namespace OcDialogue.Editor
         public Label TextField;
         public VisualElement CheckerIcon;
         public VisualElement SetterIcon;
+        public VisualElement HighlightIcon;
         public VisualElement EventIcon;
         public VisualElement ImageIcon;
         public VisualElement WarningIcon;
@@ -109,6 +110,9 @@ namespace OcDialogue.Editor
             SetterIcon = CreateIcon(Resources.Load<Texture2D>("Setter Icon"));
             iconBar.Add(SetterIcon);
 
+            HighlightIcon = CreateIcon(Resources.Load<Texture2D>("Highlight Icon"));
+            iconBar.Add(HighlightIcon);
+
             
             EventIcon = CreateIcon(Resources.Load<Texture2D>("Event Icon"));
             iconBar.Add(EventIcon);
@@ -189,6 +193,7 @@ namespace OcDialogue.Editor
             if(Balloon.type == Balloon.Type.Entry) return;
             CheckerIcon.SetVisible(Balloon.useChecker);
             SetterIcon.SetVisible(Balloon.useSetter);
+            HighlightIcon.SetVisible(Balloon.useHighlight);
             EventIcon.SetVisible(Balloon.useEvent);
             ImageIcon.SetVisible(Balloon.useImage);
             WarningIcon.SetVisible(Balloon.IsWarningOn());

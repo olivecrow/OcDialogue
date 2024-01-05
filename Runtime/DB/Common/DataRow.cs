@@ -56,7 +56,6 @@ namespace OcDialogue.DB
             get => _runtimeValue;
             set => _runtimeValue = value;
         }
-        internal event Action<DataRow> OnRuntimeValueChanged;
         [ShowInInspector, TableColumnWidth(250, false), PropertyOrder(-1)][DelayedProperty][InlineButton("Ping", "O")]
         [GUIColor("@nameColor")]
         public string Name
@@ -121,6 +120,7 @@ namespace OcDialogue.DB
         PrimitiveValue _initialValue;
 
         PrimitiveValue _runtimeValue;
+        public override event Action changed;
         internal void InitFromEditor()
         {
             RuntimeValue = new PrimitiveValue()
@@ -149,7 +149,7 @@ namespace OcDialogue.DB
 
         internal void ReleaseEvents()
         {
-            OnRuntimeValueChanged = null;
+            changed = null;
         }
 
         public void SetTypeAndValue(DataRowType type, object value)
@@ -187,7 +187,7 @@ namespace OcDialogue.DB
                 Debug.LogWarning($"[DataRow][{name}] bool 타입엔 Operator.Set만 사용할 수 있음 | SetValue ==> {value}");
             var isNew = _runtimeValue.BoolValue != value;
             _runtimeValue.BoolValue = value;
-            if(!withoutNotify && isNew) OnRuntimeValueChanged?.Invoke(this);
+            if(!withoutNotify && isNew) changed?.Invoke();
         }
 
         /// <summary> 런타임 int 값을 변경함. </summary>
@@ -203,7 +203,7 @@ namespace OcDialogue.DB
             };
             var isNew = _runtimeValue.IntValue != result;
             _runtimeValue.IntValue = result;
-            if(!withoutNotify && isNew) OnRuntimeValueChanged?.Invoke(this);
+            if(!withoutNotify && isNew) changed?.Invoke();
         }
 
         /// <summary> 런타임 float 값을 변경함. </summary>
@@ -220,7 +220,7 @@ namespace OcDialogue.DB
             
             var isNew = Math.Abs(_runtimeValue.FloatValue - result) > 0.0005f;
             _runtimeValue.FloatValue = value;
-            if(!withoutNotify && isNew) OnRuntimeValueChanged?.Invoke(this);
+            if(!withoutNotify && isNew) changed?.Invoke();
         }
 
         /// <summary> 런타임 string 값을 변경함. </summary>
@@ -242,7 +242,7 @@ namespace OcDialogue.DB
             };
             var isNew = _runtimeValue.StringValue != result;
             _runtimeValue.StringValue = result;
-            if(!withoutNotify && isNew) OnRuntimeValueChanged?.Invoke(this);
+            if(!withoutNotify && isNew) changed?.Invoke();
         }
 
         public void SetValue(Vector2 value, DataSetter.Operator op = DataSetter.Operator.Set, bool withoutNotify = false)
@@ -282,7 +282,7 @@ namespace OcDialogue.DB
             
             var isNew = _runtimeValue.VectorValue != result;
             _runtimeValue.VectorValue = result;
-            if(!withoutNotify && isNew) OnRuntimeValueChanged?.Invoke(this);
+            if(!withoutNotify && isNew) changed?.Invoke();
         }
 
         public bool IsTrue(CheckFactor.Operator op, object value)
@@ -374,7 +374,7 @@ namespace OcDialogue.DB
                     throw new ArgumentOutOfRangeException();
             }
         }
-        public override DataRowType GetValueType(string fieldName) => Type;
+        public override DataRowType? GetValueType(string fieldName) => Type;
 
 
         public override string ToString()

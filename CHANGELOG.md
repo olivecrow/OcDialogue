@@ -1,6 +1,12 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+## [2.6.1] -2024-01-05
+- DBEditorWindow에 트리뷰 검색 기능 및 정렬 기능 추가
+- OcData에 변경사항을 콜백하는 기본 changed 이벤트 추가 및 DataRow의 OnRuntimeValueChanged<DataRow> 이벤트 삭제
+  - OcData에서 상속받는 클래스는 OcData에 있는 기본 콜백을 구현하고, 콜백의 파라미터로 데이터를 입력할때는 changed를 구독하는 상위 데이터 혹은 DB에서 입력해야함.
+- Balloon의 Highlight GUI색상 변경 및 DialogueEditor 상에서의 아이콘 구현
+
 ### [2.6.0] -2023-12-16
 - DBDebugUI에서 오류를 발생시키는 디버그 로그 라인 삭제
 - DBDebugUI가 켜져있을때 매 업데이트마다 커서를 활성화하도록 변경

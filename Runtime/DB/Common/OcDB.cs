@@ -36,7 +36,7 @@ namespace OcDialogue.DB
         }
         public bool IsInitialized { get; protected set; }
         public abstract IEnumerable<OcData> AllData { get; }
-        public override DataRowType GetValueType(string fieldName)
+        public override DataRowType? GetValueType(string fieldName)
         {
             return DataRowType.String;
         }

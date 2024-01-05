@@ -87,7 +87,7 @@ namespace OcDialogue
 
         [HideIf("type", Type.Entry)] public bool useHighlight;
         [InfoBox("Check Factor가 하나도 없음", InfoMessageType.Error, "@highlightCondition != null && highlightCondition.factors != null && highlightCondition.factors.Length == 0")]
-        [ShowIf("useHighlight"), HideLabel, BoxGroup("Highlight"), GUIColor(2.8f, 1.8f, 1.5f)]public DataChecker highlightCondition;
+        [ShowIf("useHighlight"), HideLabel, BoxGroup("Highlight"), GUIColor(1f, 1.8f, 2f)]public DataChecker highlightCondition;
         
         [HideIf("type", Type.Entry)] public bool useSetter;
 

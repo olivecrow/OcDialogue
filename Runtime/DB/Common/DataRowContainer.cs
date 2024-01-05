@@ -42,7 +42,7 @@ namespace OcDialogue.DB
             foreach (var dataRow in DataRows)
             {
                 dataRow.InitFromEditor();
-                dataRow.OnRuntimeValueChanged += OnDataRowValueChanged;
+                dataRow.changed += () => OnRuntimeValueChanged?.Invoke(dataRow);
             }
 #if UNITY_EDITOR
             EditorApplication.playModeStateChanged += ReleaseEvents;
@@ -68,7 +68,7 @@ namespace OcDialogue.DB
                 foreach (var dataRow in DataRows)
                 {
                     dataRow.Initialize();
-                    dataRow.OnRuntimeValueChanged += OnDataRowValueChanged;
+                    dataRow.changed += () => OnRuntimeValueChanged?.Invoke(dataRow);
                 }
             }
             else
@@ -98,7 +98,7 @@ namespace OcDialogue.DB
 
                 foreach (var data in DataRows)
                 {
-                    data.OnRuntimeValueChanged += OnDataRowValueChanged;
+                    data.changed += () => OnRuntimeValueChanged?.Invoke(data);
                 }
             }
 
@@ -127,10 +127,7 @@ namespace OcDialogue.DB
             EditorApplication.playModeStateChanged -= ReleaseEvents;
         }
 #endif
-        void OnDataRowValueChanged(DataRow row)
-        {
-            OnRuntimeValueChanged?.Invoke(row);
-        }
+
         
         public List<SavedDataRow> GetSaveData()
         {
@@ -183,7 +180,7 @@ namespace OcDialogue.DB
         DataRow AddDataRuntime(string key, DataRowType type, int manualID = 0)
         {
             var data = ScriptableObject.CreateInstance<DataRow>();
-            data.OnRuntimeValueChanged += OnDataRowValueChanged;
+            data.changed += () => OnRuntimeValueChanged?.Invoke(data);
             data.category = Parent.Category;
             data.isCreatedRuntime = true;
             data.Type = type;

@@ -106,7 +106,7 @@ namespace OcDialogue.DB
             TargetData.SetValue(detail, op, TargetValue);
         }
 
-        DataRowType GetValueType()
+        DataRowType? GetValueType()
         {
             if (targetData == null) return DataRowType.Bool;
             return targetData.GetValueType(detail);
