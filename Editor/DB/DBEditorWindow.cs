@@ -62,22 +62,31 @@ namespace OcDialogue.Editor
             var tree = new OdinMenuTree();
 
             _CurrentDBEditor?.CreateTree(tree);
-            tree.FlatMenuTree.RemoveAll(x => !x.Name.Contains(_searchText));
+            var list = tree.MenuItems;
+            if(!string.IsNullOrWhiteSpace(_searchText))
+            {
+                tree.MenuItems.RemoveAll(x => !x.Name.ToLower().Contains(_searchText.ToLower()));
+            }
             switch (_sortMethod)
             {
                 case DialogueEditorWindow.SortMethod.Index:
                     break;
                 case DialogueEditorWindow.SortMethod.Name:
-                    tree.FlatMenuTree = tree.FlatMenuTree.OrderBy(x => x.Name).ToList();
+                    list = list.OrderBy(x => x.Name).ToList();
                     break;
                 case DialogueEditorWindow.SortMethod.NameDescending:
-                    tree.FlatMenuTree = tree.FlatMenuTree.OrderByDescending(x => x.Name).ToList();
+                    list = list.OrderByDescending(x => x.Name).ToList();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
             
-            return tree;
+            var newTree = new OdinMenuTree();
+            foreach (var item in list)
+            {
+                newTree.Add(item.Name, item.Value, item.Icon);
+            }
+            return newTree;
         }
 
         protected override void DrawMenu()

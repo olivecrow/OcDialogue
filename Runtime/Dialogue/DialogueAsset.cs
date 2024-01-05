@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using OcDialogue.DB;
+using OcUtility;
 using Sirenix.OdinInspector;
 using TMPro;
 
@@ -44,6 +46,46 @@ namespace OcDialogue
         public DialogueAsset()
         {
             Categories = new[] {"Main"};
+        }
+
+        void OnValidate()
+        {
+            foreach (var conversation in Conversations)
+            {
+                
+                foreach (var balloon in conversation.Balloons)
+                {
+                    if (balloon.useChecker)
+                    {
+                        foreach (var factor in balloon.checker.factors)
+                        {
+                            if(factor.TargetData == null) Debug.LogError($"{conversation.DRT(true)} | {balloon.DRT(true)} | {balloon.text} 에 빈 CheckerFactor가 있음");
+                        }
+                    }
+
+                    if (balloon.useSetter)
+                    {
+                        foreach (var setter in balloon.setters)
+                        {
+                            if(setter.TargetData == null) Debug.LogError($"{conversation.DRT(true)} | {balloon.DRT(true)} | {balloon.text} 에 빈 Setter가 있음");
+                        }
+                    }
+
+                    if (balloon.useHighlight)
+                    {
+                        foreach (var factor in balloon.highlightCondition.factors)
+                        {
+                            if(factor.TargetData == null) Debug.LogError($"{conversation.DRT(true)} | {balloon.DRT(true)} | {balloon.text} 에 빈 Highlight CheckerFactor가 있음");   
+                        }
+                    }
+
+                    if (balloon.useImage)
+                    {
+                        if(balloon.displayTargetImage.editorAsset == null)
+                            Debug.LogError($"{balloon.DRT(true)} | {balloon.text} 에 이미지가 비어있음");
+                    }
+                }
+            }
         }
 
         public ValueDropdownList<OcData> GetNPCDropDown()

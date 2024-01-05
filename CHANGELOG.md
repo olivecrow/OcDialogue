@@ -1,6 +1,13 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+## [2.6.3] -2024-01-06
+- DBEditorWindow에서 검색 및 정렬 제대로 작동하게함.
+- DataSetter에서 프로퍼티는 제외하도록 바꿈
+  - 메서드가 선택됐을때는 불필요한 GUI 가려지도록 바꿈
+- DialogueAsset에서 빈 CheckerFactor나 Setter가 있으면 오류 메세지 출력하는 기능 추가
+  - DB에 대해서는 각 구현된 DB에서 직접 만들어야함.
+
 ## [2.6.2] -2024-01-06
 - DBEditorWindow에서 트리뷰 검색 및 정렬 안되던 문제 해결(됐는지 아직 모름)
 - OcData에서 GetValueType의 반환형을 Nullable에서 원래대로 바꿈.

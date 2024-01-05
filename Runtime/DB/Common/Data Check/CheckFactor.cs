@@ -129,7 +129,7 @@ namespace OcDialogue.DB
 
             detail = targetData.GetFieldNames()[0];
         }
-        DataRowType? GetValueType()
+        DataRowType GetValueType()
         {
             if (targetData == null) return DataRowType.Bool;
             return targetData.GetValueType(detail);

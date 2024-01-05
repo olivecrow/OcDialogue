@@ -29,13 +29,7 @@ namespace OcDialogue.DB
             set
             {
                 targetData = value;
-                if(targetData != null)
-                {
-                    var fieldNames = targetData.GetFieldNames();
-                    detail = fieldNames == null || fieldNames.Length == 0 ? "" : fieldNames[0];
-
-                    op = Operator.Set;
-                }
+                OnDataChanged();
             }
         }
 
@@ -44,6 +38,7 @@ namespace OcDialogue.DB
         [GUIColor(1f, 1f, 1.2f)]
         [InlineButton("OpenSelectWindow", " 선택 ")]
         [HideLabel]
+        [OnValueChanged("OnDataChanged")]
         [SerializeField] OcData targetData;
 
         /// <summary> TargetData내에서도 판단의 분류가 나뉘는 경우, 여기에 해당하는 값을 입력해서 그걸 기준으로 어떤 변수를 판단할지 정함. </summary>
@@ -52,19 +47,19 @@ namespace OcDialogue.DB
         public string detail;
         
         [LabelText("@e_Label"), LabelWidth(250)][GUIColor(1,1,1,2f)]
-        [HideLabel][ValueDropdown(nameof(GetOperatorDropDown))][HorizontalGroup("2")] 
+        [HideLabel][ValueDropdown(nameof(GetOperatorDropDown))][HorizontalGroup("2")] [HideIf("isMethod")]
         public Operator op;
 
         [GUIColor(1f,1f,1f)]
-        [HorizontalGroup("2"), HideLabel] [ShowIf(nameof(GetValueType), DataRowType.Bool)] [ExplicitToggle()]
+        [HorizontalGroup("2"), HideLabel] [ShowIf("@GetValueType()==DataRowType.Bool&&!isMethod")] [ExplicitToggle()]
         public bool BoolValue;
         
         [GUIColor(1f,1f,1f)]
-        [HorizontalGroup("2"), HideLabel] [ShowIf(nameof(GetValueType), DataRowType.Int)]
+        [HorizontalGroup("2"), HideLabel] [ShowIf("@GetValueType()==DataRowType.Int&&!isMethod")]
         public int IntValue;
         
         [GUIColor(1f,1f,1f)]
-        [HorizontalGroup("2"), HideLabel] [ShowIf(nameof(GetValueType), DataRowType.Float)]
+        [HorizontalGroup("2"), HideLabel] [ShowIf("@GetValueType()==DataRowType.Float&&!isMethod")]
         public float FloatValue;
         
         [GUIColor(1f,1f,1f)]
@@ -87,6 +82,21 @@ namespace OcDialogue.DB
         [HideInInspector]
         public OcData parent;
 
+        public bool isMethod
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(detail) || targetData.GetFieldNames().Contains(detail)) return false;
+                var methods = targetData.GetType()
+                    .GetMethods(BindingFlags.Public | BindingFlags.Instance| BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod);
+
+
+                var method = methods.FirstOrDefault(x => x.Name == detail);
+                if (method == null) return false;
+                return true;
+            }
+        }
+        
         public object TargetValue => GetValueType() switch
         {
             DataRowType.Bool => BoolValue,
@@ -108,8 +118,9 @@ namespace OcDialogue.DB
                 TargetData.SetValue(detail, op, TargetValue);
             else
             {
+                
                 var methods = targetData.GetType()
-                    .GetMethods(BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod);
+                    .GetMethods(BindingFlags.Public | BindingFlags.Instance| BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod);
 
 
                 var method = methods.FirstOrDefault(x => x.Name == detail);
@@ -161,13 +172,13 @@ namespace OcDialogue.DB
             }
 
             var methods = targetData.GetType()
-                .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+                .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod);
 
             foreach (var method in methods)
             {
-                list.Add(method.Name);
+                if(method.IsAbstract || method.IsVirtual) continue;
+                list.Add($"{method.Name}( )", method.Name);
             }
-            
             return list;
         }
         
@@ -193,6 +204,21 @@ namespace OcDialogue.DB
             }
 
             return list;
+        }
+
+        void OnDataChanged()
+        {
+            if(targetData != null)
+            {
+                var fieldNames = targetData.GetFieldNames();
+                detail = fieldNames == null || fieldNames.Length == 0 ? "" : fieldNames[0];
+
+                op = Operator.Set;
+            }
+            else
+            {
+                detail = null;
+            }
         }
 
 #if UNITY_EDITOR
