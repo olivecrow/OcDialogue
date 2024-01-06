@@ -8,6 +8,7 @@ using Sirenix.OdinInspector;
 using UnityEditor;
 #endif
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace OcDialogue.DB
 {
@@ -89,8 +90,6 @@ namespace OcDialogue.DB
         
         [HideInInspector]
         public string address;
-        [HideInInspector]
-        public OcData parent;
 
         public string Detail
         {
@@ -204,7 +203,7 @@ namespace OcDialogue.DB
         [Button("선택"), GUIColor(1, 1, 2)][TableColumnWidth(50, false)][VerticalGroup("_")]
         void OpenSelectWindow()
         {
-            DataSelectWindow.Open(this, parent);
+            DataSelectWindow.Open(this);
         }
 
         

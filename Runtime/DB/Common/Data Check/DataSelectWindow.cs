@@ -8,6 +8,7 @@ using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 using UnityEditor.Search;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace OcDialogue.DB
 {
@@ -39,16 +40,14 @@ namespace OcDialogue.DB
         }
         public bool DBRestriction { get; set; }
         OcDB _currentDB;
-        OcData _caller;
         int _currentDBIndex;
         bool _useDataSelector;
-        public static DataSelectWindow Open(IOcDataSelectable dataSelectable, OcData caller)
+        public static DataSelectWindow Open(IOcDataSelectable dataSelectable)
         {
             var wnd = GetWindow<DataSelectWindow>(true);
             wnd.minSize = new Vector2(700, 300);
             wnd.maxSize = new Vector2(700, 300);
             wnd.DataSelectable = dataSelectable;
-            wnd._caller = caller;
             return wnd;
         }
 
@@ -90,7 +89,10 @@ namespace OcDialogue.DB
         {
             if(Selector != null && Selector.ValidData != null)
             {
-                if(_caller != null) Undo.RecordObject(_caller, "DataSelectWindow Apply");
+                if (Selection.activeObject != null)
+                {
+                    EditorUtility.SetDirty(Selection.activeObject);
+                }
                 if(DataSelectable != null)
                 {
                     DataSelectable.TargetData = Selector.ValidData;
@@ -99,6 +101,11 @@ namespace OcDialogue.DB
                 OnDataSelected?.Invoke(Selector.ValidData);
                 Close();
             }
+        }
+
+        void OnSelectionChange()
+        {
+            Close();
         }
     }
 
@@ -137,12 +144,11 @@ namespace OcDialogue.DB
         [ValueDropdown(nameof(GetCategory))]public string Category;
         [EnumToggleButtons]public DataSelectionType dataSelectionType;
         public string filter;
-
-        [ValueDropdown(nameof(GetData))][OnValueChanged(nameof(UpdateDataContainer))]
+        [ValueDropdown(nameof(GetData), SortDropdownItems = true)][OnValueChanged(nameof(UpdateDataContainer))]
         [SerializeField]
         OcData Data;
         [ShowIf(nameof(dataSelectionType), DataSelectionType.Target_DataRow)]
-        [SerializeField]
+        [SerializeField][HideLabel]
         DataRowSelector DataRowSelector;
         
         public OcData ValidData => dataSelectionType switch

@@ -1,6 +1,13 @@
 # Changelog
 모든 변경사항을 이 곳에 기록함.
 
+## [2.6.4] -2024-01-06
+- DataSelectWindow에서 데이터를 적용할때 선택된 오브젝트를 SetDirty하는 기능 추가
+  - 이게 없으면 변경사항이 저장이 안됨
+- DataSelectWindow의 데이터 목록을 정렬된 상태로 보여주도록 변경.
+- Balloon에서 Highlight에 오류가 있을때도 경고 아이콘이 표시되도록 변경
+- DBEditorWindow에서 메뉴 선택시, 인스펙터가 변경되지 않던 문제 해결을 위해 CreateTree()에 아이템 목록을 매개변수로 따로 제공하도록 변경.
+
 ## [2.6.3] -2024-01-06
 - DBEditorWindow에서 검색 및 정렬 제대로 작동하게함.
 - DataSetter에서 프로퍼티는 제외하도록 바꿈

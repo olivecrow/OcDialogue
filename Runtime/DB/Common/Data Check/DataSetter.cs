@@ -233,7 +233,7 @@ namespace OcDialogue.DB
         
         void OpenSelectWindow()
         {
-            DataSelectWindow.Open(this, parent);
+            DataSelectWindow.Open(this);
         }
 
         public void SetTargetValue(object value)

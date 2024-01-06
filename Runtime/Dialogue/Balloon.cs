@@ -366,6 +366,16 @@ namespace OcDialogue
                     if (setter.TargetData == null) return true;
                 }
             }
+
+            if (useHighlight)
+            {
+                if (highlightCondition.factors == null) return false;
+                if(highlightCondition.factors.Length == 0) return true;
+                foreach (var factor in highlightCondition.factors)
+                {
+                    if (factor.TargetData == null) return true;
+                }
+            }
             if (useEvent)
             {
                 if(signal == null) return true;
@@ -419,7 +429,7 @@ namespace OcDialogue
 
         void OpenDataSelectWindow()
         {
-            DataSelectWindow.Open(this, null);
+            DataSelectWindow.Open(this);
         }
 #endif
     }

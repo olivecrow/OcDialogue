@@ -1,12 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using OcDialogue.DB;
 using OcUtility;
 using Sirenix.OdinInspector;
-using UnityEditor;
 using UnityEngine;
 
 namespace OcDialogue.DB
@@ -59,7 +56,7 @@ namespace OcDialogue.DB
         {
             return CreateCheckGroups(factors.ToList(), bindings);
         }
-        
+
 #if UNITY_EDITOR
         [InfoBox("@e_bindingErrMsg", InfoMessageType.Error, nameof(HasUnusedCheckables))]
         [HorizontalGroup("binding")] [ShowInInspector] [HideLabel] [TextArea(1,3)][ReadOnly]

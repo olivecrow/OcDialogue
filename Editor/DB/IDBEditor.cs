@@ -8,7 +8,7 @@ namespace OcDialogue.Editor
     public interface IDBEditor
     {
         OdinMenuEditorWindow Window { get; set; }
-        void CreateTree(OdinMenuTree tree);
+        void CreateTree(OdinMenuTree tree, List<OdinMenuItem> items);
         void DrawToolbar();
         void OnInspectorGUI();
         void AddDialogueContextualMenu(ContextualMenuPopulateEvent evt, DialogueGraphView graphView);
